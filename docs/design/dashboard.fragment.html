@@ -1,0 +1,179 @@
+<div id="range-dashboard">
+<style>
+#range-dashboard { --r-bg:light-dark(#f5f6f8,#101419);--r-panel:light-dark(#ffffff,#181e25);--r-ink:light-dark(#1c2634,#edf0f4);--r-muted:light-dark(#627084,#a5b2c3);--r-line:light-dark(#e1e6ec,#303a46);--r-soft:light-dark(#eef2f6,#222c38);--r-red:light-dark(#b84345,#f49090);--r-redbg:light-dark(#fff0ef,#39272c);--r-blue:light-dark(#285ab2,#9bbaff);--r-bluebg:light-dark(#edf3ff,#233249);--r-green:light-dark(#237158,#85d5b7);--r-greenbg:light-dark(#e9f6ef,#1d352f);--r-primary:light-dark(#263c57,#d4e1f2);--r-onprimary:light-dark(#fff,#182435);--r-radius:14px;color:var(--r-ink);background:var(--r-bg);font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;border:1px solid var(--r-line);border-radius:18px;overflow:hidden; }
+#range-dashboard * {box-sizing:border-box;}
+#range-dashboard button {font:inherit;color:inherit;}
+#range-dashboard button:focus-visible {outline:3px solid var(--r-blue);outline-offset:3px;}
+#range-dashboard .r-top {display:flex;justify-content:space-between;gap:16px;align-items:center;padding:17px 25px;background:var(--r-panel);border-bottom:1px solid var(--r-line);flex-wrap:wrap;}
+#range-dashboard .r-brand {display:flex;gap:10px;align-items:center;font-size:16px;font-weight:600;letter-spacing:2px;}
+#range-dashboard .r-logo {display:grid;place-items:center;background:var(--r-primary);color:var(--r-onprimary);width:32px;height:32px;border-radius:9px;}
+#range-dashboard .r-top-meta {display:flex;gap:12px;align-items:center;font-size:12px;color:var(--r-muted);}
+#range-dashboard .r-pill {display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:6px;background:var(--r-soft);font-size:12px;font-weight:500;}
+#range-dashboard .r-body {padding:26px;}
+#range-dashboard .r-heading {display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:24px;}
+#range-dashboard .r-eyebrow {font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--r-muted);font-weight:600;}
+#range-dashboard h1 {font-size:27px;line-height:1.2;font-weight:600;letter-spacing:-.8px;margin:6px 0 8px;}
+#range-dashboard p {margin:0;}
+#range-dashboard .r-subtitle {color:var(--r-muted);font-size:13px;}
+#range-dashboard .r-main-action {border:0;border-radius:9px;padding:11px 16px;background:var(--r-primary);color:var(--r-onprimary);font-weight:500;display:flex;gap:9px;align-items:center;}
+#range-dashboard .r-stages {display:flex;margin-bottom:22px;gap:6px;}
+#range-dashboard .r-stage {flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:10px 8px;border-bottom:2px solid var(--r-line);font-size:12px;color:var(--r-muted);}
+#range-dashboard .r-stage[data-current="true"] {color:var(--r-ink);border-color:var(--r-primary);}
+#range-dashboard .r-stage[data-done="true"] {border-color:var(--r-green);}
+#range-dashboard .r-number {width:21px;height:21px;border-radius:50%;display:grid;place-items:center;background:var(--r-soft);flex-shrink:0;font-size:11px;}
+#range-dashboard .r-layout {display:grid;grid-template-columns:minmax(0,1.8fr) minmax(250px,1fr);gap:18px;align-items:stretch;}
+#range-dashboard .r-panel {background:var(--r-panel);border:1px solid var(--r-line);border-radius:var(--r-radius);min-width:0;}
+#range-dashboard .r-panel-heading {padding:17px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+#range-dashboard h2 {font-size:14px;font-weight:600;margin:0;}
+#range-dashboard .r-small {color:var(--r-muted);font-size:12px;}
+#range-dashboard .r-network {padding:14px 20px 22px;background-image:radial-gradient(var(--r-line) .7px,transparent .7px);background-size:17px 17px;}
+#range-dashboard .r-network-row {display:grid;grid-template-columns:minmax(0,1fr) 36px minmax(0,1fr) 36px minmax(0,1fr);align-items:center;}
+#range-dashboard .r-node {width:100%;background:var(--r-panel);border:1px solid var(--r-line);border-radius:10px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;}
+#range-dashboard .r-node:hover {background:var(--r-soft);}
+#range-dashboard .r-node[aria-pressed="true"] {box-shadow:0 0 0 2px var(--r-primary);}
+#range-dashboard .r-node-title {font-size:12px;font-weight:600;}
+#range-dashboard .r-node-detail {font-size:11px;color:var(--r-muted);}
+#range-dashboard .r-service-icon {display:grid;place-items:center;width:32px;height:32px;background:var(--r-soft);border-radius:8px;}
+#range-dashboard .r-connector {height:1px;background:var(--r-line);position:relative;}
+#range-dashboard .r-connector::after {content:'';width:5px;height:5px;background:var(--r-muted);position:absolute;right:0;top:-2px;border-radius:50%;}
+#range-dashboard .r-node[data-alert="true"] .r-service-icon {color:var(--r-red);background:var(--r-redbg);}
+#range-dashboard .r-node[data-fixed="true"] .r-service-icon {color:var(--r-green);background:var(--r-greenbg);}
+#range-dashboard .r-map-status {display:flex;justify-content:center;align-items:center;gap:7px;margin-top:22px;min-height:20px;font-size:12px;color:var(--r-muted);}
+#range-dashboard .r-teams {display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--r-line);}
+#range-dashboard .r-team {padding:17px 18px;min-width:0;}
+#range-dashboard .r-team + .r-team {border-left:1px solid var(--r-line);}
+#range-dashboard .r-team-label {display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;margin-bottom:7px;}
+#range-dashboard .r-red {color:var(--r-red);}
+#range-dashboard .r-blue {color:var(--r-blue);}
+#range-dashboard .r-team p {font-size:12px;color:var(--r-muted);}
+#range-dashboard .r-activity-list {padding:0 8px 10px;}
+#range-dashboard .r-event {text-align:left;display:flex;gap:11px;align-items:flex-start;background:transparent;border:0;border-radius:8px;width:100%;padding:12px 10px;}
+#range-dashboard .r-event:hover,#range-dashboard .r-event[aria-pressed="true"] {background:var(--r-soft);}
+#range-dashboard .r-event-dot {margin-top:4px;width:7px;height:7px;background:var(--r-muted);border-radius:50%;flex-shrink:0;}
+#range-dashboard .r-event[data-owner="red"] .r-event-dot {background:var(--r-red);}
+#range-dashboard .r-event[data-owner="blue"] .r-event-dot {background:var(--r-blue);}
+#range-dashboard .r-event[data-owner="referee"] .r-event-dot {background:var(--r-green);}
+#range-dashboard .r-event strong {display:block;font-size:12px;font-weight:500;}
+#range-dashboard .r-event small {display:block;color:var(--r-muted);font-size:11px;margin-top:3px;}
+#range-dashboard .r-detail {margin-top:18px;padding:19px 20px;}
+#range-dashboard .r-detail-heading {display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:9px;}
+#range-dashboard .r-detail p {color:var(--r-muted);font-size:13px;}
+#range-dashboard .r-checks {display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:17px;}
+#range-dashboard .r-check {padding:12px 14px;background:var(--r-soft);border-radius:9px;}
+#range-dashboard .r-check span {display:block;font-size:12px;color:var(--r-muted);}
+#range-dashboard .r-check strong {display:block;font-size:13px;margin-top:4px;font-weight:500;}
+#range-dashboard .r-technical {margin-top:14px;}
+#range-dashboard summary {font-size:12px;color:var(--r-muted);padding:4px 0;}
+#range-dashboard pre {padding:14px;background:var(--r-soft);border-radius:8px;font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:9px 0 0;color:var(--r-ink);}
+#range-dashboard .r-footer {display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:17px;font-size:11px;color:var(--r-muted);}
+#range-dashboard [hidden] {display:none!important;}
+@media(max-width:760px) {#range-dashboard .r-layout{grid-template-columns:1fr;}#range-dashboard .r-body{padding:18px;}#range-dashboard .r-top{padding:15px 18px;}#range-dashboard .r-activity-list{display:grid;grid-template-columns:1fr 1fr;}}
+@media(max-width:440px) {#range-dashboard .r-body{padding:14px;}#range-dashboard h1{font-size:23px;}#range-dashboard .r-stage{flex-direction:column;align-items:flex-start;padding:8px 3px;font-size:11px;}#range-dashboard .r-network{padding:10px 12px 18px;}#range-dashboard .r-network-row{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr) 14px minmax(0,1fr);}#range-dashboard .r-node-detail{display:none;}#range-dashboard .r-team{padding:14px 12px;}#range-dashboard .r-checks{grid-template-columns:1fr;}#range-dashboard .r-activity-list{grid-template-columns:1fr;}#range-dashboard .r-top-meta>span:first-child{display:none;}}
+@media(pointer:coarse) {#range-dashboard button,#range-dashboard summary{min-height:44px;}}
+</style>
+<header class="r-top">
+  <div class="r-brand"><span class="r-logo"><i data-lucide="scan" aria-hidden="true"></i></span>RANGE</div>
+  <div class="r-top-meta"><span>AI security playground</span><span class="r-pill">Design preview · sample data</span></div>
+</header>
+<main class="r-body">
+  <div class="r-heading">
+    <div><div class="r-eyebrow">Scenario 01 / Access control</div><h1>Protect the storefront.</h1><p class="r-subtitle">Two AI teams. One isolated environment. Every move visible.</p></div>
+    <button class="r-main-action cursor-interaction" type="button" data-action><i data-lucide="play" aria-hidden="true"></i><span data-action-label>Launch round</span></button>
+  </div>
+  <div class="r-stages" aria-label="Round progress">
+    <div class="r-stage" data-stage="0"><span class="r-number">1</span>Prepare</div>
+    <div class="r-stage" data-stage="1"><span class="r-number">2</span>Attack</div>
+    <div class="r-stage" data-stage="2"><span class="r-number">3</span>Defend</div>
+    <div class="r-stage" data-stage="3"><span class="r-number">4</span>Verify</div>
+  </div>
+  <div class="r-layout">
+    <section class="r-panel" aria-label="Interactive lab environment">
+      <div class="r-panel-heading"><h2>Environment</h2><span class="r-pill"><i data-lucide="lock-keyhole" aria-hidden="true"></i>Isolated lab</span></div>
+      <div class="r-network">
+        <div class="r-network-row">
+          <button class="r-node cursor-interaction" data-node="web" type="button" aria-pressed="false"><span class="r-service-icon"><i data-lucide="globe" aria-hidden="true"></i></span><span class="r-node-title">Storefront</span><span class="r-node-detail">Web interface</span></button>
+          <span class="r-connector" aria-hidden="true"></span>
+          <button class="r-node cursor-interaction" data-node="api" type="button" aria-pressed="false"><span class="r-service-icon"><i data-lucide="server" aria-hidden="true"></i></span><span class="r-node-title">Orders API</span><span class="r-node-detail">Access control</span></button>
+          <span class="r-connector" aria-hidden="true"></span>
+          <button class="r-node cursor-interaction" data-node="db" type="button" aria-pressed="false"><span class="r-service-icon"><i data-lucide="database" aria-hidden="true"></i></span><span class="r-node-title">Database</span><span class="r-node-detail">Private orders</span></button>
+        </div>
+        <div class="r-map-status"><i data-lucide="activity" aria-hidden="true"></i><span data-map-status>Ready for a controlled assessment</span></div>
+      </div>
+      <div class="r-teams">
+        <div class="r-team"><div class="r-team-label r-red"><i data-lucide="crosshair" aria-hidden="true"></i>Red team</div><p data-red>Ready to test user permissions.</p></div>
+        <div class="r-team"><div class="r-team-label r-blue"><i data-lucide="shield" aria-hidden="true"></i>Blue team</div><p data-blue>Ready to monitor application logs.</p></div>
+      </div>
+    </section>
+    <section class="r-panel" aria-label="Round activity">
+      <div class="r-panel-heading"><h2>Activity</h2><span class="r-small">Select to inspect</span></div>
+      <div class="r-activity-list">
+        <button class="r-event cursor-interaction" type="button" data-event="0" data-owner="system" aria-pressed="true"><span class="r-event-dot"></span><span><strong>Lab ready</strong><small>System · 00:00</small></span></button>
+        <button class="r-event cursor-interaction" type="button" data-event="1" data-owner="red" aria-pressed="false" hidden><span class="r-event-dot"></span><span><strong>Private order exposed</strong><small>Red team + verifier · 00:12</small></span></button>
+        <button class="r-event cursor-interaction" type="button" data-event="2" data-owner="blue" aria-pressed="false" hidden><span class="r-event-dot"></span><span><strong>Ownership fix applied</strong><small>Blue team · 00:28</small></span></button>
+        <button class="r-event cursor-interaction" type="button" data-event="3" data-owner="referee" aria-pressed="false" hidden><span class="r-event-dot"></span><span><strong>Fix independently verified</strong><small>Referee · 00:34</small></span></button>
+      </div>
+    </section>
+  </div>
+  <section class="r-panel r-detail" aria-label="Selected evidence">
+    <div aria-live="polite" aria-atomic="true"><div class="r-detail-heading"><h2 data-detail-title>Ready when you are.</h2><span class="r-pill" data-detail-badge>Awaiting launch</span></div><p data-detail-description>Red will test access to private orders. Blue will investigate and defend. The referee will check both security and legitimate access.</p></div>
+    <div class="r-checks" data-checks hidden>
+      <div class="r-check"><span>Alice reads Bob’s private order</span><strong data-attack-check></strong></div>
+      <div class="r-check"><span>Bob reads his own order</span><strong data-normal-check></strong></div>
+    </div>
+    <details class="r-technical"><summary class="cursor-interaction">Technical evidence</summary><pre data-technical>Target: local storefront lab
+Accounts: Alice and Bob
+Policy: users may read only their own private orders</pre></details>
+  </section>
+  <footer class="r-footer"><span>Guided experience · You control the next action</span><span>Preview only — no live attacks or agents</span></footer>
+</main>
+<script>
+(() => {
+  const root=document.getElementById('range-dashboard');
+  const q=s=>root.querySelector(s);
+  const qa=s=>[...root.querySelectorAll(s)];
+  const rounds=[
+    {action:'Launch round',map:'Ready for a controlled assessment',red:'Ready to test user permissions.',blue:'Ready to monitor application logs.',title:'Ready when you are.',badge:'Awaiting launch',description:'Red will test access to private orders. Blue will investigate and defend. The referee will check both security and legitimate access.',technical:'Target: local storefront lab\nAccounts: Alice and Bob\nPolicy: users may read only their own private orders'},
+    {action:'Apply defense',map:'Orders API · access-control flaw verified',red:'Retrieved another user’s private order.',blue:'Detected cross-user access. Fix ready for review.',title:'Alice accessed an order that belongs to Bob.',badge:'Verified finding',description:'A fresh-session test reproduced the exposure. Blue proposes checking order ownership before returning private data.',attack:'Allowed · policy violated',normal:'Allowed · expected',technical:'GET /api/orders/204\nSession user: Alice\nRecord owner: Bob\nObserved: 200 OK + Bob’s private order\nExpected: deny access\nVerification: reproduced with a fresh session'},
+    {action:'Run retest',map:'Orders API · patched copy ready for retest',red:'Original attack queued for replay.',blue:'Applied the ownership check to a disposable copy.',title:'The fix is applied. Now prove it works.',badge:'Retest required',description:'The referee will retry unauthorized access and check that Bob can still read his own order. Applying a patch alone does not establish success.',attack:'Awaiting retest',normal:'Awaiting retest',technical:'Proposed ownership check:\nif order.owner_id != current_user.id:\n    deny_access()\n\nEnvironment: disposable patched copy\nRegression checks: unauthorized + authorized access'},
+    {action:'Reset preview',map:'Orders API · both access checks passed',red:'Original attack blocked with a fresh session.',blue:'Fix verified. Legitimate access preserved.',title:'Private data protected. Storefront still usable.',badge:'Fix verified',description:'The same attack now fails, while the legitimate owner can still access the order. This confirms the fix for the tested scenario.',attack:'Denied · expected',normal:'Allowed · expected',technical:'Alice → Bob’s order: 403 Forbidden — PASS\nBob → Bob’s order: 200 OK — PASS\nSessions: fresh\nTarget: patched copy\nScope: this access-control scenario'}
+  ];
+  const services={web:{title:'Storefront',description:'The customer-facing website. Normal browsing and order access must continue working as defenses are applied.',technical:'Service: storefront\nConnects to: Orders API\nRole: customer interface'},api:{title:'Orders API',description:'The permission boundary for private orders. Red tests it, blue applies the ownership fix, and the referee checks the result.',technical:'Service: orders-api\nEndpoint: GET /api/orders/{id}\nPolicy: private orders are accessible only to their owner'},db:{title:'Orders database',description:'Contains separate private orders for Alice and Bob. The API must enforce ownership before returning these records.',technical:'Service: orders-db\nContains: seeded lab records\nAccess: application service only'}};
+  let stage=0,selected='event:0';
+  const design={spacing:'Comfortable',corners:14};
+  function renderDetail(){
+    const isEvent=selected.startsWith('event:');
+    const item=isEvent?rounds[Number(selected.split(':')[1])]:services[selected];
+    q('[data-detail-title]').textContent=item.title;
+    q('[data-detail-description]').textContent=item.description;
+    q('[data-detail-badge]').textContent=isEvent?item.badge:'Service details';
+    q('[data-technical]').textContent=item.technical;
+    q('[data-checks]').hidden=!isEvent||!item.attack;
+    q('[data-attack-check]').textContent=item.attack||'';
+    q('[data-normal-check]').textContent=item.normal||'';
+    qa('[data-event]').forEach(e=>e.setAttribute('aria-pressed',String(selected==='event:'+e.dataset.event)));
+    qa('[data-node]').forEach(e=>e.setAttribute('aria-pressed',String(selected===e.dataset.node)));
+  }
+  function render(){
+    const state=rounds[stage];
+    q('[data-action-label]').textContent=state.action;
+    q('[data-map-status]').textContent=state.map;
+    q('[data-red]').textContent=state.red;
+    q('[data-blue]').textContent=state.blue;
+    qa('[data-stage]').forEach(e=>{e.dataset.current=String(Number(e.dataset.stage)===stage);e.dataset.done=String(Number(e.dataset.stage)<stage)});
+    qa('[data-event]').forEach(e=>{e.hidden=Number(e.dataset.event)>stage});
+    q('[data-node="api"]').dataset.alert=String(stage===1);
+    q('[data-node="api"]').dataset.fixed=String(stage===3);
+    renderDetail();
+  }
+  function save(){window.openai?.setWidgetState?.({modelContent:{design:'Range dashboard',stage:rounds[stage].badge,selected},privateContent:{stage,selected}}).catch(()=>{});}
+  function restore(saved){const p=saved?.privateContent;if(p&&Number.isInteger(p.stage)&&p.stage>=0&&p.stage<4){stage=p.stage;const valid=Object.hasOwn(services,p.selected)||(/^event:[0-3]$/.test(p.selected)&&Number(p.selected.split(':')[1])<=stage);selected=valid?p.selected:'event:'+stage;}render();}
+  q('[data-action]').addEventListener('click',()=>{stage=(stage+1)%4;selected='event:'+stage;q('details').open=false;render();save()});
+  qa('[data-node]').forEach(e=>e.addEventListener('click',()=>{selected=e.dataset.node;renderDetail();save()}));
+  qa('[data-event]').forEach(e=>e.addEventListener('click',()=>{selected='event:'+e.dataset.event;renderDetail();save()}));
+  window.addEventListener('openai:set_globals',event=>{if(event.detail?.globals?.widgetState)restore(event.detail.globals.widgetState)});
+  restore(window.openai?.widgetState);
+  function applyDesign(){root.style.setProperty('--r-radius',design.corners+'px');q('.r-body').style.padding=design.spacing==='Compact'?'16px':'clamp(14px,3vw,26px)';}
+  if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:applyDesign});tweak.addSelect(design,'spacing',{label:'Spacing',options:['Comfortable','Compact']});tweak.addSlider(design,'corners',{label:'Panel corners',min:4,max:20,unit:'px'});}
+})();
+</script>
+</div>
