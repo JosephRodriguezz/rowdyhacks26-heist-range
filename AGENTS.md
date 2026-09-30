@@ -2,6 +2,8 @@
 
 Read README.md and docs/PROJECT_SPEC.md before implementation. This repository currently contains planning documents and a sample-data UI preview, not a working security platform.
 
+For team work, read docs/team/README.md and the assigned member packet. Preserve directory ownership and shared/contracts/README.md interfaces. Member 2 coordinates contract and root infrastructure changes.
+
 - Work within the requested task; preserve unrelated changes and established interfaces.
 - Keep the first end-to-end access-control scenario reliable before adding specialists or broader network scenarios.
 - Separate agent proposals, deterministic tool execution, orchestration, and persistence.
@@ -26,6 +28,9 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory frontend/preview
 
 # Check whitespace and patch formatting
 git diff --check
+
+# Validate shared handoff fixture and negative cases
+python3 scripts/check_handoff.py --self-test
 ```
 
-No application test suite exists yet. Update this file with exact test commands when live services and tests are introduced.
+The handoff checker exists; no live application test suite exists yet. Update this file with exact test commands when live services and tests are introduced.

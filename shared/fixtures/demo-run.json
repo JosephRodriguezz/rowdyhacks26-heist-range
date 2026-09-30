@@ -1,0 +1,388 @@
+{
+  "description": "Synthetic handoff fixture. No live agents, attacks, or model calls. Give blue only telemetry and policy; never pass this whole file to a team model.",
+  "snapshot": {
+    "schema_version": "1.0",
+    "id": "demo-run-001",
+    "target_id": "storefront-lab",
+    "target_version": "lab-v2",
+    "mode": "guided",
+    "data_source": "fixture",
+    "status": "completed",
+    "phase": "complete",
+    "last_event_id": 13,
+    "allowed_actions": [
+      "reset"
+    ],
+    "finding_ids": [
+      "finding-001"
+    ],
+    "defense_ids": [
+      "defense-session",
+      "defense-patch"
+    ]
+  },
+  "events": [
+    {
+      "schema_version": "1.0",
+      "id": 1,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:01Z",
+      "type": "assessment.started",
+      "actor": "system",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [],
+      "data": {
+        "mode": "guided"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 2,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:02Z",
+      "type": "agent.status",
+      "actor": "red",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [],
+      "data": {
+        "agent_id": "red-scout",
+        "status": "investigating",
+        "summary": "Inspecting order access."
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 3,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:03Z",
+      "type": "endpoint.discovered",
+      "actor": "red",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [],
+      "data": {
+        "method": "GET",
+        "path": "/api/orders/{id}",
+        "service_id": "orders-api"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 4,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:04Z",
+      "type": "finding.candidate",
+      "actor": "red",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [
+        "ev-red"
+      ],
+      "data": {
+        "finding_id": "finding-001",
+        "category": "broken_access_control",
+        "endpoint": "/api/orders/{id}",
+        "policy_id": "private-orders-owner-only",
+        "actor_ref": "alice",
+        "resource_ref": "order-204",
+        "repro": {
+          "method": "GET",
+          "path": "/api/orders/204",
+          "actor_ref": "alice",
+          "fresh_session": true,
+          "expected": "denied",
+          "observed": "private_record_returned"
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 5,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:05Z",
+      "type": "alert.created",
+      "actor": "blue",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [
+        "ev-log"
+      ],
+      "data": {
+        "alert_id": "alert-001",
+        "request_ids": [
+          "req-red"
+        ],
+        "summary": "Private order read by a different user."
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 6,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:06Z",
+      "type": "finding.verified",
+      "actor": "referee",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [
+        "ev-verify"
+      ],
+      "data": {
+        "finding_id": "finding-001",
+        "verdict": "verified",
+        "summary": "Independent fresh-session check reproduced a policy violation."
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 7,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:07Z",
+      "type": "defense.proposed",
+      "actor": "blue",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [],
+      "data": {
+        "defense_id": "defense-session",
+        "action_type": "revoke_session",
+        "summary": "Revoke the attacking lab session.",
+        "reason": "Contain the observed access.",
+        "parameters": {
+          "session_ref": "alice-session-1"
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 8,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:08Z",
+      "type": "defense.applied",
+      "actor": "system",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [
+        "ev-revoke"
+      ],
+      "data": {
+        "defense_id": "defense-session",
+        "action_type": "revoke_session",
+        "origin": "policy_action",
+        "original_version": "lab-v1",
+        "resulting_version": "lab-v1"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 9,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:09Z",
+      "type": "attack.result",
+      "actor": "red",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [
+        "ev-retry"
+      ],
+      "data": {
+        "finding_id": "finding-001",
+        "outcome": "candidate_reproduced",
+        "summary": "A fresh session still exposes the order; containment is not a durable fix."
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 10,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:10Z",
+      "type": "defense.proposed",
+      "actor": "blue",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "data_source": "fixture",
+      "evidence_refs": [],
+      "data": {
+        "defense_id": "defense-patch",
+        "action_type": "apply_patch",
+        "summary": "Check ownership before returning private orders.",
+        "reason": "Fix the root cause.",
+        "parameters": {
+          "patch_id": "ownership-fix-001",
+          "base_version": "lab-v1"
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 11,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:11Z",
+      "type": "defense.applied",
+      "actor": "system",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v2",
+      "data_source": "fixture",
+      "evidence_refs": [
+        "ev-patch"
+      ],
+      "data": {
+        "defense_id": "defense-patch",
+        "action_type": "apply_patch",
+        "origin": "known_good_fallback",
+        "original_version": "lab-v1",
+        "resulting_version": "lab-v2"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 12,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:12Z",
+      "type": "retest.completed",
+      "actor": "referee",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v2",
+      "data_source": "fixture",
+      "evidence_refs": [
+        "ev-retest"
+      ],
+      "data": {
+        "finding_id": "finding-001",
+        "defense_id": "defense-patch",
+        "result": "passed",
+        "checks": [
+          {
+            "id": "unauthorized_access",
+            "expected": "denied",
+            "actual": "denied",
+            "passed": true
+          },
+          {
+            "id": "owner_access",
+            "expected": "allowed",
+            "actual": "allowed",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": 13,
+      "assessment_id": "demo-run-001",
+      "timestamp": "2026-09-30T15:00:13Z",
+      "type": "assessment.completed",
+      "actor": "system",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v2",
+      "data_source": "fixture",
+      "evidence_refs": [],
+      "data": {
+        "status": "completed",
+        "summary": "Ownership fix passes the two displayed checks; full integration adds all controls."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-red",
+      "kind": "http_exchange",
+      "target_version": "lab-v1",
+      "request_id": "req-red",
+      "summary": "Alice retrieved Bob private marker; raw credentials removed.",
+      "request": {
+        "method": "GET",
+        "path": "/api/orders/204",
+        "credential_ref": "alice-session-1"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "id": 204,
+          "owner_ref": "bob",
+          "private_marker": "demo-bob-order"
+        }
+      }
+    },
+    {
+      "id": "ev-log",
+      "kind": "telemetry",
+      "target_version": "lab-v1",
+      "request_id": "req-red",
+      "summary": "Application log links Alice to Bob private resource."
+    },
+    {
+      "id": "ev-verify",
+      "kind": "independent_check",
+      "target_version": "lab-v1",
+      "request_id": "req-verify",
+      "summary": "Fresh Alice session retrieved Bob private marker; Bob owner baseline succeeded."
+    },
+    {
+      "id": "ev-revoke",
+      "kind": "defense_result",
+      "target_version": "lab-v1",
+      "request_id": "req-revoked",
+      "summary": "Original Alice session denied after revocation."
+    },
+    {
+      "id": "ev-retry",
+      "kind": "http_exchange",
+      "target_version": "lab-v1",
+      "request_id": "req-retry",
+      "summary": "New Alice session still retrieved Bob private marker."
+    },
+    {
+      "id": "ev-patch",
+      "kind": "patch_result",
+      "target_version": "lab-v2",
+      "request_id": null,
+      "summary": "Known-good ownership patch applied to a disposable copy."
+    },
+    {
+      "id": "ev-retest",
+      "kind": "independent_check",
+      "target_version": "lab-v2",
+      "request_id": "req-retest",
+      "summary": "Fresh Alice denied; Bob owner access still allowed."
+    }
+  ],
+  "telemetry": [
+    {
+      "request_id": "req-owner",
+      "timestamp": "2026-09-30T15:00:03Z",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "actor_ref": "bob",
+      "session_ref": "bob-session-1",
+      "resource_id": "order-204",
+      "resource_owner_ref": "bob",
+      "action": "read_private_order",
+      "http_status": 200
+    },
+    {
+      "request_id": "req-red",
+      "timestamp": "2026-09-30T15:00:04Z",
+      "target_id": "storefront-lab",
+      "target_version": "lab-v1",
+      "actor_ref": "alice",
+      "session_ref": "alice-session-1",
+      "resource_id": "order-204",
+      "resource_owner_ref": "bob",
+      "action": "read_private_order",
+      "http_status": 200
+    }
+  ]
+}

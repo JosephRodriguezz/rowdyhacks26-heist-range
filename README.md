@@ -2,7 +2,17 @@
 
 An interactive cyber range for RowdyHacks: AI agents attack and defend an isolated lab website while a neutral referee verifies the results.
 
-**Status:** project foundation and interactive UI preview. The preview uses sample data; live agents, the vulnerable application, defensive tools, and evaluation are not implemented yet.
+**Status:** project foundation, four-person work packages, shared handoff contracts, and interactive UI preview. The preview uses sample data; live agents, the vulnerable application, defensive tools, and evaluation are not implemented yet.
+
+## Four-person team setup
+
+Start with the [team build framework](docs/team/README.md). It includes four work packets, separate ownership/branches, starter prompts, a shared API/event contract, a synthetic run fixture, and integration acceptance checks.
+
+```sh
+python3 scripts/check_handoff.py --self-test
+```
+
+Member 1 builds the character arena/UI; Member 2 owns orchestration and independent verification; Member 3 owns red and the lab; Member 4 owns blue and defensive actions.
 
 ## Project experience
 
