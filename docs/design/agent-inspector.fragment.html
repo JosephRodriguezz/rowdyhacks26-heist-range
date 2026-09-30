@@ -1,0 +1,172 @@
+<div id="range-agent-inspector">
+<style>
+#range-agent-inspector {--a-bg:light-dark(#f6f7f9,#10151c);--a-surface:light-dark(#fff,#19212b);--a-soft:light-dark(#edf1f5,#232e3c);--a-text:light-dark(#253247,#eef2f7);--a-muted:light-dark(#5f6e83,#adbacb);--a-line:light-dark(#dce3eb,#344153);--a-red:light-dark(#b9424b,#fa9a9f);--a-red-body:light-dark(#e88086,#cb777e);--a-blue:light-dark(#3664ba,#a6c3ff);--a-blue-body:light-dark(#87a8eb,#81a0d7);--a-neutral:light-dark(#9cacc0,#a1afc2);--a-face:light-dark(#273548,#263343);--a-eye:light-dark(#ffffff,#ffffff);--a-action:light-dark(#2c3e55,#d3e1f4);--a-action-text:light-dark(#fff,#1a283a);color:var(--a-text);background:var(--a-bg);font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;border:1px solid var(--a-line);border-radius:18px;overflow:hidden;}
+#range-agent-inspector *{box-sizing:border-box;}
+#range-agent-inspector button {font:inherit;color:inherit;}
+#range-agent-inspector button:focus-visible,#range-agent-inspector summary:focus-visible {outline:3px solid var(--a-blue);outline-offset:4px;}
+#range-agent-inspector .a-header {padding:18px 24px;background:var(--a-surface);border-bottom:1px solid var(--a-line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+#range-agent-inspector .a-brand{font-size:16px;font-weight:600;letter-spacing:2px;}
+#range-agent-inspector .a-tag{padding:4px 9px;background:var(--a-soft);border-radius:6px;font-size:12px;color:var(--a-muted);}
+#range-agent-inspector .a-workspace {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,1fr);}
+#range-agent-inspector .a-arena{padding:26px 24px;min-width:0;}
+#range-agent-inspector h1 {font-size:25px;line-height:1.25;letter-spacing:-.6px;font-weight:600;margin:0 0 8px;}
+#range-agent-inspector h2 {font-size:18px;line-height:1.3;margin:0;font-weight:600;}
+#range-agent-inspector h3 {font-size:12px;letter-spacing:.4px;margin:0 0 8px;font-weight:600;}
+#range-agent-inspector p{margin:0;}
+#range-agent-inspector .a-muted{color:var(--a-muted);font-size:12px;}
+#range-agent-inspector .a-caption {font-size:13px;color:var(--a-muted);}
+#range-agent-inspector .a-characters {display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:35px 0 22px;}
+#range-agent-inspector .a-agent {--a-body:var(--a-neutral);background:transparent;border:1px solid transparent;border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;transition:background .15s,border-color .15s;}
+#range-agent-inspector .a-agent[data-agent="red"]{--a-body:var(--a-red-body);}
+#range-agent-inspector .a-agent[data-agent="blue"]{--a-body:var(--a-blue-body);}
+#range-agent-inspector .a-agent:hover {background:var(--a-soft);}
+#range-agent-inspector .a-agent[aria-pressed="true"]{background:var(--a-surface);border-color:var(--a-line);}
+#range-agent-inspector .a-agent-name{font-size:14px;font-weight:600;}
+#range-agent-inspector .a-agent-role{font-size:12px;color:var(--a-muted);}
+#range-agent-inspector .a-agent-selection{font-size:11px;color:var(--a-muted);}
+#range-agent-inspector .a-robot {position:relative;width:90px;height:108px;margin-bottom:6px;}
+#range-agent-inspector .a-antenna {position:absolute;width:3px;height:12px;top:0;left:44px;background:var(--a-body);}
+#range-agent-inspector .a-antenna::before{content:'';position:absolute;width:8px;height:8px;border-radius:50%;background:var(--a-body);top:-4px;left:-2.5px;}
+#range-agent-inspector .a-head{position:absolute;top:11px;left:7px;width:76px;height:54px;border-radius:19px;background:var(--a-body);padding:10px;}
+#range-agent-inspector .a-face{height:31px;border-radius:11px;background:var(--a-face);display:flex;align-items:center;justify-content:center;gap:15px;}
+#range-agent-inspector .a-face::before,#range-agent-inspector .a-face::after{content:'';width:6px;height:10px;border-radius:4px;background:var(--a-eye);}
+#range-agent-inspector .a-body{position:absolute;left:25px;top:69px;width:40px;height:27px;border-radius:8px;background:var(--a-body);}
+#range-agent-inspector .a-body::before,#range-agent-inspector .a-body::after{content:'';position:absolute;width:8px;height:21px;top:2px;border-radius:5px;background:var(--a-body);}
+#range-agent-inspector .a-body::before{left:-13px;transform:rotate(12deg);}
+#range-agent-inspector .a-body::after{right:-13px;transform:rotate(-12deg);}
+#range-agent-inspector .a-feet{position:absolute;bottom:1px;left:26px;width:13px;height:8px;border-radius:3px;background:var(--a-body);box-shadow:25px 0 var(--a-body);}
+#range-agent-inspector .a-badge{position:absolute;left:34px;top:76px;width:22px;height:12px;border-radius:4px;background:var(--a-surface);}
+#range-agent-inspector .a-agent[data-agent="blue"] .a-head{border-radius:25px 25px 17px 17px;}
+#range-agent-inspector .a-agent[data-agent="blue"] .a-badge{width:15px;height:17px;left:38px;top:73px;border-radius:3px 3px 9px 9px;}
+#range-agent-inspector .a-network{display:flex;align-items:center;justify-content:center;gap:0;margin:4px 0 18px;}
+#range-agent-inspector .a-service{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:64px;font-size:11px;}
+#range-agent-inspector .a-service-icon{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--a-line);background:var(--a-surface);border-radius:10px;}
+#range-agent-inspector .a-link{height:1px;background:var(--a-line);width:35px;margin-top:-22px;}
+#range-agent-inspector .a-referee {display:flex;justify-content:center;margin-top:20px;}
+#range-agent-inspector .a-referee .a-agent{padding:9px 19px;gap:4px;}
+#range-agent-inspector .a-referee .a-robot{transform:scale(.7);transform-origin:top center;height:78px;margin-bottom:0;}
+#range-agent-inspector .a-arena-note{text-align:center;color:var(--a-muted);font-size:11px;margin-top:20px;}
+#range-agent-inspector .a-inspector{background:var(--a-surface);border-left:1px solid var(--a-line);padding:24px;min-width:0;}
+#range-agent-inspector .a-inspector-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;}
+#range-agent-inspector .a-role{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--a-muted);margin-bottom:5px;}
+#range-agent-inspector .a-tabs{display:flex;gap:5px;border-bottom:1px solid var(--a-line);margin:20px 0;}
+#range-agent-inspector .a-tabs button{border:0;border-bottom:2px solid transparent;background:transparent;padding:9px 11px;font-size:12px;color:var(--a-muted);}
+#range-agent-inspector .a-tabs button[aria-selected="true"]{color:var(--a-text);border-color:var(--a-action);}
+#range-agent-inspector .a-section{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--a-line);}
+#range-agent-inspector .a-section p{font-size:13px;}
+#range-agent-inspector dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 16px;font-size:12px;margin:0;}
+#range-agent-inspector dt{color:var(--a-muted);}
+#range-agent-inspector dd{margin:0;overflow-wrap:anywhere;}
+#range-agent-inspector .a-log{list-style:none;padding:0;margin:0;}
+#range-agent-inspector .a-log li{padding:13px 0;border-bottom:1px solid var(--a-line);}
+#range-agent-inspector .a-log strong{font-size:12px;font-weight:500;display:block;margin:3px 0;}
+#range-agent-inspector .a-log p{font-size:12px;color:var(--a-muted);}
+#range-agent-inspector .a-log-meta{font:11px/1.5 ui-monospace,SFMono-Regular,monospace;color:var(--a-muted);}
+#range-agent-inspector .a-evidence{margin:0 0 15px;padding:12px;background:var(--a-soft);border-radius:8px;}
+#range-agent-inspector .a-evidence p{font-size:12px;margin:6px 0;}
+#range-agent-inspector .a-evidence strong{font-size:12px;font-weight:500;}
+#range-agent-inspector summary{font-size:12px;padding:7px 0;}
+#range-agent-inspector pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.65 ui-monospace,SFMono-Regular,monospace;margin:8px 0;color:var(--a-text);}
+#range-agent-inspector .a-inspector-footer{margin-top:18px;color:var(--a-muted);font-size:11px;}
+#range-agent-inspector [hidden]{display:none!important;}
+@media(max-width:740px){#range-agent-inspector .a-workspace{grid-template-columns:1fr;}#range-agent-inspector .a-inspector{border-left:0;border-top:1px solid var(--a-line);}#range-agent-inspector .a-arena{padding:23px 20px;}#range-agent-inspector .a-characters{margin:26px 0 15px;}#range-agent-inspector .a-referee{margin-top:12px;}}
+@media(max-width:380px){#range-agent-inspector .a-header,#range-agent-inspector .a-inspector{padding:18px 15px;}#range-agent-inspector .a-characters{gap:12px;}#range-agent-inspector .a-tabs button{padding:10px 8px;}}
+@media(prefers-reduced-motion:reduce){#range-agent-inspector *{transition:none!important;}}
+@media(pointer:coarse){#range-agent-inspector button,#range-agent-inspector summary{min-height:44px;}}
+</style>
+<header class="a-header"><span class="a-brand">RANGE</span><span class="a-tag">Sample run · completed</span></header>
+<div class="a-workspace">
+ <main class="a-arena">
+  <h1>Meet your security team.</h1><p class="a-caption">Select an agent to see what it did and what it found.</p>
+  <div class="a-characters" role="group" aria-label="Security agents">
+   <button class="a-agent cursor-interaction" type="button" data-agent="red" aria-pressed="true" aria-controls="range-agent-detail" aria-label="Inspect red team scout">
+    <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
+    <span class="a-agent-name">Scout</span><span class="a-agent-role">Red team</span><span class="a-agent-selection">Viewing activity</span>
+   </button>
+   <button class="a-agent cursor-interaction" type="button" data-agent="blue" aria-pressed="false" aria-controls="range-agent-detail" aria-label="Inspect blue team defender">
+    <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
+    <span class="a-agent-name">Defender</span><span class="a-agent-role">Blue team</span><span class="a-agent-selection">Inspect agent</span>
+   </button>
+  </div>
+  <div class="a-network" aria-label="Lab services: website connects to API, which connects to database">
+   <div class="a-service"><span class="a-service-icon"><i data-lucide="globe" aria-hidden="true"></i></span>Website</div><span class="a-link" aria-hidden="true"></span>
+   <div class="a-service"><span class="a-service-icon"><i data-lucide="server" aria-hidden="true"></i></span>Orders API</div><span class="a-link" aria-hidden="true"></span>
+   <div class="a-service"><span class="a-service-icon"><i data-lucide="database" aria-hidden="true"></i></span>Database</div>
+  </div>
+  <div class="a-referee"><button class="a-agent cursor-interaction" type="button" data-agent="referee" aria-pressed="false" aria-controls="range-agent-detail" aria-label="Inspect independent referee">
+   <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
+   <span class="a-agent-name">Referee</span><span class="a-agent-role">Independent verification</span><span class="a-agent-selection">Inspect agent</span>
+  </button></div>
+  <p class="a-arena-note">Isolated storefront lab · No live agents in this preview</p>
+ </main>
+ <aside class="a-inspector" id="range-agent-detail" aria-label="Selected agent details">
+  <div class="a-inspector-header"><div><div class="a-role" data-role>Red team</div><h2 data-name>Scout</h2></div><span class="a-tag">Run complete</span></div>
+  <p class="a-caption" data-specialty>Tests access boundaries.</p>
+  <div class="a-tabs" role="tablist" aria-label="Agent information">
+   <button class="cursor-interaction" type="button" id="range-tab-overview" role="tab" aria-selected="true" aria-controls="range-panel-overview" data-tab="overview">Overview</button>
+   <button class="cursor-interaction" type="button" id="range-tab-activity" role="tab" aria-selected="false" aria-controls="range-panel-activity" data-tab="activity">Activity</button>
+   <button class="cursor-interaction" type="button" id="range-tab-evidence" role="tab" aria-selected="false" aria-controls="range-panel-evidence" data-tab="evidence">Evidence</button>
+  </div>
+  <div id="range-panel-overview" role="tabpanel" aria-labelledby="range-tab-overview">
+   <section class="a-section"><h3>Assigned task</h3><p data-goal></p></section>
+   <section class="a-section"><h3>Latest action</h3><p data-latest></p></section>
+   <section class="a-section"><h3>Result & next step</h3><p data-result></p></section>
+   <dl><dt>Target</dt><dd>Orders API</dd><dt>Tool / capability</dt><dd data-tool></dd><dt>Errors</dt><dd>None recorded in this sample</dd><dt>Run</dt><dd>demo-run-001</dd></dl>
+  </div>
+  <div id="range-panel-activity" role="tabpanel" aria-labelledby="range-tab-activity" hidden><p class="a-muted" data-activity-count></p><ol class="a-log" data-log></ol></div>
+  <div id="range-panel-evidence" role="tabpanel" aria-labelledby="range-tab-evidence" hidden><div data-evidence></div></div>
+  <p class="a-inspector-footer" aria-live="polite" data-announcement>Scout selected · Overview</p>
+ </aside>
+</div>
+<script id="range-sample-run" type="application/json">{"description": "Synthetic handoff fixture. No live agents, attacks, or model calls. Give blue only telemetry and policy; never pass this whole file to a team model.", "snapshot": {"schema_version": "1.0", "id": "demo-run-001", "target_id": "storefront-lab", "target_version": "lab-v2", "mode": "guided", "data_source": "fixture", "status": "completed", "phase": "complete", "last_event_id": 13, "allowed_actions": ["reset"], "finding_ids": ["finding-001"], "defense_ids": ["defense-session", "defense-patch"]}, "events": [{"schema_version": "1.0", "id": 1, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:01Z", "type": "assessment.started", "actor": "system", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"mode": "guided"}}, {"schema_version": "1.0", "id": 2, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:02Z", "type": "agent.status", "actor": "red", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"agent_id": "red-scout", "status": "investigating", "summary": "Inspecting order access."}}, {"schema_version": "1.0", "id": 3, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:03Z", "type": "endpoint.discovered", "actor": "red", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"method": "GET", "path": "/api/orders/{id}", "service_id": "orders-api"}}, {"schema_version": "1.0", "id": 4, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:04Z", "type": "finding.candidate", "actor": "red", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-red"], "data": {"finding_id": "finding-001", "category": "broken_access_control", "endpoint": "/api/orders/{id}", "policy_id": "private-orders-owner-only", "actor_ref": "alice", "resource_ref": "order-204", "repro": {"method": "GET", "path": "/api/orders/204", "actor_ref": "alice", "fresh_session": true, "expected": "denied", "observed": "private_record_returned"}}}, {"schema_version": "1.0", "id": 5, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:05Z", "type": "alert.created", "actor": "blue", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-log"], "data": {"alert_id": "alert-001", "request_ids": ["req-red"], "summary": "Private order read by a different user."}}, {"schema_version": "1.0", "id": 6, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:06Z", "type": "finding.verified", "actor": "referee", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-verify"], "data": {"finding_id": "finding-001", "verdict": "verified", "summary": "Independent fresh-session check reproduced a policy violation."}}, {"schema_version": "1.0", "id": 7, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:07Z", "type": "defense.proposed", "actor": "blue", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"defense_id": "defense-session", "action_type": "revoke_session", "summary": "Revoke the attacking lab session.", "reason": "Contain the observed access.", "parameters": {"session_ref": "alice-session-1"}}}, {"schema_version": "1.0", "id": 8, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:08Z", "type": "defense.applied", "actor": "system", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-revoke"], "data": {"defense_id": "defense-session", "action_type": "revoke_session", "origin": "policy_action", "original_version": "lab-v1", "resulting_version": "lab-v1"}}, {"schema_version": "1.0", "id": 9, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:09Z", "type": "attack.result", "actor": "red", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-retry"], "data": {"finding_id": "finding-001", "outcome": "candidate_reproduced", "summary": "A fresh session still exposes the order; containment is not a durable fix."}}, {"schema_version": "1.0", "id": 10, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:10Z", "type": "defense.proposed", "actor": "blue", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"defense_id": "defense-patch", "action_type": "apply_patch", "summary": "Check ownership before returning private orders.", "reason": "Fix the root cause.", "parameters": {"patch_id": "ownership-fix-001", "base_version": "lab-v1"}}}, {"schema_version": "1.0", "id": 11, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:11Z", "type": "defense.applied", "actor": "system", "target_id": "storefront-lab", "target_version": "lab-v2", "data_source": "fixture", "evidence_refs": ["ev-patch"], "data": {"defense_id": "defense-patch", "action_type": "apply_patch", "origin": "known_good_fallback", "original_version": "lab-v1", "resulting_version": "lab-v2"}}, {"schema_version": "1.0", "id": 12, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:12Z", "type": "retest.completed", "actor": "referee", "target_id": "storefront-lab", "target_version": "lab-v2", "data_source": "fixture", "evidence_refs": ["ev-retest"], "data": {"finding_id": "finding-001", "defense_id": "defense-patch", "result": "passed", "checks": [{"id": "unauthorized_access", "expected": "denied", "actual": "denied", "passed": true}, {"id": "owner_access", "expected": "allowed", "actual": "allowed", "passed": true}]}}, {"schema_version": "1.0", "id": 13, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:13Z", "type": "assessment.completed", "actor": "system", "target_id": "storefront-lab", "target_version": "lab-v2", "data_source": "fixture", "evidence_refs": [], "data": {"status": "completed", "summary": "Ownership fix passes the two displayed checks; full integration adds all controls."}}], "evidence": [{"id": "ev-red", "kind": "http_exchange", "target_version": "lab-v1", "request_id": "req-red", "summary": "Alice retrieved Bob private marker; raw credentials removed.", "request": {"method": "GET", "path": "/api/orders/204", "credential_ref": "alice-session-1"}, "response": {"status": 200, "body": {"id": 204, "owner_ref": "bob", "private_marker": "demo-bob-order"}}}, {"id": "ev-log", "kind": "telemetry", "target_version": "lab-v1", "request_id": "req-red", "summary": "Application log links Alice to Bob private resource."}, {"id": "ev-verify", "kind": "independent_check", "target_version": "lab-v1", "request_id": "req-verify", "summary": "Fresh Alice session retrieved Bob private marker; Bob owner baseline succeeded."}, {"id": "ev-revoke", "kind": "defense_result", "target_version": "lab-v1", "request_id": "req-revoked", "summary": "Original Alice session denied after revocation."}, {"id": "ev-retry", "kind": "http_exchange", "target_version": "lab-v1", "request_id": "req-retry", "summary": "New Alice session still retrieved Bob private marker."}, {"id": "ev-patch", "kind": "patch_result", "target_version": "lab-v2", "request_id": null, "summary": "Known-good ownership patch applied to a disposable copy."}, {"id": "ev-retest", "kind": "independent_check", "target_version": "lab-v2", "request_id": "req-retest", "summary": "Fresh Alice denied; Bob owner access still allowed."}], "telemetry": [{"request_id": "req-owner", "timestamp": "2026-09-30T15:00:03Z", "target_id": "storefront-lab", "target_version": "lab-v1", "actor_ref": "bob", "session_ref": "bob-session-1", "resource_id": "order-204", "resource_owner_ref": "bob", "action": "read_private_order", "http_status": 200}, {"request_id": "req-red", "timestamp": "2026-09-30T15:00:04Z", "target_id": "storefront-lab", "target_version": "lab-v1", "actor_ref": "alice", "session_ref": "alice-session-1", "resource_id": "order-204", "resource_owner_ref": "bob", "action": "read_private_order", "http_status": 200}]}</script>
+<script>
+(() => {
+ const root=document.getElementById('range-agent-inspector');
+ const q=s=>root.querySelector(s), qa=s=>[...root.querySelectorAll(s)];
+ const sample=JSON.parse(q('#range-sample-run').textContent);
+ const profiles={
+  red:{name:'Scout',role:'Red team',specialty:'Tests access boundaries.',goal:'Check whether a user can read another user’s private order.',latest:'Retried access with a fresh Alice session after the first session was revoked.',result:'The ownership flaw persisted in lab-v1. The referee later checked blue’s patch; this observation describes the original app.',tool:'Scoped HTTP requests; permitted lab sessions'},
+  blue:{name:'Defender',role:'Blue team',specialty:'Detects suspicious access and prepares defenses.',goal:'Detect cross-user access, contain it, and fix the ownership check.',latest:'Proposed an ownership patch; the system applied the known-good fallback to a disposable copy (lab-v2).',result:'The referee’s subsequent checks passed. No further action is queued in this completed sample.',tool:'Sanitized telemetry; session revocation; scoped patch proposal'},
+  referee:{name:'Referee',role:'Independent verification',specialty:'Checks claims against reproducible evidence.',goal:'Reproduce the access-policy violation and test whether the defense preserves legitimate use.',latest:'Retested Alice’s unauthorized access and Bob’s legitimate access against lab-v2.',result:'Alice was denied and Bob was allowed. The fix passed these two checks; this is not a claim that all vulnerabilities are resolved.',tool:'Fresh-session replay and policy assertions'}
+ };
+ const names={'agent.status':'Agent status','endpoint.discovered':'Endpoint discovered','finding.candidate':'Candidate finding','alert.created':'Suspicious access detected','finding.verified':'Finding independently verified','defense.proposed':'Defense proposed','defense.applied':'System applied proposed defense','attack.result':'Fresh-session retry','retest.completed':'Independent retest'};
+ let agent='red',tab='overview';
+ function eventsForAgent(){return sample.events.filter(e=>e.actor===agent||(agent==='blue'&&e.type==='defense.applied'));}
+ function make(tag,text,className){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(className)el.className=className;return el;}
+ function detailsFor(value,label){const el=make('details');el.append(make('summary',label,'cursor-interaction'),make('pre',JSON.stringify(value,null,2)));return el;}
+ function render(){
+  const profile=profiles[agent],events=eventsForAgent();
+  qa('[data-agent]').forEach(el=>{const selected=el.dataset.agent===agent;el.setAttribute('aria-pressed',String(selected));el.querySelector('.a-agent-selection').textContent=selected?'Viewing activity':'Inspect agent';});
+  ['name','role','specialty','goal','latest','result','tool'].forEach(key=>q('[data-'+key+']').textContent=profile[key]);
+  qa('[data-tab]').forEach(el=>{const selected=el.dataset.tab===tab;el.setAttribute('aria-selected',String(selected));q('#range-panel-'+el.dataset.tab).hidden=!selected;});
+  const log=q('[data-log]');log.replaceChildren();
+  events.forEach(event=>{
+   const row=make('li');row.append(make('span',`${event.timestamp.slice(11,19)} UTC · ${event.target_version}`,'a-log-meta'),make('strong',names[event.type]||event.type));
+   const actionSummary=event.type==='defense.applied'?(event.data.action_type==='revoke_session'?'Attacking session revoked.':'Ownership patch applied to '+event.data.resulting_version+'.'):event.type==='retest.completed'?'Unauthorized access denied; owner access preserved.':event.data.summary||event.data.path||event.data.endpoint||event.data.result||event.type;
+   row.append(make('p',actionSummary));
+   if(event.type==='defense.applied')row.append(make('p','Executed by the system on blue’s proposal.'));
+   row.append(detailsFor(event.data,'Inspect action details'));log.append(row);
+  });
+  q('[data-activity-count]').textContent=`${events.length} recorded actions · oldest first`;
+  const ids=new Set(events.flatMap(event=>event.evidence_refs));
+  const evidence=q('[data-evidence]');evidence.replaceChildren();
+  sample.evidence.filter(item=>ids.has(item.id)).forEach(item=>{
+   const available=item.kind==='telemetry'?{...item,log_entries:sample.telemetry.filter(log=>log.request_id===item.request_id)}:item;
+   const block=make('section',undefined,'a-evidence');block.append(make('strong',item.id+' · '+item.kind.replaceAll('_',' ')),make('p',item.summary),make('p','Target version: '+item.target_version,'a-muted'),detailsFor(available,'Inspect available evidence'));evidence.append(block);
+  });
+  if(!ids.size)evidence.append(make('p','No evidence recorded for this agent.','a-muted'));
+  evidence.append(make('p','Only available sample fields are shown. Raw credentials are never displayed.','a-muted'));
+  q('[data-announcement]').textContent=`${profile.name} selected · ${tab[0].toUpperCase()+tab.slice(1)}`;
+ }
+ function save(){window.openai?.setWidgetState?.({modelContent:{design:'Simple character inspector',selectedAgent:agent,section:tab},privateContent:{agent,tab}}).catch(()=>{});}
+ function restore(state){const p=state?.privateContent;if(p&&Object.hasOwn(profiles,p.agent))agent=p.agent;if(p&&['overview','activity','evidence'].includes(p.tab))tab=p.tab;render();}
+ qa('[data-agent]').forEach(el=>el.addEventListener('click',()=>{agent=el.dataset.agent;render();save();}));
+ qa('[data-tab]').forEach(el=>{
+  el.addEventListener('click',()=>{tab=el.dataset.tab;render();save();});
+  el.addEventListener('keydown',event=>{const tabs=qa('[data-tab]');let i=tabs.indexOf(el);if(event.key==='ArrowRight')i=(i+1)%tabs.length;else if(event.key==='ArrowLeft')i=(i+tabs.length-1)%tabs.length;else if(event.key==='Home')i=0;else if(event.key==='End')i=tabs.length-1;else return;event.preventDefault();tab=tabs[i].dataset.tab;render();tabs[i].focus();save();});
+ });
+ window.addEventListener('openai:set_globals',event=>{if(event.detail?.globals?.widgetState)restore(event.detail.globals.widgetState);});
+ restore(window.openai?.widgetState);
+})();
+</script>
+</div>

@@ -33,7 +33,9 @@ Requires Python 3. No package installation is needed.
 python3 -m http.server 8000 --bind 127.0.0.1 --directory frontend/preview
 ```
 
-Open <http://127.0.0.1:8000>. Select **Launch round**, **Apply defense**, and **Run retest**. Click services and activity entries to inspect details. The preview loads decorative icons from a CDN; core controls and text work without those icons.
+Open <http://127.0.0.1:8000>. Click **Scout**, **Defender**, or **Referee**, then explore **Overview**, **Activity**, and **Evidence**. Each character opens its own operational history from the shared sample run. The preview loads service icons from a CDN; the simple robot characters, core controls, and text work without those icons.
+
+The earlier guided dashboard, with launch/defense/retest sample controls, remains at <http://127.0.0.1:8000/dashboard.html>.
 
 The preview does not execute security tools, modify a target, or call a model provider.
 

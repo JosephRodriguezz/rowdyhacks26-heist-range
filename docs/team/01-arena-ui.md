@@ -2,7 +2,7 @@
 
 ## Mission
 
-Make the exercise understandable and fun for a judge who has never used the project. Build the interface around a red scout, a blue defender, and a neutral referee, with website, API, and database services in an isometric arena.
+Make the exercise understandable and fun for a judge who has never used the project. Use simple 2D robot characters: a red scout, a blue defender, and a neutral referee, alongside a minimal website/API/database map. Prioritize selecting a character and inspecting its activity over elaborate scenery or 3D navigation.
 
 ## Own
 
@@ -17,7 +17,7 @@ Build a small transport adapter with `getSnapshot`, `getEvents`, `subscribe`, an
 ## Build in order
 
 1. Create the React + TypeScript frontend, preserving the existing static preview as a reference.
-2. Build the environment map and three selectable character views. Use simple role-labeled placeholders until approved art is available.
+2. Build the minimal map and three selectable characters, following docs/design/agent-inspector.fragment.html. Each character opens the same agent inspector with Overview, Activity, and Evidence sections. Show the task/status, target/version, actions, tool inputs/outputs, observed results, errors, next steps, and evidence when available. Use short summaries with expandable details; never invent missing operational data.
 3. Map `agent.status` events onto idle, investigating, executing, blocked, completed, and failed visual states. Do not invent additional successful actions.
 4. Show a concise timeline. Selecting an event highlights its target and opens its evidence without losing the current live position.
 5. Implement launch, advance, apply proposed defense, stop, and reset. Disable unavailable actions based on the snapshot's `allowed_actions`.
@@ -28,6 +28,8 @@ Build a small transport adapter with `getSnapshot`, `getEvents`, `subscribe`, an
 
 - The complete shared fixture can be explored without a backend or API key.
 - Every character is selectable, and every sample evidence reference resolves.
+- Switching agents changes the inspector's content without losing the chosen section. The mobile inspector follows the scene, and keyboard users can select agents and navigate sections.
+- Activity separates agent proposals from system-executed actions. Evidence includes version and patch provenance; secrets and private reasoning are excluded.
 - Red/blue identity is conveyed through labels and shapes as well as color.
 - Applying a defense is visually different from verifying a fix.
 - Stop, waiting, partial failure, reconnect, and fixture/live labels are clear.
