@@ -7,7 +7,7 @@
 #range-agent-inspector .a-header {padding:18px 24px;background:var(--a-surface);border-bottom:1px solid var(--a-line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
 #range-agent-inspector .a-brand{font-size:16px;font-weight:600;letter-spacing:2px;}
 #range-agent-inspector .a-tag{padding:4px 9px;background:var(--a-soft);border-radius:6px;font-size:12px;color:var(--a-muted);}
-#range-agent-inspector .a-workspace {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,1fr);}
+#range-agent-inspector .a-workspace {display:grid;grid-template-columns:minmax(0,1.6fr) minmax(310px,1fr);}
 #range-agent-inspector .a-arena{padding:26px 24px;min-width:0;}
 #range-agent-inspector h1 {font-size:25px;line-height:1.25;letter-spacing:-.6px;font-weight:600;margin:0 0 8px;}
 #range-agent-inspector h2 {font-size:18px;line-height:1.3;margin:0;font-weight:600;}
@@ -15,7 +15,50 @@
 #range-agent-inspector p{margin:0;}
 #range-agent-inspector .a-muted{color:var(--a-muted);font-size:12px;}
 #range-agent-inspector .a-caption {font-size:13px;color:var(--a-muted);}
-#range-agent-inspector .a-characters {display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:35px 0 22px;}
+#range-agent-inspector .a-world{--a-ground:light-dark(#e7eee9,#21312e);--a-edge:light-dark(#ccd9d1,#16231f);--a-tile:light-dark(#d1dfd6,#344840);position:relative;isolation:isolate;height:455px;margin-top:20px;}
+#range-agent-inspector .a-land{position:absolute;inset:55px 0 28px;background:var(--a-edge);clip-path:polygon(50% 0,100% 23%,100% 72%,50% 100%,0 72%,0 23%);}
+#range-agent-inspector .a-land::before{content:'';position:absolute;inset:0 0 17px;background:repeating-linear-gradient(30deg,transparent 0 39px,var(--a-tile) 40px 41px,transparent 42px 80px),repeating-linear-gradient(150deg,transparent 0 39px,var(--a-tile) 40px 41px,transparent 42px 80px),var(--a-ground);clip-path:polygon(50% 0,100% 23%,100% 72%,50% 100%,0 72%,0 23%);}
+#range-agent-inspector .a-routes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible;}
+#range-agent-inspector .a-routes path{fill:none;stroke-width:2;stroke-linecap:round;}
+#range-agent-inspector .a-route-base{stroke:var(--a-line);}
+#range-agent-inspector .a-route-red{stroke:var(--a-red);opacity:.7;}
+#range-agent-inspector .a-route-blue{stroke:var(--a-blue);opacity:.7;}
+#range-agent-inspector .a-packet{opacity:0;}
+#range-agent-inspector .a-world .a-agent{position:absolute;z-index:5;width:100px;padding:8px 3px;transform:translateX(-50%);}
+#range-agent-inspector .a-world .a-agent[data-agent="red"]{left:15%;top:195px;}
+#range-agent-inspector .a-world .a-agent[data-agent="blue"]{left:85%;top:195px;}
+#range-agent-inspector .a-world .a-agent[data-agent="referee"]{left:50%;top:315px;width:130px;}
+#range-agent-inspector .a-world .a-agent[data-agent="referee"] .a-robot{transform:scale(.63);transform-origin:top center;height:65px;margin:0;}
+#range-agent-inspector .a-world .a-agent-name{font-size:12px;}
+#range-agent-inspector .a-world .a-agent-role{font-size:11px;}
+#range-agent-inspector .a-world .a-agent-selection{display:none;}
+#range-agent-inspector .a-world .a-agent:hover,#range-agent-inspector .a-world .a-agent[aria-pressed="true"]{background:transparent;border-color:transparent;}
+#range-agent-inspector .a-world .a-agent[aria-pressed="true"] .a-agent-name{background:var(--a-action);color:var(--a-action-text);border-radius:5px;padding:2px 8px;}
+#range-agent-inspector .a-world .a-agent[data-active="true"] .a-robot{filter:drop-shadow(0 5px 4px color-mix(in srgb,var(--a-body) 30%,transparent));}
+#range-agent-inspector .a-building{position:absolute;z-index:3;top:70px;width:90px;transform:translateX(-50%);text-align:center;}
+#range-agent-inspector .a-building[data-building="web"]{left:24%;top:110px;}
+#range-agent-inspector .a-building[data-building="api"]{left:50%;}
+#range-agent-inspector .a-building[data-building="db"]{left:76%;top:110px;}
+#range-agent-inspector .a-building-face{position:relative;margin:0 auto;width:64px;height:72px;background:var(--a-surface);border:1px solid var(--a-line);border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-shadow:7px 7px 0 var(--a-edge);}
+#range-agent-inspector .a-building-face::before{content:'';position:absolute;left:-1px;right:-1px;top:-11px;height:12px;background:var(--a-soft);border:1px solid var(--a-line);border-radius:4px 4px 0 0;transform:skewX(-26deg);transform-origin:bottom;}
+#range-agent-inspector .a-building[data-building="api"] .a-building-face{height:100px;}
+#range-agent-inspector .a-building[data-building="db"] .a-building-face{border-radius:16px 16px 7px 7px;}
+#range-agent-inspector .a-building-label{display:inline-block;background:var(--a-surface);border:1px solid var(--a-line);border-radius:5px;padding:3px 7px;margin-top:13px;font-size:11px;white-space:nowrap;}
+#range-agent-inspector .a-server-slot{width:34px;height:4px;background:var(--a-soft);border-radius:2px;}
+#range-agent-inspector .a-defense{position:absolute;z-index:4;left:58%;top:161px;width:38px;height:54px;background:color-mix(in srgb,var(--a-blue-body) 25%,transparent);border:2px solid var(--a-blue);border-radius:5px 5px 20px 20px;display:grid;place-items:center;transform:skewY(-10deg);opacity:0;transition:opacity .2s;}
+#range-agent-inspector .a-world[data-defense="true"] .a-defense{opacity:1;}
+#range-agent-inspector .a-world[data-exposed="true"] [data-building="api"] .a-building-face{border-color:var(--a-red);}
+#range-agent-inspector .a-world[data-defense="true"] [data-building="api"] .a-building-face{border-color:var(--a-blue);}
+#range-agent-inspector .a-world[data-phase="2"] .a-defense{border-style:dashed;opacity:.45;}
+#range-agent-inspector .a-scene-status{text-align:center;font-size:12px;color:var(--a-muted);margin:0 0 12px;}
+#range-agent-inspector .a-replay{padding:15px;background:var(--a-surface);border:1px solid var(--a-line);border-radius:12px;}
+#range-agent-inspector .a-replay-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+#range-agent-inspector .a-replay strong{font-size:13px;font-weight:500;}
+#range-agent-inspector .a-replay p{font-size:12px;color:var(--a-muted);}
+#range-agent-inspector .a-replay-controls{display:flex;gap:8px;}
+#range-agent-inspector .a-replay button{border:1px solid var(--a-line);background:var(--a-surface);border-radius:7px;padding:7px 10px;font-size:12px;}
+#range-agent-inspector .a-replay button[data-next]{background:var(--a-action);color:var(--a-action-text);border-color:var(--a-action);}
+#range-agent-inspector .a-replay button:disabled{opacity:.4;}
 #range-agent-inspector .a-agent {--a-body:var(--a-neutral);background:transparent;border:1px solid transparent;border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;transition:background .15s,border-color .15s;}
 #range-agent-inspector .a-agent[data-agent="red"]{--a-body:var(--a-red-body);}
 #range-agent-inspector .a-agent[data-agent="blue"]{--a-body:var(--a-blue-body);}
@@ -69,16 +112,23 @@
 #range-agent-inspector pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.65 ui-monospace,SFMono-Regular,monospace;margin:8px 0;color:var(--a-text);}
 #range-agent-inspector .a-inspector-footer{margin-top:18px;color:var(--a-muted);font-size:11px;}
 #range-agent-inspector [hidden]{display:none!important;}
-@media(max-width:740px){#range-agent-inspector .a-workspace{grid-template-columns:1fr;}#range-agent-inspector .a-inspector{border-left:0;border-top:1px solid var(--a-line);}#range-agent-inspector .a-arena{padding:23px 20px;}#range-agent-inspector .a-characters{margin:26px 0 15px;}#range-agent-inspector .a-referee{margin-top:12px;}}
+@media(max-width:850px){#range-agent-inspector .a-workspace{grid-template-columns:1fr;}#range-agent-inspector .a-inspector{border-left:0;border-top:1px solid var(--a-line);}#range-agent-inspector .a-arena{padding:23px 20px;}}
+@media(max-width:420px){#range-agent-inspector .a-world .a-agent[data-agent="red"]{left:17%;}#range-agent-inspector .a-world .a-agent[data-agent="blue"]{left:83%;}#range-agent-inspector .a-building[data-building="web"]{left:20%;}#range-agent-inspector .a-building[data-building="db"]{left:80%;}#range-agent-inspector .a-world .a-agent:not([data-agent="referee"]) .a-robot{transform:scale(.8);transform-origin:bottom center;}#range-agent-inspector .a-building-face{width:51px;}}
 @media(max-width:380px){#range-agent-inspector .a-header,#range-agent-inspector .a-inspector{padding:18px 15px;}#range-agent-inspector .a-characters{gap:12px;}#range-agent-inspector .a-tabs button{padding:10px 8px;}}
 @media(prefers-reduced-motion:reduce){#range-agent-inspector *{transition:none!important;}}
 @media(pointer:coarse){#range-agent-inspector button,#range-agent-inspector summary{min-height:44px;}}
 </style>
-<header class="a-header"><span class="a-brand">RANGE</span><span class="a-tag">Sample run · completed</span></header>
+<header class="a-header"><span class="a-brand">RANGE</span><span class="a-tag">Sample battle replay</span></header>
 <div class="a-workspace">
  <main class="a-arena">
-  <h1>Meet your security team.</h1><p class="a-caption">Select an agent to see what it did and what it found.</p>
-  <div class="a-characters" role="group" aria-label="Security agents">
+  <h1>A small world. Two opposing teams.</h1><p class="a-caption">Watch the next move. Select any bot to inspect its actions.</p>
+  <div class="a-world" data-world data-phase="0" role="group" aria-label="Virtual lab arena with opposing security agents">
+   <div class="a-land" aria-hidden="true"></div>
+   <svg class="a-routes" aria-hidden="true"><path class="a-route-base" data-route="services"></path><path class="a-route-red" data-route="red"></path><path class="a-route-blue" data-route="blue"></path><circle class="a-packet" r="4" data-packet></circle></svg>
+   <div class="a-building" data-building="web"><div class="a-building-face"><i data-lucide="globe" aria-hidden="true"></i><span class="a-server-slot"></span></div><span class="a-building-label">Website</span></div>
+   <div class="a-building" data-building="api"><div class="a-building-face"><i data-lucide="server" aria-hidden="true"></i><span class="a-server-slot"></span><span class="a-server-slot"></span></div><span class="a-building-label">Orders API</span></div>
+   <div class="a-building" data-building="db"><div class="a-building-face"><i data-lucide="database" aria-hidden="true"></i><span class="a-server-slot"></span></div><span class="a-building-label">Database</span></div>
+   <span class="a-defense" aria-label="Applied defense"><i data-lucide="shield" aria-hidden="true"></i></span>
    <button class="a-agent cursor-interaction" type="button" data-agent="red" aria-pressed="true" aria-controls="range-agent-detail" aria-label="Inspect red team scout">
     <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
     <span class="a-agent-name">Scout</span><span class="a-agent-role">Red team</span><span class="a-agent-selection">Viewing activity</span>
@@ -87,20 +137,17 @@
     <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
     <span class="a-agent-name">Defender</span><span class="a-agent-role">Blue team</span><span class="a-agent-selection">Inspect agent</span>
    </button>
-  </div>
-  <div class="a-network" aria-label="Lab services: website connects to API, which connects to database">
-   <div class="a-service"><span class="a-service-icon"><i data-lucide="globe" aria-hidden="true"></i></span>Website</div><span class="a-link" aria-hidden="true"></span>
-   <div class="a-service"><span class="a-service-icon"><i data-lucide="server" aria-hidden="true"></i></span>Orders API</div><span class="a-link" aria-hidden="true"></span>
-   <div class="a-service"><span class="a-service-icon"><i data-lucide="database" aria-hidden="true"></i></span>Database</div>
-  </div>
-  <div class="a-referee"><button class="a-agent cursor-interaction" type="button" data-agent="referee" aria-pressed="false" aria-controls="range-agent-detail" aria-label="Inspect independent referee">
+   <button class="a-agent cursor-interaction" type="button" data-agent="referee" aria-pressed="false" aria-controls="range-agent-detail" aria-label="Inspect independent referee">
    <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
    <span class="a-agent-name">Referee</span><span class="a-agent-role">Independent verification</span><span class="a-agent-selection">Inspect agent</span>
-  </button></div>
+   </button>
+  </div>
+  <p class="a-scene-status" data-scene-status></p>
+  <div class="a-replay"><div class="a-replay-top"><strong data-move-title></strong><div class="a-replay-controls"><button type="button" class="cursor-interaction" data-previous>Back</button><button type="button" class="cursor-interaction" data-next>Next move</button></div></div><p data-move-summary aria-live="polite"></p></div>
   <p class="a-arena-note">Isolated storefront lab · No live agents in this preview</p>
  </main>
  <aside class="a-inspector" id="range-agent-detail" aria-label="Selected agent details">
-  <div class="a-inspector-header"><div><div class="a-role" data-role>Red team</div><h2 data-name>Scout</h2></div><span class="a-tag">Run complete</span></div>
+  <div class="a-inspector-header"><div><div class="a-role" data-role>Red team</div><h2 data-name>Scout</h2></div><span class="a-tag" data-replay-state>Replay state</span></div>
   <p class="a-caption" data-specialty>Tests access boundaries.</p>
   <div class="a-tabs" role="tablist" aria-label="Agent information">
    <button class="cursor-interaction" type="button" id="range-tab-overview" role="tab" aria-selected="true" aria-controls="range-panel-overview" data-tab="overview">Overview</button>
@@ -130,20 +177,48 @@
   referee:{name:'Referee',role:'Independent verification',specialty:'Checks claims against reproducible evidence.',goal:'Reproduce the access-policy violation and test whether the defense preserves legitimate use.',latest:'Retested Alice’s unauthorized access and Bob’s legitimate access against lab-v2.',result:'Alice was denied and Bob was allowed. The fix passed these two checks; this is not a claim that all vulnerabilities are resolved.',tool:'Fresh-session replay and policy assertions'}
  };
  const names={'agent.status':'Agent status','endpoint.discovered':'Endpoint discovered','finding.candidate':'Candidate finding','alert.created':'Suspicious access detected','finding.verified':'Finding independently verified','defense.proposed':'Defense proposed','defense.applied':'System applied proposed defense','attack.result':'Fresh-session retry','retest.completed':'Independent retest'};
- let agent='red',tab='overview';
- function eventsForAgent(){return sample.events.filter(e=>e.actor===agent||(agent==='blue'&&e.type==='defense.applied'));}
+ const moves=[
+  {through:6,actor:'red',title:'1 / 5 · Access exposed',summary:'Scout reaches a private order. The referee independently confirms unauthorized access.',status:'Original app · ownership flaw verified',defense:false,exposed:true},
+  {through:8,actor:'blue',title:'2 / 5 · First defense',summary:'Defender proposes revoking the attacking session. The system applies it; the original session is denied.',status:'Session contained · ownership flaw remains',defense:true,exposed:true},
+  {through:9,actor:'red',title:'3 / 5 · Scout adapts',summary:'Scout signs in with a fresh permitted session. The private order is still exposed.',status:'Fresh session bypasses containment',defense:true,exposed:true},
+  {through:11,actor:'blue',title:'4 / 5 · Repair the boundary',summary:'Defender proposes an ownership check. The system applies a known-good patch to a disposable copy.',status:'Patched copy · independent retest pending',defense:true,exposed:false},
+  {through:13,actor:'referee',title:'5 / 5 · Referee checks',summary:'The referee confirms Alice is denied while Bob can still read his own order. These two checks pass.',status:'Fix verified for this scenario · owner access preserved',defense:true,exposed:false}
+ ];
+ let agent='red',tab='overview',move=0,animationFrame=0;
+ function eventsForAgent(){return sample.events.filter(e=>e.id<=moves[move].through&&(e.actor===agent||(agent==='blue'&&e.type==='defense.applied')));}
+ function actionSummary(event){if(!event)return 'No action recorded yet.';if(event.type==='finding.candidate')return 'Submitted an access-control finding for '+event.data.endpoint+'.';if(event.type==='endpoint.discovered')return 'Discovered '+event.data.method+' '+event.data.path+'.';return event.type==='defense.applied'?(event.data.action_type==='revoke_session'?'The system revoked the attacking session.':'The system applied the ownership patch to '+event.data.resulting_version+'.'):event.type==='retest.completed'?event.data.checks.map(c=>c.id.replaceAll('_',' ')+': '+c.actual).join('; '):event.data.summary||event.data.path||event.data.endpoint||event.data.result||event.type;}
+ function drawRoutes(){
+  const world=q('[data-world]'),bounds=world.getBoundingClientRect();
+  function point(selector,x=.5,y=.5){const rect=q(selector).getBoundingClientRect();return {x:rect.left-bounds.left+rect.width*x,y:rect.top-bounds.top+rect.height*y};}
+  const red=point('[data-agent="red"] .a-robot',.8,.7),blue=point('[data-agent="blue"] .a-robot',.2,.7),api=point('[data-building="api"] .a-building-face',.5,1),web=point('[data-building="web"] .a-building-face',.5,1),db=point('[data-building="db"] .a-building-face',.5,1);
+  q('[data-route="services"]').setAttribute('d',`M${web.x},${web.y} L${api.x},${api.y} L${db.x},${db.y}`);
+  q('[data-route="red"]').setAttribute('d',`M${red.x},${red.y} Q${api.x*.55},${red.y+18} ${api.x},${api.y}`);
+  q('[data-route="blue"]').setAttribute('d',`M${blue.x},${blue.y} Q${api.x*1.45},${blue.y+18} ${api.x+20},${api.y}`);
+ }
+ function animateMove(){
+  cancelAnimationFrame(animationFrame);const packet=q('[data-packet]');packet.style.opacity='0';
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches||moves[move].actor==='referee')return;
+  const route=q('[data-route="'+moves[move].actor+'"]');const length=route.getTotalLength();
+  packet.style.fill=moves[move].actor==='red'?'var(--a-red)':'var(--a-blue)';let start;
+  function frame(time){if(start===undefined)start=time;const progress=Math.min((time-start)/1100,1);const p=route.getPointAtLength(length*progress);packet.setAttribute('cx',String(p.x));packet.setAttribute('cy',String(p.y));packet.style.opacity=progress<1?'1':'0';if(progress<1)animationFrame=requestAnimationFrame(frame);}
+  animationFrame=requestAnimationFrame(frame);
+ }
  function make(tag,text,className){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(className)el.className=className;return el;}
  function detailsFor(value,label){const el=make('details');el.append(make('summary',label,'cursor-interaction'),make('pre',JSON.stringify(value,null,2)));return el;}
  function render(){
-  const profile=profiles[agent],events=eventsForAgent();
-  qa('[data-agent]').forEach(el=>{const selected=el.dataset.agent===agent;el.setAttribute('aria-pressed',String(selected));el.querySelector('.a-agent-selection').textContent=selected?'Viewing activity':'Inspect agent';});
+  const events=eventsForAgent();const profile={...profiles[agent]};const current=moves[move];
+  if(move<4){profile.latest=actionSummary(events.at(-1));profile.result=current.summary+' Advance the replay to see the next response.';}
+  const world=q('[data-world]');world.dataset.phase=String(move);world.dataset.defense=String(current.defense);world.dataset.exposed=String(current.exposed);
+  q('.a-defense').setAttribute('aria-hidden',String(!current.defense));
+  q('[data-move-title]').textContent=current.title;q('[data-move-summary]').textContent=current.summary;q('[data-scene-status]').textContent=current.status;
+  q('[data-previous]').disabled=move===0;q('[data-next]').textContent=move===moves.length-1?'Replay battle':'Next move';q('[data-replay-state]').textContent=move===4?'Run complete':'Replay checkpoint';
+  qa('[data-agent]').forEach(el=>{const selected=el.dataset.agent===agent;el.dataset.active=String(el.dataset.agent===current.actor);el.setAttribute('aria-pressed',String(selected));el.querySelector('.a-agent-selection').textContent=selected?'Viewing activity':'Inspect agent';});
   ['name','role','specialty','goal','latest','result','tool'].forEach(key=>q('[data-'+key+']').textContent=profile[key]);
   qa('[data-tab]').forEach(el=>{const selected=el.dataset.tab===tab;el.setAttribute('aria-selected',String(selected));q('#range-panel-'+el.dataset.tab).hidden=!selected;});
   const log=q('[data-log]');log.replaceChildren();
   events.forEach(event=>{
    const row=make('li');row.append(make('span',`${event.timestamp.slice(11,19)} UTC · ${event.target_version}`,'a-log-meta'),make('strong',names[event.type]||event.type));
-   const actionSummary=event.type==='defense.applied'?(event.data.action_type==='revoke_session'?'Attacking session revoked.':'Ownership patch applied to '+event.data.resulting_version+'.'):event.type==='retest.completed'?'Unauthorized access denied; owner access preserved.':event.data.summary||event.data.path||event.data.endpoint||event.data.result||event.type;
-   row.append(make('p',actionSummary));
+   row.append(make('p',actionSummary(event)));
    if(event.type==='defense.applied')row.append(make('p','Executed by the system on blue’s proposal.'));
    row.append(detailsFor(event.data,'Inspect action details'));log.append(row);
   });
@@ -158,8 +233,10 @@
   evidence.append(make('p','Only available sample fields are shown. Raw credentials are never displayed.','a-muted'));
   q('[data-announcement]').textContent=`${profile.name} selected · ${tab[0].toUpperCase()+tab.slice(1)}`;
  }
- function save(){window.openai?.setWidgetState?.({modelContent:{design:'Simple character inspector',selectedAgent:agent,section:tab},privateContent:{agent,tab}}).catch(()=>{});}
- function restore(state){const p=state?.privateContent;if(p&&Object.hasOwn(profiles,p.agent))agent=p.agent;if(p&&['overview','activity','evidence'].includes(p.tab))tab=p.tab;render();}
+ function save(){window.openai?.setWidgetState?.({modelContent:{design:'Virtual character arena',selectedAgent:agent,section:tab,checkpoint:moves[move].title},privateContent:{agent,tab,move}}).catch(()=>{});}
+ function restore(state){const p=state?.privateContent;if(p&&Object.hasOwn(profiles,p.agent))agent=p.agent;if(p&&['overview','activity','evidence'].includes(p.tab))tab=p.tab;if(p&&Number.isInteger(p.move)&&p.move>=0&&p.move<moves.length)move=p.move;render();}
+ q('[data-next]').addEventListener('click',()=>{move=(move+1)%moves.length;render();drawRoutes();animateMove();save();});
+ q('[data-previous]').addEventListener('click',()=>{if(move>0){move--;render();drawRoutes();animateMove();save();}});
  qa('[data-agent]').forEach(el=>el.addEventListener('click',()=>{agent=el.dataset.agent;render();save();}));
  qa('[data-tab]').forEach(el=>{
   el.addEventListener('click',()=>{tab=el.dataset.tab;render();save();});
@@ -167,6 +244,8 @@
  });
  window.addEventListener('openai:set_globals',event=>{if(event.detail?.globals?.widgetState)restore(event.detail.globals.widgetState);});
  restore(window.openai?.widgetState);
+ new ResizeObserver(drawRoutes).observe(q('[data-world]'));
+ drawRoutes();
 })();
 </script>
 </div>

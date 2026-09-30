@@ -2,7 +2,7 @@
 
 ## Mission
 
-Make the exercise understandable and fun for a judge who has never used the project. Use simple 2D robot characters: a red scout, a blue defender, and a neutral referee, alongside a minimal website/API/database map. Prioritize selecting a character and inspecting its activity over elaborate scenery or 3D navigation.
+Make the exercise understandable and fun for a judge who has never used the project. Use simple 2D robot characters: a red scout, a blue defender, and a neutral referee, inside a shared virtual environment with small website/API/database buildings on a raised island. Use a fixed perspective and simple scenery so battle actions and character inspection stay readable.
 
 ## Own
 
@@ -17,9 +17,9 @@ Build a small transport adapter with `getSnapshot`, `getEvents`, `subscribe`, an
 ## Build in order
 
 1. Create the React + TypeScript frontend, preserving the existing static preview as a reference.
-2. Build the minimal map and three selectable characters, following docs/design/agent-inspector.fragment.html. Each character opens the same agent inspector with Overview, Activity, and Evidence sections. Show the task/status, target/version, actions, tool inputs/outputs, observed results, errors, next steps, and evidence when available. Use short summaries with expandable details; never invent missing operational data.
+2. Build the raised virtual arena, three service buildings, and three selectable characters, following docs/design/agent-inspector.fragment.html. Each character opens the same agent inspector with Overview, Activity, and Evidence sections. Show the task/status, target/version, actions, tool inputs/outputs, observed results, errors, next steps, and evidence when available. Use short summaries with expandable details; never invent missing operational data.
 3. Map `agent.status` events onto idle, investigating, executing, blocked, completed, and failed visual states. Do not invent additional successful actions.
-4. Show a concise timeline. Selecting an event highlights its target and opens its evidence without losing the current live position.
+4. Implement the five-checkpoint fixture replay shown in the preview, keeping actions and evidence bounded by the selected checkpoint. Animate brief attack and defense effects from events, respecting reduced motion. Show a concise timeline. Selecting an event highlights its target and opens its evidence without losing the current live position.
 5. Implement launch, advance, apply proposed defense, stop, and reset. Disable unavailable actions based on the snapshot's `allowed_actions`.
 6. Connect the live transport. Recover the snapshot and missing events after reconnect; deduplicate by event ID.
 7. Check keyboard navigation, reduced motion, loading/error states, and narrow layouts. Keep an accessible service list alongside the arena.

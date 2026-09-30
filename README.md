@@ -33,7 +33,7 @@ Requires Python 3. No package installation is needed.
 python3 -m http.server 8000 --bind 127.0.0.1 --directory frontend/preview
 ```
 
-Open <http://127.0.0.1:8000>. Click **Scout**, **Defender**, or **Referee**, then explore **Overview**, **Activity**, and **Evidence**. Each character opens its own operational history from the shared sample run. The preview loads service icons from a CDN; the simple robot characters, core controls, and text work without those icons.
+Open <http://127.0.0.1:8000>. Use **Next move** to step through a five-move sample battle in the virtual arena. Click **Scout**, **Defender**, or **Referee**, then explore **Overview**, **Activity**, and **Evidence**. Each character opens its own operational history and evidence up to the selected replay checkpoint. The preview loads service icons from a CDN; the simple robot characters, core controls, and text work without those icons.
 
 The earlier guided dashboard, with launch/defense/retest sample controls, remains at <http://127.0.0.1:8000/dashboard.html>.
 
