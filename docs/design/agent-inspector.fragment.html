@@ -117,37 +117,143 @@
 @media(max-width:380px){#range-agent-inspector .a-header,#range-agent-inspector .a-inspector{padding:18px 15px;}#range-agent-inspector .a-characters{gap:12px;}#range-agent-inspector .a-tabs button{padding:10px 8px;}}
 @media(prefers-reduced-motion:reduce){#range-agent-inspector *{transition:none!important;}}
 @media(pointer:coarse){#range-agent-inspector button,#range-agent-inspector summary{min-height:44px;}}
+/* Flat character cutouts in a bank diorama. */
+#range-agent-inspector {--h-stone:light-dark(#e1d6ba,#8c826a);--h-stone-top:light-dark(#f1e8d3,#b5a88a);--h-stone-side:light-dark(#b9ac8f,#615d50);--h-gold:light-dark(#996e26,#e9c879);--h-ink:light-dark(#293342,#222d3a);--h-skin:light-dark(#edc7a2,#edc7a2);}
+#range-agent-inspector .a-world{--a-ground:light-dark(#e1e7e5,#293a3b);--a-edge:light-dark(#b2c1bd,#1b292b);--a-tile:light-dark(#c4d0cc,#3a4b4c);height:525px;}
+#range-agent-inspector .a-land{inset:100px 0 24px;}
+#range-agent-inspector .a-world .a-agent[data-agent="red"],#range-agent-inspector .a-world .a-agent[data-agent="blue"]{top:280px;}
+#range-agent-inspector .a-world .a-agent[data-agent="referee"]{top:395px;}
+#range-agent-inspector .a-building[data-building="api"]{width:154px;top:104px;}
+#range-agent-inspector .a-building[data-building="api"] .a-building-face{width:150px;height:130px;border:0;border-radius:0;background:var(--h-stone);box-shadow:0 9px 0 var(--h-stone-side);overflow:visible;}
+#range-agent-inspector .a-building[data-building="api"] .a-building-face::before{top:-48px;left:-12px;right:-12px;height:49px;border:0;border-radius:0;transform:none;clip-path:polygon(50% 0,100% 85%,100% 100%,0 100%,0 85%);background:var(--h-stone-top);}
+#range-agent-inspector .a-building[data-building="api"] .a-building-face::after{content:'';position:absolute;left:100%;top:-8px;width:24px;height:130px;background:var(--h-stone-side);transform:skewY(-33deg);transform-origin:left bottom;}
+#range-agent-inspector .h-bank-sign{position:absolute;top:-24px;z-index:1;font-size:13px;letter-spacing:3px;color:var(--h-ink);font-weight:600;}
+#range-agent-inspector .h-columns{position:absolute;inset:22px 13px 9px;display:flex;justify-content:space-between;pointer-events:none;}
+#range-agent-inspector .h-columns span{width:15px;background:var(--h-stone-top);border-top:5px solid var(--h-stone-side);border-bottom:5px solid var(--h-stone-side);}
+#range-agent-inspector .h-bank-door{width:47px;height:66px;margin-top:45px;background:var(--h-ink);border:4px solid var(--h-stone-side);border-radius:23px 23px 0 0;display:grid;place-items:center;color:var(--h-gold);}
+#range-agent-inspector .a-building[data-building="web"]{left:16%;top:170px;}
+#range-agent-inspector .a-building[data-building="db"]{left:84%;top:157px;}
+#range-agent-inspector .a-building[data-building="web"] .a-building-face{background:var(--a-soft);height:61px;}
+#range-agent-inspector .a-building[data-building="db"] .a-building-face{width:78px;height:78px;background:var(--h-stone-side);border-radius:6px;}
+#range-agent-inspector .h-vault-door{width:57px;height:57px;border:5px solid var(--h-stone-top);border-radius:50%;display:grid;place-items:center;background:var(--h-ink);color:var(--h-stone-top);}
+#range-agent-inspector .a-building-label{margin-top:17px;}
+#range-agent-inspector .a-defense{left:calc(50% + 57px);top:204px;}
+#range-agent-inspector .a-world[data-exposed="true"] .h-bank-door{color:var(--a-red);}
+#range-agent-inspector .a-world[data-phase="4"] .h-bank-door{color:var(--a-blue);}
+#range-agent-inspector .a-robot{width:90px;height:108px;}
+#range-agent-inspector .a-head{left:19px;top:14px;width:52px;height:46px;padding:0;border-radius:18px;background:var(--h-skin);}
+#range-agent-inspector .a-face{position:absolute;inset:15px 0 auto;height:18px;border-radius:6px;background:transparent;gap:17px;}
+#range-agent-inspector .a-face::before,#range-agent-inspector .a-face::after{width:5px;height:7px;background:var(--h-ink);}
+#range-agent-inspector .a-antenna{width:56px;height:22px;top:4px;left:17px;border-radius:18px 18px 3px 3px;background:var(--h-ink);z-index:2;}
+#range-agent-inspector .a-antenna::before{width:62px;height:6px;top:17px;left:-3px;border-radius:3px;background:inherit;}
+#range-agent-inspector .a-body{top:62px;left:25px;height:32px;border-radius:9px 9px 4px 4px;}
+#range-agent-inspector .a-body::before,#range-agent-inspector .a-body::after{height:27px;}
+#range-agent-inspector .a-feet{background:var(--h-ink);box-shadow:25px 0 var(--h-ink);height:12px;bottom:0;}
+#range-agent-inspector .a-agent[data-agent="red"] .a-face{background:var(--h-ink);}
+#range-agent-inspector .a-agent[data-agent="red"] .a-face::before,#range-agent-inspector .a-agent[data-agent="red"] .a-face::after{background:var(--a-eye);}
+#range-agent-inspector .a-agent[data-agent="red"] .a-body{background:repeating-linear-gradient(0deg,var(--h-ink) 0 6px,var(--a-eye) 6px 11px);}
+#range-agent-inspector .a-agent[data-agent="red"] .a-badge{left:69px;top:74px;width:21px;height:25px;border-radius:8px 8px 11px 11px;background:var(--h-gold);transform:rotate(-12deg);}
+#range-agent-inspector .a-agent[data-agent="red"] .a-badge::before{content:'';position:absolute;top:-5px;left:6px;width:9px;height:7px;background:var(--h-gold);}
+#range-agent-inspector .a-agent[data-agent="blue"] .a-head{border-radius:18px;}
+#range-agent-inspector .a-agent[data-agent="blue"] .a-antenna{background:var(--a-blue-body);border-radius:6px 6px 2px 2px;}
+#range-agent-inspector .a-agent[data-agent="blue"] .a-badge{width:10px;height:12px;left:46px;top:69px;background:var(--h-gold);}
+#range-agent-inspector .a-agent[data-agent="referee"] .a-antenna{display:none;}
+#range-agent-inspector .a-agent[data-agent="referee"] .a-head{border-top:10px solid var(--h-ink);}
+#range-agent-inspector .a-agent[data-agent="referee"] .a-badge{background:var(--h-stone-top);height:22px;top:65px;transform:rotate(-8deg);}
+@media(max-width:420px){#range-agent-inspector .a-building[data-building="api"]{width:116px;}#range-agent-inspector .a-building[data-building="api"] .a-building-face{width:110px;}#range-agent-inspector .a-building[data-building="web"]{left:15%;top:191px;}#range-agent-inspector .a-building[data-building="db"]{left:85%;top:186px;}#range-agent-inspector .a-building[data-building="db"] .a-building-face{width:53px;height:60px;}#range-agent-inspector .h-vault-door{width:43px;height:43px;}#range-agent-inspector .a-building-label{padding:3px 4px;}#range-agent-inspector .a-world .a-agent[data-agent="red"],#range-agent-inspector .a-world .a-agent[data-agent="blue"]{top:295px;}#range-agent-inspector .a-world .a-agent[data-agent="referee"]{top:410px;}#range-agent-inspector .a-world{height:540px;}#range-agent-inspector .a-defense{left:calc(50% + 25px);top:247px;}}
+/* City level: scenery stays separate from evidence-driven lab state. */
+#range-agent-inspector {--c-road:light-dark(#697782,#202d39);--c-curb:light-dark(#c6d0cf,#62747a);--c-paving:light-dark(#dde3d7,#3c514e);--c-grass:light-dark(#a5c5a2,#385c4b);--c-tree:light-dark(#538e73,#558d77);--c-wall:light-dark(#94aeba,#476577);--c-roof:light-dark(#bcd2d9,#7395a6);--c-side:light-dark(#738b9b,#314b5e);--c-window:light-dark(#e4f5ee,#b3d9c4);--c-mark:light-dark(#edf2e9,#93a6a9);}
+#range-agent-inspector .a-workspace{grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr);}
+#range-agent-inspector .a-arena{padding:22px 18px;}
+#range-agent-inspector .a-world{height:650px;border:1px solid var(--a-line);border-radius:15px;background:radial-gradient(ellipse at 50% 15%,light-dark(#ebf2e7,#354b53),transparent 65%),light-dark(#ceddd6,#253840);overflow:hidden;}
+#range-agent-inspector .a-land{inset:130px -10% -40px;clip-path:none;background:var(--c-paving);transform:skewY(-5deg);border-top:12px solid var(--c-curb);}
+#range-agent-inspector .a-land::before{display:none;}
+#range-agent-inspector .c-scenery{position:absolute;inset:0;pointer-events:none;}
+#range-agent-inspector .c-level{position:absolute;top:16px;left:18px;z-index:8;color:var(--a-text);font:500 11px/1.5 ui-monospace,monospace;letter-spacing:1.6px;}
+#range-agent-inspector .c-level span{display:block;font:11px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0;color:var(--a-muted);}
+#range-agent-inspector .c-road{position:absolute;background:var(--c-road);border:5px solid var(--c-curb);}
+#range-agent-inspector .c-road-main{left:-5%;right:-5%;top:395px;height:101px;transform:skewY(-5deg);}
+#range-agent-inspector .c-road-main::after{content:'';position:absolute;top:44px;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,var(--c-mark) 0 18px,transparent 18px 40px);}
+#range-agent-inspector .c-road-side{top:115px;bottom:-25px;width:72px;transform:skewX(-14deg);}
+#range-agent-inspector .c-road-side.one{left:15%;}#range-agent-inspector .c-road-side.two{right:11%;}
+#range-agent-inspector .c-crosswalk{position:absolute;top:404px;width:35px;height:72px;background:repeating-linear-gradient(0deg,var(--c-mark) 0 7px,transparent 7px 14px);transform:skewY(-5deg);}
+#range-agent-inspector .c-crosswalk.one{left:20%;}#range-agent-inspector .c-crosswalk.two{right:17%;}
+#range-agent-inspector .c-block{position:absolute;left:31%;right:27%;top:149px;height:217px;background:var(--h-stone-side);border:8px solid var(--c-curb);border-radius:5px;transform:skewY(-5deg);box-shadow:0 8px var(--c-side);}
+#range-agent-inspector .c-building{position:absolute;left:var(--x);top:var(--y);width:var(--w,58px);height:var(--h,100px);background:var(--c-wall);box-shadow:0 8px 0 color-mix(in srgb,var(--c-side) 70%,transparent);}
+#range-agent-inspector .c-building::before{content:'';position:absolute;left:0;right:-19px;height:20px;top:-20px;background:var(--c-roof);clip-path:polygon(19px 0,100% 0,calc(100% - 19px) 100%,0 100%);}
+#range-agent-inspector .c-building::after{content:'';position:absolute;left:100%;top:-10px;width:19px;height:100%;background:var(--c-side);transform:skewY(-46deg);}
+#range-agent-inspector .c-windows{position:absolute;inset:13px 10px 15px;background:repeating-linear-gradient(0deg,transparent 0 12px,var(--c-wall) 12px 25px),repeating-linear-gradient(90deg,var(--c-window) 0 9px,transparent 9px 20px);opacity:.8;}
+#range-agent-inspector .c-building.terracotta{--c-wall:light-dark(#bd9381,#8e6a61);--c-roof:light-dark(#dac0a5,#b69b83);--c-side:light-dark(#947764,#64524d);}
+#range-agent-inspector .c-building.police{--c-wall:light-dark(#8aaaba,#496a82);--c-roof:light-dark(#bfd2dd,#7a9bae);--c-side:light-dark(#647f91,#30475d);}
+#range-agent-inspector .c-shop-sign{position:absolute;bottom:10px;left:5px;right:5px;background:var(--a-surface);color:var(--a-text);font:500 10px/1.8 -apple-system,sans-serif;text-align:center;letter-spacing:1px;}
+#range-agent-inspector .c-park{position:absolute;left:4%;top:503px;width:27%;height:90px;background:var(--c-grass);border:6px solid var(--c-curb);transform:skewY(-5deg);border-radius:14px;}
+#range-agent-inspector .c-tree{position:absolute;left:var(--x);top:var(--y);width:10px;height:47px;background:var(--h-stone-side);border-radius:2px;}
+#range-agent-inspector .c-tree::before{content:'';position:absolute;bottom:20px;left:-16px;width:43px;height:44px;background:var(--c-tree);border-radius:48% 52% 42% 42%;box-shadow:inset -10px -7px color-mix(in srgb,var(--c-side) 25%,transparent);}
+#range-agent-inspector .c-car{position:absolute;left:var(--x);top:var(--y);width:65px;height:30px;border-radius:9px 12px 5px 5px;background:var(--c-tree);border-top:7px solid var(--c-roof);transform:skewY(-5deg);box-shadow:3px 8px 0 color-mix(in srgb,var(--h-ink) 30%,transparent);}
+#range-agent-inspector .c-car::before{content:'';position:absolute;left:10px;bottom:-6px;width:12px;height:12px;border-radius:50%;background:var(--h-ink);box-shadow:34px 0 var(--h-ink);}
+#range-agent-inspector .c-car::after{content:'';position:absolute;right:8px;top:0;width:17px;height:12px;border-radius:3px;background:var(--c-window);}
+#range-agent-inspector .c-car.patrol{background:var(--a-blue-body);border-top-color:var(--a-eye);}
+#range-agent-inspector .c-siren{position:absolute;left:23px;top:-13px;width:21px;height:7px;background:linear-gradient(90deg,var(--a-red) 50%,var(--a-blue) 50%);border-radius:3px;}
+#range-agent-inspector .c-street-label{position:absolute;right:25%;top:464px;color:var(--c-mark);font:500 10px/1.4 ui-monospace,monospace;letter-spacing:3px;transform:rotate(-5deg);}
+#range-agent-inspector .a-building[data-building="api"]{top:164px;left:50%;}
+#range-agent-inspector .a-building[data-building="web"]{top:258px;left:11%;}
+#range-agent-inspector .a-building[data-building="db"]{top:249px;left:88%;}
+#range-agent-inspector .a-world .a-agent[data-agent="red"]{top:322px;left:31%;}
+#range-agent-inspector .a-world .a-agent[data-agent="blue"]{top:322px;left:69%;}
+#range-agent-inspector .a-world .a-agent[data-agent="referee"]{top:476px;left:51%;}
+#range-agent-inspector .a-agent-role{background:var(--a-surface);padding:1px 4px;border-radius:4px;}
+#range-agent-inspector .a-world .a-agent-name{background:var(--a-surface);padding:2px 7px;border-radius:5px;}
+#range-agent-inspector .a-routes{z-index:4;}
+#range-agent-inspector .a-route-base{opacity:.35;}
+#range-agent-inspector .a-defense{top:272px;left:calc(50% + 91px);}
+#range-agent-inspector .a-scene-status{margin:12px 0;}
+@media(max-width:1000px){#range-agent-inspector .a-workspace{grid-template-columns:1fr;}#range-agent-inspector .a-inspector{border-left:0;border-top:1px solid var(--a-line);}}
+@media(max-width:420px){#range-agent-inspector .a-arena{padding:20px 10px;}#range-agent-inspector .c-building{width:40px;}#range-agent-inspector .c-building.distant{display:none;}#range-agent-inspector .c-building.police{left:78%;width:48px;}#range-agent-inspector .c-shop-sign{font-size:9px;letter-spacing:0;}#range-agent-inspector .a-building[data-building="web"]{left:14%;top:231px;}#range-agent-inspector .a-building[data-building="db"]{left:86%;top:234px;}#range-agent-inspector .a-building[data-building="api"]{top:157px;}#range-agent-inspector .a-world .a-agent[data-agent="red"]{left:26%;top:320px;}#range-agent-inspector .a-world .a-agent[data-agent="blue"]{left:76%;top:320px;}#range-agent-inspector .a-world .a-agent[data-agent="referee"]{top:476px;}#range-agent-inspector .a-defense{top:357px;left:calc(50% - 19px);}#range-agent-inspector .c-street-label{display:none;}}
 </style>
-<header class="a-header"><span class="a-brand">RANGE</span><span class="a-tag">Sample battle replay</span></header>
+<header class="a-header"><span class="a-brand">RANGE / THE HEIST</span><span class="a-tag">Sample heist replay</span></header>
 <div class="a-workspace">
  <main class="a-arena">
-  <h1>A small world. Two opposing teams.</h1><p class="a-caption">Watch the next move. Select any bot to inspect its actions.</p>
-  <div class="a-world" data-world data-phase="0" role="group" aria-label="Virtual lab arena with opposing security agents">
+  <h1>The downtown heist.</h1><p class="a-caption">Pick your agent. Follow the break-in. See how the city fights back.</p>
+  <div class="a-world" data-world data-phase="0" role="group" aria-label="Game-like downtown city with a bank, streets, police station, and selectable security agents">
    <div class="a-land" aria-hidden="true"></div>
+   <div class="c-scenery" aria-hidden="true">
+    <div class="c-level">DOWNTOWN / BANK DISTRICT<span>Training city · Select a character to inspect</span></div>
+    <div class="c-road c-road-side one"></div><div class="c-road c-road-side two"></div><div class="c-road c-road-main"></div>
+    <div class="c-crosswalk one"></div><div class="c-crosswalk two"></div><div class="c-block"></div>
+    <div class="c-building" style="--x:5%;--y:107px;--h:92px"><span class="c-windows"></span></div>
+    <div class="c-building terracotta distant" style="--x:23%;--y:95px;--h:78px;--w:47px"><span class="c-windows"></span></div>
+    <div class="c-building distant" style="--x:67%;--y:89px;--h:82px;--w:43px"><span class="c-windows"></span></div>
+    <div class="c-building police" style="--x:82%;--y:101px;--h:105px;--w:69px"><span class="c-windows"></span><span class="c-shop-sign">POLICE</span></div>
+    <div class="c-building terracotta" style="--x:80%;--y:512px;--h:75px;--w:64px"><span class="c-windows"></span><span class="c-shop-sign">CAFE</span></div>
+    <div class="c-park"></div><span class="c-tree" style="--x:10%;--y:534px"></span><span class="c-tree" style="--x:23%;--y:556px"></span>
+    <span class="c-tree" style="--x:34%;--y:193px"></span><span class="c-tree" style="--x:72%;--y:270px"></span>
+    <div class="c-car" style="--x:4%;--y:423px"></div><div class="c-car patrol" style="--x:81%;--y:408px"><span class="c-siren"></span></div>
+    <span class="c-street-label">VAULT AVENUE</span>
+   </div>
    <svg class="a-routes" aria-hidden="true"><path class="a-route-base" data-route="services"></path><path class="a-route-red" data-route="red"></path><path class="a-route-blue" data-route="blue"></path><circle class="a-packet" r="4" data-packet></circle></svg>
-   <div class="a-building" data-building="web"><div class="a-building-face"><i data-lucide="globe" aria-hidden="true"></i><span class="a-server-slot"></span></div><span class="a-building-label">Website</span></div>
-   <div class="a-building" data-building="api"><div class="a-building-face"><i data-lucide="server" aria-hidden="true"></i><span class="a-server-slot"></span><span class="a-server-slot"></span></div><span class="a-building-label">Orders API</span></div>
-   <div class="a-building" data-building="db"><div class="a-building-face"><i data-lucide="database" aria-hidden="true"></i><span class="a-server-slot"></span></div><span class="a-building-label">Database</span></div>
+   <div class="a-building" data-building="web"><div class="a-building-face"><i data-lucide="monitor" aria-hidden="true"></i><span class="a-server-slot"></span></div><span class="a-building-label">Lobby · Web</span></div>
+   <div class="a-building" data-building="api"><div class="a-building-face"><span class="h-bank-sign">BANK</span><span class="h-columns" aria-hidden="true"><span></span><span></span></span><span class="h-bank-door"><i data-lucide="key-round" aria-hidden="true"></i></span></div><span class="a-building-label">Security gate · API</span></div>
+   <div class="a-building" data-building="db"><div class="a-building-face"><span class="h-vault-door"><i data-lucide="vault" aria-hidden="true"></i></span></div><span class="a-building-label">Vault · Data</span></div>
    <span class="a-defense" aria-label="Applied defense"><i data-lucide="shield" aria-hidden="true"></i></span>
-   <button class="a-agent cursor-interaction" type="button" data-agent="red" aria-pressed="true" aria-controls="range-agent-detail" aria-label="Inspect red team scout">
+   <button class="a-agent cursor-interaction" type="button" data-agent="red" aria-pressed="true" aria-controls="range-agent-detail" aria-label="Inspect robber — red team">
     <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
-    <span class="a-agent-name">Scout</span><span class="a-agent-role">Red team</span><span class="a-agent-selection">Viewing activity</span>
+    <span class="a-agent-name">Robber</span><span class="a-agent-role">Robbers · Red team</span><span class="a-agent-selection">Viewing activity</span>
    </button>
-   <button class="a-agent cursor-interaction" type="button" data-agent="blue" aria-pressed="false" aria-controls="range-agent-detail" aria-label="Inspect blue team defender">
+   <button class="a-agent cursor-interaction" type="button" data-agent="blue" aria-pressed="false" aria-controls="range-agent-detail" aria-label="Inspect officer — blue team">
     <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
-    <span class="a-agent-name">Defender</span><span class="a-agent-role">Blue team</span><span class="a-agent-selection">Inspect agent</span>
+    <span class="a-agent-name">Officer</span><span class="a-agent-role">Cops · Blue team</span><span class="a-agent-selection">Inspect agent</span>
    </button>
-   <button class="a-agent cursor-interaction" type="button" data-agent="referee" aria-pressed="false" aria-controls="range-agent-detail" aria-label="Inspect independent referee">
+   <button class="a-agent cursor-interaction" type="button" data-agent="referee" aria-pressed="false" aria-controls="range-agent-detail" aria-label="Inspect independent auditor">
    <span class="a-robot" aria-hidden="true"><span class="a-antenna"></span><span class="a-head"><span class="a-face"></span></span><span class="a-body"></span><span class="a-feet"></span><span class="a-badge"></span></span>
-   <span class="a-agent-name">Referee</span><span class="a-agent-role">Independent verification</span><span class="a-agent-selection">Inspect agent</span>
+   <span class="a-agent-name">Auditor</span><span class="a-agent-role">Independent verification</span><span class="a-agent-selection">Inspect agent</span>
    </button>
   </div>
   <p class="a-scene-status" data-scene-status></p>
   <div class="a-replay"><div class="a-replay-top"><strong data-move-title></strong><div class="a-replay-controls"><button type="button" class="cursor-interaction" data-previous>Back</button><button type="button" class="cursor-interaction" data-next>Next move</button></div></div><p data-move-summary aria-live="polite"></p></div>
-  <p class="a-arena-note">Isolated storefront lab · No live agents in this preview</p>
+  <p class="a-arena-note">Bank-themed storefront fixture · No live agents</p>
  </main>
  <aside class="a-inspector" id="range-agent-detail" aria-label="Selected agent details">
-  <div class="a-inspector-header"><div><div class="a-role" data-role>Red team</div><h2 data-name>Scout</h2></div><span class="a-tag" data-replay-state>Replay state</span></div>
+  <div class="a-inspector-header"><div><div class="a-role" data-role>Robbers · Red team</div><h2 data-name>Robber</h2></div><span class="a-tag" data-replay-state>Replay state</span></div>
   <p class="a-caption" data-specialty>Tests access boundaries.</p>
   <div class="a-tabs" role="tablist" aria-label="Agent information">
    <button class="cursor-interaction" type="button" id="range-tab-overview" role="tab" aria-selected="true" aria-controls="range-panel-overview" data-tab="overview">Overview</button>
@@ -162,7 +268,7 @@
   </div>
   <div id="range-panel-activity" role="tabpanel" aria-labelledby="range-tab-activity" hidden><p class="a-muted" data-activity-count></p><ol class="a-log" data-log></ol></div>
   <div id="range-panel-evidence" role="tabpanel" aria-labelledby="range-tab-evidence" hidden><div data-evidence></div></div>
-  <p class="a-inspector-footer" aria-live="polite" data-announcement>Scout selected · Overview</p>
+  <p class="a-inspector-footer" aria-live="polite" data-announcement>Robber selected · Overview</p>
  </aside>
 </div>
 <script id="range-sample-run" type="application/json">{"description": "Synthetic handoff fixture. No live agents, attacks, or model calls. Give blue only telemetry and policy; never pass this whole file to a team model.", "snapshot": {"schema_version": "1.0", "id": "demo-run-001", "target_id": "storefront-lab", "target_version": "lab-v2", "mode": "guided", "data_source": "fixture", "status": "completed", "phase": "complete", "last_event_id": 13, "allowed_actions": ["reset"], "finding_ids": ["finding-001"], "defense_ids": ["defense-session", "defense-patch"]}, "events": [{"schema_version": "1.0", "id": 1, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:01Z", "type": "assessment.started", "actor": "system", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"mode": "guided"}}, {"schema_version": "1.0", "id": 2, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:02Z", "type": "agent.status", "actor": "red", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"agent_id": "red-scout", "status": "investigating", "summary": "Inspecting order access."}}, {"schema_version": "1.0", "id": 3, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:03Z", "type": "endpoint.discovered", "actor": "red", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"method": "GET", "path": "/api/orders/{id}", "service_id": "orders-api"}}, {"schema_version": "1.0", "id": 4, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:04Z", "type": "finding.candidate", "actor": "red", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-red"], "data": {"finding_id": "finding-001", "category": "broken_access_control", "endpoint": "/api/orders/{id}", "policy_id": "private-orders-owner-only", "actor_ref": "alice", "resource_ref": "order-204", "repro": {"method": "GET", "path": "/api/orders/204", "actor_ref": "alice", "fresh_session": true, "expected": "denied", "observed": "private_record_returned"}}}, {"schema_version": "1.0", "id": 5, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:05Z", "type": "alert.created", "actor": "blue", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-log"], "data": {"alert_id": "alert-001", "request_ids": ["req-red"], "summary": "Private order read by a different user."}}, {"schema_version": "1.0", "id": 6, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:06Z", "type": "finding.verified", "actor": "referee", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-verify"], "data": {"finding_id": "finding-001", "verdict": "verified", "summary": "Independent fresh-session check reproduced a policy violation."}}, {"schema_version": "1.0", "id": 7, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:07Z", "type": "defense.proposed", "actor": "blue", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"defense_id": "defense-session", "action_type": "revoke_session", "summary": "Revoke the attacking lab session.", "reason": "Contain the observed access.", "parameters": {"session_ref": "alice-session-1"}}}, {"schema_version": "1.0", "id": 8, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:08Z", "type": "defense.applied", "actor": "system", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-revoke"], "data": {"defense_id": "defense-session", "action_type": "revoke_session", "origin": "policy_action", "original_version": "lab-v1", "resulting_version": "lab-v1"}}, {"schema_version": "1.0", "id": 9, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:09Z", "type": "attack.result", "actor": "red", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": ["ev-retry"], "data": {"finding_id": "finding-001", "outcome": "candidate_reproduced", "summary": "A fresh session still exposes the order; containment is not a durable fix."}}, {"schema_version": "1.0", "id": 10, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:10Z", "type": "defense.proposed", "actor": "blue", "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "fixture", "evidence_refs": [], "data": {"defense_id": "defense-patch", "action_type": "apply_patch", "summary": "Check ownership before returning private orders.", "reason": "Fix the root cause.", "parameters": {"patch_id": "ownership-fix-001", "base_version": "lab-v1"}}}, {"schema_version": "1.0", "id": 11, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:11Z", "type": "defense.applied", "actor": "system", "target_id": "storefront-lab", "target_version": "lab-v2", "data_source": "fixture", "evidence_refs": ["ev-patch"], "data": {"defense_id": "defense-patch", "action_type": "apply_patch", "origin": "known_good_fallback", "original_version": "lab-v1", "resulting_version": "lab-v2"}}, {"schema_version": "1.0", "id": 12, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:12Z", "type": "retest.completed", "actor": "referee", "target_id": "storefront-lab", "target_version": "lab-v2", "data_source": "fixture", "evidence_refs": ["ev-retest"], "data": {"finding_id": "finding-001", "defense_id": "defense-patch", "result": "passed", "checks": [{"id": "unauthorized_access", "expected": "denied", "actual": "denied", "passed": true}, {"id": "owner_access", "expected": "allowed", "actual": "allowed", "passed": true}]}}, {"schema_version": "1.0", "id": 13, "assessment_id": "demo-run-001", "timestamp": "2026-09-30T15:00:13Z", "type": "assessment.completed", "actor": "system", "target_id": "storefront-lab", "target_version": "lab-v2", "data_source": "fixture", "evidence_refs": [], "data": {"status": "completed", "summary": "Ownership fix passes the two displayed checks; full integration adds all controls."}}], "evidence": [{"id": "ev-red", "kind": "http_exchange", "target_version": "lab-v1", "request_id": "req-red", "summary": "Alice retrieved Bob private marker; raw credentials removed.", "request": {"method": "GET", "path": "/api/orders/204", "credential_ref": "alice-session-1"}, "response": {"status": 200, "body": {"id": 204, "owner_ref": "bob", "private_marker": "demo-bob-order"}}}, {"id": "ev-log", "kind": "telemetry", "target_version": "lab-v1", "request_id": "req-red", "summary": "Application log links Alice to Bob private resource."}, {"id": "ev-verify", "kind": "independent_check", "target_version": "lab-v1", "request_id": "req-verify", "summary": "Fresh Alice session retrieved Bob private marker; Bob owner baseline succeeded."}, {"id": "ev-revoke", "kind": "defense_result", "target_version": "lab-v1", "request_id": "req-revoked", "summary": "Original Alice session denied after revocation."}, {"id": "ev-retry", "kind": "http_exchange", "target_version": "lab-v1", "request_id": "req-retry", "summary": "New Alice session still retrieved Bob private marker."}, {"id": "ev-patch", "kind": "patch_result", "target_version": "lab-v2", "request_id": null, "summary": "Known-good ownership patch applied to a disposable copy."}, {"id": "ev-retest", "kind": "independent_check", "target_version": "lab-v2", "request_id": "req-retest", "summary": "Fresh Alice denied; Bob owner access still allowed."}], "telemetry": [{"request_id": "req-owner", "timestamp": "2026-09-30T15:00:03Z", "target_id": "storefront-lab", "target_version": "lab-v1", "actor_ref": "bob", "session_ref": "bob-session-1", "resource_id": "order-204", "resource_owner_ref": "bob", "action": "read_private_order", "http_status": 200}, {"request_id": "req-red", "timestamp": "2026-09-30T15:00:04Z", "target_id": "storefront-lab", "target_version": "lab-v1", "actor_ref": "alice", "session_ref": "alice-session-1", "resource_id": "order-204", "resource_owner_ref": "bob", "action": "read_private_order", "http_status": 200}]}</script>
@@ -172,17 +278,17 @@
  const q=s=>root.querySelector(s), qa=s=>[...root.querySelectorAll(s)];
  const sample=JSON.parse(q('#range-sample-run').textContent);
  const profiles={
-  red:{name:'Scout',role:'Red team',specialty:'Tests access boundaries.',goal:'Check whether a user can read another user’s private order.',latest:'Retried access with a fresh Alice session after the first session was revoked.',result:'The ownership flaw persisted in lab-v1. The referee later checked blue’s patch; this observation describes the original app.',tool:'Scoped HTTP requests; permitted lab sessions'},
-  blue:{name:'Defender',role:'Blue team',specialty:'Detects suspicious access and prepares defenses.',goal:'Detect cross-user access, contain it, and fix the ownership check.',latest:'Proposed an ownership patch; the system applied the known-good fallback to a disposable copy (lab-v2).',result:'The referee’s subsequent checks passed. No further action is queued in this completed sample.',tool:'Sanitized telemetry; session revocation; scoped patch proposal'},
-  referee:{name:'Referee',role:'Independent verification',specialty:'Checks claims against reproducible evidence.',goal:'Reproduce the access-policy violation and test whether the defense preserves legitimate use.',latest:'Retested Alice’s unauthorized access and Bob’s legitimate access against lab-v2.',result:'Alice was denied and Bob was allowed. The fix passed these two checks; this is not a claim that all vulnerabilities are resolved.',tool:'Fresh-session replay and policy assertions'}
+  red:{name:'Robber',role:'Robbers · Red team',specialty:'Tests access boundaries.',goal:'Check whether a user can read another user’s private order.',latest:'Retried access with a fresh Alice session after the first session was revoked.',result:'The ownership flaw persisted in lab-v1. The referee later checked blue’s patch; this observation describes the original app.',tool:'Scoped HTTP requests; permitted lab sessions'},
+  blue:{name:'Officer',role:'Cops · Blue team',specialty:'Detects suspicious access and prepares defenses.',goal:'Detect cross-user access, contain it, and fix the ownership check.',latest:'Proposed an ownership patch; the system applied the known-good fallback to a disposable copy (lab-v2).',result:'The referee’s subsequent checks passed. No further action is queued in this completed sample.',tool:'Sanitized telemetry; session revocation; scoped patch proposal'},
+  referee:{name:'Auditor',role:'Independent verification',specialty:'Checks claims against reproducible evidence.',goal:'Reproduce the access-policy violation and test whether the defense preserves legitimate use.',latest:'Retested Alice’s unauthorized access and Bob’s legitimate access against lab-v2.',result:'Alice was denied and Bob was allowed. The fix passed these two checks; this is not a claim that all vulnerabilities are resolved.',tool:'Fresh-session replay and policy assertions'}
  };
  const names={'agent.status':'Agent status','endpoint.discovered':'Endpoint discovered','finding.candidate':'Candidate finding','alert.created':'Suspicious access detected','finding.verified':'Finding independently verified','defense.proposed':'Defense proposed','defense.applied':'System applied proposed defense','attack.result':'Fresh-session retry','retest.completed':'Independent retest'};
  const moves=[
-  {through:6,actor:'red',title:'1 / 5 · Access exposed',summary:'Scout reaches a private order. The referee independently confirms unauthorized access.',status:'Original app · ownership flaw verified',defense:false,exposed:true},
-  {through:8,actor:'blue',title:'2 / 5 · First defense',summary:'Defender proposes revoking the attacking session. The system applies it; the original session is denied.',status:'Session contained · ownership flaw remains',defense:true,exposed:true},
-  {through:9,actor:'red',title:'3 / 5 · Scout adapts',summary:'Scout signs in with a fresh permitted session. The private order is still exposed.',status:'Fresh session bypasses containment',defense:true,exposed:true},
-  {through:11,actor:'blue',title:'4 / 5 · Repair the boundary',summary:'Defender proposes an ownership check. The system applies a known-good patch to a disposable copy.',status:'Patched copy · independent retest pending',defense:true,exposed:false},
-  {through:13,actor:'referee',title:'5 / 5 · Referee checks',summary:'The referee confirms Alice is denied while Bob can still read his own order. These two checks pass.',status:'Fix verified for this scenario · owner access preserved',defense:true,exposed:false}
+  {through:6,actor:'red',title:'1 / 5 · The break-in',summary:'Robber reaches a private order. The referee independently confirms unauthorized access.',status:'Original app · ownership flaw verified',defense:false,exposed:true},
+  {through:8,actor:'blue',title:'2 / 5 · Cops respond',summary:'Officer proposes revoking the attacking session. The system applies it; the original session is denied.',status:'Session contained · ownership flaw remains',defense:true,exposed:true},
+  {through:9,actor:'red',title:'3 / 5 · A new disguise',summary:'Robber signs in with a fresh permitted session. The private order is still exposed.',status:'Fresh session bypasses containment',defense:true,exposed:true},
+  {through:11,actor:'blue',title:'4 / 5 · Change the locks',summary:'Officer proposes an ownership check. The system applies a known-good patch to a disposable copy.',status:'Patched copy · independent retest pending',defense:true,exposed:false},
+  {through:13,actor:'referee',title:'5 / 5 · Audit the vault',summary:'The referee confirms Alice is denied while Bob can still read his own order. These two checks pass.',status:'Fix verified for this scenario · owner access preserved',defense:true,exposed:false}
  ];
  let agent='red',tab='overview',move=0,animationFrame=0;
  function eventsForAgent(){return sample.events.filter(e=>e.id<=moves[move].through&&(e.actor===agent||(agent==='blue'&&e.type==='defense.applied')));}
@@ -211,7 +317,7 @@
   const world=q('[data-world]');world.dataset.phase=String(move);world.dataset.defense=String(current.defense);world.dataset.exposed=String(current.exposed);
   q('.a-defense').setAttribute('aria-hidden',String(!current.defense));
   q('[data-move-title]').textContent=current.title;q('[data-move-summary]').textContent=current.summary;q('[data-scene-status]').textContent=current.status;
-  q('[data-previous]').disabled=move===0;q('[data-next]').textContent=move===moves.length-1?'Replay battle':'Next move';q('[data-replay-state]').textContent=move===4?'Run complete':'Replay checkpoint';
+  q('[data-previous]').disabled=move===0;q('[data-next]').textContent=move===moves.length-1?'Replay heist':'Next move';q('[data-replay-state]').textContent=move===4?'Run complete':'Replay checkpoint';
   qa('[data-agent]').forEach(el=>{const selected=el.dataset.agent===agent;el.dataset.active=String(el.dataset.agent===current.actor);el.setAttribute('aria-pressed',String(selected));el.querySelector('.a-agent-selection').textContent=selected?'Viewing activity':'Inspect agent';});
   ['name','role','specialty','goal','latest','result','tool'].forEach(key=>q('[data-'+key+']').textContent=profile[key]);
   qa('[data-tab]').forEach(el=>{const selected=el.dataset.tab===tab;el.setAttribute('aria-selected',String(selected));q('#range-panel-'+el.dataset.tab).hidden=!selected;});
@@ -233,7 +339,7 @@
   evidence.append(make('p','Only available sample fields are shown. Raw credentials are never displayed.','a-muted'));
   q('[data-announcement]').textContent=`${profile.name} selected · ${tab[0].toUpperCase()+tab.slice(1)}`;
  }
- function save(){window.openai?.setWidgetState?.({modelContent:{design:'Virtual character arena',selectedAgent:agent,section:tab,checkpoint:moves[move].title},privateContent:{agent,tab,move}}).catch(()=>{});}
+ function save(){window.openai?.setWidgetState?.({modelContent:{design:'Downtown heist city',selectedAgent:agent,section:tab,checkpoint:moves[move].title},privateContent:{agent,tab,move}}).catch(()=>{});}
  function restore(state){const p=state?.privateContent;if(p&&Object.hasOwn(profiles,p.agent))agent=p.agent;if(p&&['overview','activity','evidence'].includes(p.tab))tab=p.tab;if(p&&Number.isInteger(p.move)&&p.move>=0&&p.move<moves.length)move=p.move;render();}
  q('[data-next]').addEventListener('click',()=>{move=(move+1)%moves.length;render();drawRoutes();animateMove();save();});
  q('[data-previous]').addEventListener('click',()=>{if(move>0){move--;render();drawRoutes();animateMove();save();}});

@@ -3,6 +3,7 @@
 - [x] Capture the project direction, safety boundaries, and UI requirements.
 - [x] Preserve the interactive sample-data dashboard preview.
 - [x] Create four work packets, ownership boundaries, shared handoff vocabulary, and validated fixtures.
+- [x] Prepare the named 24-hour kickoff plan, setup/preview scripts, starter CI, and demo handoff.
 - [ ] Build the lab, seed/reset command, ownership policy, and deterministic regression checks.
 - [ ] Define typed API/event contracts and a server-owned target registry.
 - [ ] Implement bounded tools, SQLite persistence, assessment phases, and cancellation.
