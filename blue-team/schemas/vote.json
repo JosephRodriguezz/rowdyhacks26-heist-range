@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vote on the decision summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task",
+    "stance",
+    "reason"
+  ],
+  "properties": {
+    "task": {
+      "type": "string"
+    },
+    "stance": {
+      "type": "string",
+      "enum": [
+        "agree",
+        "object",
+        "security-objection",
+        "abstain"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    }
+  }
+}

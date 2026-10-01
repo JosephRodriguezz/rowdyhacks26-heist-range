@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Strategy proposals",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposals"
+  ],
+  "properties": {
+    "proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "lens",
+          "problem",
+          "change",
+          "owner",
+          "file"
+        ],
+        "properties": {
+          "lens": {
+            "type": "string",
+            "enum": [
+              "security",
+              "efficiency",
+              "effectiveness"
+            ]
+          },
+          "problem": {
+            "type": "string"
+          },
+          "change": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

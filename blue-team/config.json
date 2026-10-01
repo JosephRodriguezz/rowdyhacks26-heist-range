@@ -1,0 +1,278 @@
+{
+  "version": 2,
+  "branch": "Mayo",
+  "remote": "origin",
+  "model_write_paths": [
+    "backend/app/agents/blue/",
+    "backend/tests/blue/",
+    "defenses/"
+  ],
+  "protected_paths": [
+    "backend/app/agents/blue/AGENTS.md",
+    "backend/app/agents/blue/CLAUDE.md",
+    "backend/tests/blue/AGENTS.md",
+    "backend/tests/blue/CLAUDE.md",
+    "defenses/AGENTS.md",
+    "defenses/CLAUDE.md"
+  ],
+  "orchestrator_paths": [
+    "blue-team/"
+  ],
+  "watch_ignore": [
+    "__pycache__/",
+    ".pytest_cache/",
+    "blue-team/runs/",
+    "blue-team/.board.lock",
+    "blue-team/state/.locks/"
+  ],
+  "default_context": [
+    "blue-team/ROADMAP.md",
+    "blue-team/CHECKLIST.md",
+    "docs/team/04-blue-team-defense.md",
+    "shared/contracts/README.md"
+  ],
+  "checks": [
+    {
+      "name": "blue tests",
+      "cwd": "backend",
+      "command": [
+        "{python}",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/blue"
+      ]
+    },
+    {
+      "name": "framework tests",
+      "cwd": ".",
+      "command": [
+        "{python}",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "blue-team/tests"
+      ]
+    },
+    {
+      "name": "handoff check",
+      "cwd": ".",
+      "command": [
+        "{python}",
+        "scripts/check_handoff.py",
+        "--self-test"
+      ]
+    }
+  ],
+  "policy": {
+    "facilitator": "claude",
+    "quorum": 2,
+    "min_reviewers": 2,
+    "max_revisions": 1,
+    "retries": 1,
+    "implementer_tiebreak": [
+      "codex",
+      "claude",
+      "antigravity"
+    ]
+  },
+  "models": {
+    "claude": {
+      "adapter": "claude",
+      "role": "blue-team/roles/claude.md",
+      "executable": [
+        "claude"
+      ],
+      "install": "npm install -g @anthropic-ai/claude-code",
+      "version_command": [
+        "--version"
+      ],
+      "auth_command": [
+        "auth",
+        "status"
+      ],
+      "help_command": [
+        "--help"
+      ],
+      "expected_flags": [
+        "--print",
+        "--permission-mode",
+        "--allowedTools",
+        "--disallowedTools",
+        "--output-format"
+      ],
+      "read": [
+        "-p",
+        "{prompt}",
+        "--output-format",
+        "json",
+        "--permission-mode",
+        "dontAsk",
+        "--allowedTools",
+        "Read",
+        "Grep",
+        "Glob",
+        "Bash(git diff:*)",
+        "Bash(git log:*)",
+        "Bash(git show:*)",
+        "Bash(git status:*)"
+      ],
+      "write": [
+        "-p",
+        "{prompt}",
+        "--output-format",
+        "json",
+        "--permission-mode",
+        "acceptEdits",
+        "--allowedTools",
+        "Read",
+        "Grep",
+        "Glob",
+        "Edit",
+        "Write",
+        "Bash(cd:*)",
+        "Bash(python -m unittest:*)",
+        "Bash(git diff:*)",
+        "Bash(git status:*)",
+        "--disallowedTools",
+        "Bash(git commit:*)",
+        "Bash(git push:*)",
+        "Bash(git checkout:*)",
+        "Bash(git switch:*)",
+        "Bash(git reset:*)",
+        "Bash(git rebase:*)",
+        "Bash(git merge:*)",
+        "Bash(git branch:*)",
+        "Bash(git restore:*)",
+        "Bash(git stash:*)",
+        "Bash(git config:*)"
+      ],
+      "timeout_seconds": {
+        "read": 600,
+        "write": 1800
+      },
+      "prompt_notes": {
+        "read": "",
+        "write": ""
+      }
+    },
+    "codex": {
+      "adapter": "codex",
+      "role": "blue-team/roles/codex.md",
+      "executable": [
+        "codex"
+      ],
+      "install": "npm install -g @openai/codex",
+      "version_command": [
+        "--version"
+      ],
+      "auth_command": [
+        "login",
+        "status"
+      ],
+      "help_command": [
+        "exec",
+        "--help"
+      ],
+      "expected_flags": [
+        "--sandbox",
+        "--cd",
+        "--output-schema",
+        "--output-last-message"
+      ],
+      "read": [
+        "exec",
+        "--sandbox",
+        "read-only",
+        "--cd",
+        "{root}",
+        "--output-schema",
+        "{schema}",
+        "--output-last-message",
+        "{output_file}",
+        "{prompt}"
+      ],
+      "write": [
+        "exec",
+        "--sandbox",
+        "workspace-write",
+        "--cd",
+        "{root}",
+        "--output-schema",
+        "{schema}",
+        "--output-last-message",
+        "{output_file}",
+        "{prompt}"
+      ],
+      "timeout_seconds": {
+        "read": 600,
+        "write": 1800
+      },
+      "prompt_notes": {
+        "read": "",
+        "write": ""
+      }
+    },
+    "antigravity": {
+      "adapter": "antigravity",
+      "role": "blue-team/roles/antigravity.md",
+      "executable": [
+        "agy",
+        "%LOCALAPPDATA%/agy/bin/agy.exe",
+        "~/.local/bin/agy"
+      ],
+      "install": "Install the Antigravity CLI (agy), then open a new terminal so it is on PATH",
+      "version_command": [
+        "--version"
+      ],
+      "auth_command": null,
+      "help_command": [
+        "--help"
+      ],
+      "expected_flags": [
+        "--print",
+        "--mode",
+        "--sandbox",
+        "--output-format",
+        "--json-schema",
+        "--print-timeout"
+      ],
+      "read": [
+        "--mode",
+        "plan",
+        "--sandbox",
+        "--output-format",
+        "json",
+        "--json-schema",
+        "{schema}",
+        "--print-timeout",
+        "{timeout}s",
+        "--print",
+        "{prompt}"
+      ],
+      "write": [
+        "--mode",
+        "accept-edits",
+        "--sandbox",
+        "--output-format",
+        "json",
+        "--json-schema",
+        "{schema}",
+        "--print-timeout",
+        "{timeout}s",
+        "--print",
+        "{prompt}"
+      ],
+      "timeout_seconds": {
+        "read": 600,
+        "write": 1800
+      },
+      "prompt_notes": {
+        "read": "Antigravity headless mode cannot approve terminal commands; any command request is denied and ends your run with no reply. Use only file-reading tools. Everything you need is in the files and sections of this prompt.",
+        "write": "Antigravity headless mode cannot approve terminal commands; any command request is denied and ends your run with no reply. Use only file tools. Do not run tests; the orchestrator runs every check after review."
+      }
+    }
+  }
+}

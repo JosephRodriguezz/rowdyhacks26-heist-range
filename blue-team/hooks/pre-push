@@ -1,0 +1,11 @@
+#!/bin/sh
+# Blue-team guardrail hook. Logic lives in blue-team/bin/guard.py.
+root=$(git rev-parse --show-toplevel) || exit 1
+for candidate in python3 python py; do
+  if "$candidate" -c "import sys" >/dev/null 2>&1; then py=$candidate; break; fi
+done
+if [ -z "$py" ]; then
+  echo "blue-team guard: Python not found; refusing pre-push." >&2
+  exit 1
+fi
+exec "$py" "$root/blue-team/bin/guard.py" pre-push "$@"

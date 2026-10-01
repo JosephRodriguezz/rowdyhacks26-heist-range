@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Implementation report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task",
+    "summary",
+    "files_changed",
+    "tests_run",
+    "tests_passed",
+    "remaining"
+  ],
+  "properties": {
+    "task": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "files_changed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tests_run": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tests_passed": {
+      "type": "boolean"
+    },
+    "remaining": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Answer to a thread question",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task",
+    "answer",
+    "stance"
+  ],
+  "properties": {
+    "task": {
+      "type": "string"
+    },
+    "answer": {
+      "type": "string"
+    },
+    "stance": {
+      "type": "string",
+      "enum": [
+        "agree",
+        "object",
+        "security-objection",
+        "abstain"
+      ]
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Independent review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task",
+    "verdict",
+    "summary",
+    "findings"
+  ],
+  "properties": {
+    "task": {
+      "type": "string"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "approve",
+        "changes-requested",
+        "security-objection"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "file",
+          "line",
+          "severity",
+          "issue"
+        ],
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "issue": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

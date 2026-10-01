@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Independent proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task",
+    "summary",
+    "security",
+    "approach",
+    "tests",
+    "efficiency",
+    "files",
+    "recommended_implementer",
+    "concerns"
+  ],
+  "properties": {
+    "task": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "security": {
+      "type": "string"
+    },
+    "approach": {
+      "type": "string"
+    },
+    "tests": {
+      "type": "string"
+    },
+    "efficiency": {
+      "type": "string"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommended_implementer": {
+      "type": "string"
+    },
+    "concerns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

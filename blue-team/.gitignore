@@ -1,0 +1,4 @@
+# Raw model transcripts and prompts from orchestrated runs stay local.
+runs/
+.board.lock
+state/.locks/

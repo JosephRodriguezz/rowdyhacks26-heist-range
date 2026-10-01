@@ -1,0 +1,260 @@
+{
+  "tasks": [
+    {
+      "id": "B-01",
+      "title": "Telemetry detector for cross-user and anonymous private reads",
+      "milestone": "M1",
+      "status": "done",
+      "owner": "claude",
+      "reviewers": [],
+      "notes": "",
+      "commits": [
+        "5a06d9d"
+      ],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    },
+    {
+      "id": "B-02",
+      "title": "Session revocation proposals labeled as containment",
+      "milestone": "M1",
+      "status": "done",
+      "owner": "claude",
+      "reviewers": [],
+      "notes": "",
+      "commits": [
+        "df91162"
+      ],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    },
+    {
+      "id": "B-03",
+      "title": "Patch manifest format and ownership patch proposal (patch is a draft)",
+      "milestone": "M1",
+      "status": "done",
+      "owner": "claude",
+      "reviewers": [],
+      "notes": "",
+      "commits": [
+        "67e0aaf"
+      ],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    },
+    {
+      "id": "B-04",
+      "title": "Incident evidence report: NIST CSF 2.0 sections, ATT&CK/CWE/OWASP mapping, SHA-256 evidence",
+      "milestone": "M1",
+      "status": "done",
+      "owner": "claude",
+      "reviewers": [],
+      "notes": "",
+      "commits": [
+        "67e0aaf"
+      ],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    },
+    {
+      "id": "B-05",
+      "title": "Multi-model framework: deterministic orchestrator, adapters, state machine, guardrails",
+      "milestone": "M1",
+      "status": "review",
+      "owner": "claude",
+      "reviewers": [],
+      "notes": "Migrated to Claude, Codex, and Antigravity with a deterministic state machine (decision 0002). Codex and Antigravity review it in their first orchestrated round.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    },
+    {
+      "id": "B-06",
+      "title": "observe(context, tools) entry point that runs detection, proposals, and the report",
+      "milestone": "M1",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Contract boundary from shared/contracts/README.md. Suggested implementer: claude.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "shared/contracts/README.md",
+        "docs/team/04-blue-team-defense.md",
+        "backend/app/agents/blue/README.md"
+      ]
+    },
+    {
+      "id": "B-07",
+      "title": "Stand-in defense executor and an end-to-end blue flow test on the shared fixture",
+      "milestone": "M1",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Work packet step 6. Suggested implementer: codex.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "docs/team/04-blue-team-defense.md",
+        "shared/fixtures/demo-run.json",
+        "backend/app/agents/blue/README.md"
+      ]
+    },
+    {
+      "id": "B-08",
+      "title": "Structured outcomes for rejected, failed, and rolled-back defenses; request a referee retest",
+      "milestone": "M1",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Work packet step 7. Suggested implementer: codex.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "docs/team/04-blue-team-defense.md",
+        "shared/contracts/README.md"
+      ]
+    },
+    {
+      "id": "B-09",
+      "title": "Detect repeated denied cross-user reads by one session (probing)",
+      "milestone": "M1",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "From the report's prevention step detect-probing.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "backend/app/agents/blue/README.md",
+        "shared/contracts/README.md"
+      ]
+    },
+    {
+      "id": "B-10",
+      "title": "Blue tests for executor failure, stale patch version at apply time, and rejected proposals",
+      "milestone": "M1",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Work packet test list. Suggested implementer: codex.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "docs/team/04-blue-team-defense.md",
+        "defenses/README.md"
+      ]
+    },
+    {
+      "id": "B-11",
+      "title": "Document supported defense actions, rollback, and reset behavior",
+      "milestone": "M1",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Work packet step 8. Suggested implementer: antigravity.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "docs/team/04-blue-team-defense.md",
+        "defenses/README.md"
+      ]
+    },
+    {
+      "id": "B-12",
+      "title": "Contract proposals for Member 2: blue context, previous_defenses format, executor results, report endpoint, refusing draft patches",
+      "milestone": "M2",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Draft in the handoffs thread. Suggested: antigravity drafts, claude reviews.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "shared/contracts/README.md",
+        "docs/team/02-orchestrator-referee.md",
+        "docs/team/INTEGRATION.md"
+      ]
+    },
+    {
+      "id": "B-13",
+      "title": "Finalize ownership-fix-001: allowed_files and diff against Member 3's order handler",
+      "milestone": "M2",
+      "status": "blocked",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Waiting on Member 3 to publish the lab's order handler.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    },
+    {
+      "id": "B-14",
+      "title": "Plain-language alert and defense labels for Member 1's UI",
+      "milestone": "M2",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Suggested implementer: antigravity.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "docs/team/01-arena-ui.md",
+        "docs/UI_DESIGN.md"
+      ]
+    },
+    {
+      "id": "B-15",
+      "title": "Cross-branch review of blue code against other members' latest branches and the shared contract",
+      "milestone": "M2",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Repeat each time a teammate pushes. Suggested: antigravity.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": [
+        "shared/contracts/README.md",
+        "docs/team/INTEGRATION.md"
+      ]
+    },
+    {
+      "id": "B-16",
+      "title": "Update Mayo from main after PR #1 merges, then open the blue-team pull request",
+      "milestone": "M2",
+      "status": "blocked",
+      "owner": "human",
+      "reviewers": [],
+      "notes": "Waiting on PR #1. Merging from main is a human step.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    },
+    {
+      "id": "B-17",
+      "title": "Run blue against the live lab from a clean reset and produce a live incident report",
+      "milestone": "M3",
+      "status": "blocked",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Waiting on the lab (Member 3) and core (Member 2).",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    },
+    {
+      "id": "B-18",
+      "title": "Strategy review: more secure, more efficient, more effective blue work across the project",
+      "milestone": "ongoing",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Run orchestrate.py strategy at least once per milestone.",
+      "commits": [],
+      "updated": "2026-10-01T00:00:00Z",
+      "context": []
+    }
+  ],
+  "updated": "2026-10-01T00:00:00Z",
+  "updated_by": "claude"
+}
