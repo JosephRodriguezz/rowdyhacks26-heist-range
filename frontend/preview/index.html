@@ -1693,13 +1693,75 @@ html&gt;body{padding:0}&lt;/style&gt;
 #range-agent-inspector .a-agent[data-agent=&quot;referee&quot;] .a-head{border-top:10px solid var(--h-ink);}
 #range-agent-inspector .a-agent[data-agent=&quot;referee&quot;] .a-badge{background:var(--h-stone-top);height:22px;top:65px;transform:rotate(-8deg);}
 @media(max-width:420px){#range-agent-inspector .a-building[data-building=&quot;api&quot;]{width:116px;}#range-agent-inspector .a-building[data-building=&quot;api&quot;] .a-building-face{width:110px;}#range-agent-inspector .a-building[data-building=&quot;web&quot;]{left:15%;top:191px;}#range-agent-inspector .a-building[data-building=&quot;db&quot;]{left:85%;top:186px;}#range-agent-inspector .a-building[data-building=&quot;db&quot;] .a-building-face{width:53px;height:60px;}#range-agent-inspector .h-vault-door{width:43px;height:43px;}#range-agent-inspector .a-building-label{padding:3px 4px;}#range-agent-inspector .a-world .a-agent[data-agent=&quot;red&quot;],#range-agent-inspector .a-world .a-agent[data-agent=&quot;blue&quot;]{top:295px;}#range-agent-inspector .a-world .a-agent[data-agent=&quot;referee&quot;]{top:410px;}#range-agent-inspector .a-world{height:540px;}#range-agent-inspector .a-defense{left:calc(50% + 25px);top:247px;}}
+/* City level: scenery stays separate from evidence-driven lab state. */
+#range-agent-inspector {--c-road:light-dark(#697782,#202d39);--c-curb:light-dark(#c6d0cf,#62747a);--c-paving:light-dark(#dde3d7,#3c514e);--c-grass:light-dark(#a5c5a2,#385c4b);--c-tree:light-dark(#538e73,#558d77);--c-wall:light-dark(#94aeba,#476577);--c-roof:light-dark(#bcd2d9,#7395a6);--c-side:light-dark(#738b9b,#314b5e);--c-window:light-dark(#e4f5ee,#b3d9c4);--c-mark:light-dark(#edf2e9,#93a6a9);}
+#range-agent-inspector .a-workspace{grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr);}
+#range-agent-inspector .a-arena{padding:22px 18px;}
+#range-agent-inspector .a-world{height:650px;border:1px solid var(--a-line);border-radius:15px;background:radial-gradient(ellipse at 50% 15%,light-dark(#ebf2e7,#354b53),transparent 65%),light-dark(#ceddd6,#253840);overflow:hidden;}
+#range-agent-inspector .a-land{inset:130px -10% -40px;clip-path:none;background:var(--c-paving);transform:skewY(-5deg);border-top:12px solid var(--c-curb);}
+#range-agent-inspector .a-land::before{display:none;}
+#range-agent-inspector .c-scenery{position:absolute;inset:0;pointer-events:none;}
+#range-agent-inspector .c-level{position:absolute;top:16px;left:18px;z-index:8;color:var(--a-text);font:500 11px/1.5 ui-monospace,monospace;letter-spacing:1.6px;}
+#range-agent-inspector .c-level span{display:block;font:11px/1.6 -apple-system,BlinkMacSystemFont,&#x27;Segoe UI&#x27;,sans-serif;letter-spacing:0;color:var(--a-muted);}
+#range-agent-inspector .c-road{position:absolute;background:var(--c-road);border:5px solid var(--c-curb);}
+#range-agent-inspector .c-road-main{left:-5%;right:-5%;top:395px;height:101px;transform:skewY(-5deg);}
+#range-agent-inspector .c-road-main::after{content:&#x27;&#x27;;position:absolute;top:44px;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,var(--c-mark) 0 18px,transparent 18px 40px);}
+#range-agent-inspector .c-road-side{top:115px;bottom:-25px;width:72px;transform:skewX(-14deg);}
+#range-agent-inspector .c-road-side.one{left:15%;}#range-agent-inspector .c-road-side.two{right:11%;}
+#range-agent-inspector .c-crosswalk{position:absolute;top:404px;width:35px;height:72px;background:repeating-linear-gradient(0deg,var(--c-mark) 0 7px,transparent 7px 14px);transform:skewY(-5deg);}
+#range-agent-inspector .c-crosswalk.one{left:20%;}#range-agent-inspector .c-crosswalk.two{right:17%;}
+#range-agent-inspector .c-block{position:absolute;left:31%;right:27%;top:149px;height:217px;background:var(--h-stone-side);border:8px solid var(--c-curb);border-radius:5px;transform:skewY(-5deg);box-shadow:0 8px var(--c-side);}
+#range-agent-inspector .c-building{position:absolute;left:var(--x);top:var(--y);width:var(--w,58px);height:var(--h,100px);background:var(--c-wall);box-shadow:0 8px 0 color-mix(in srgb,var(--c-side) 70%,transparent);}
+#range-agent-inspector .c-building::before{content:&#x27;&#x27;;position:absolute;left:0;right:-19px;height:20px;top:-20px;background:var(--c-roof);clip-path:polygon(19px 0,100% 0,calc(100% - 19px) 100%,0 100%);}
+#range-agent-inspector .c-building::after{content:&#x27;&#x27;;position:absolute;left:100%;top:-10px;width:19px;height:100%;background:var(--c-side);transform:skewY(-46deg);}
+#range-agent-inspector .c-windows{position:absolute;inset:13px 10px 15px;background:repeating-linear-gradient(0deg,transparent 0 12px,var(--c-wall) 12px 25px),repeating-linear-gradient(90deg,var(--c-window) 0 9px,transparent 9px 20px);opacity:.8;}
+#range-agent-inspector .c-building.terracotta{--c-wall:light-dark(#bd9381,#8e6a61);--c-roof:light-dark(#dac0a5,#b69b83);--c-side:light-dark(#947764,#64524d);}
+#range-agent-inspector .c-building.police{--c-wall:light-dark(#8aaaba,#496a82);--c-roof:light-dark(#bfd2dd,#7a9bae);--c-side:light-dark(#647f91,#30475d);}
+#range-agent-inspector .c-shop-sign{position:absolute;bottom:10px;left:5px;right:5px;background:var(--a-surface);color:var(--a-text);font:500 10px/1.8 -apple-system,sans-serif;text-align:center;letter-spacing:1px;}
+#range-agent-inspector .c-park{position:absolute;left:4%;top:503px;width:27%;height:90px;background:var(--c-grass);border:6px solid var(--c-curb);transform:skewY(-5deg);border-radius:14px;}
+#range-agent-inspector .c-tree{position:absolute;left:var(--x);top:var(--y);width:10px;height:47px;background:var(--h-stone-side);border-radius:2px;}
+#range-agent-inspector .c-tree::before{content:&#x27;&#x27;;position:absolute;bottom:20px;left:-16px;width:43px;height:44px;background:var(--c-tree);border-radius:48% 52% 42% 42%;box-shadow:inset -10px -7px color-mix(in srgb,var(--c-side) 25%,transparent);}
+#range-agent-inspector .c-car{position:absolute;left:var(--x);top:var(--y);width:65px;height:30px;border-radius:9px 12px 5px 5px;background:var(--c-tree);border-top:7px solid var(--c-roof);transform:skewY(-5deg);box-shadow:3px 8px 0 color-mix(in srgb,var(--h-ink) 30%,transparent);}
+#range-agent-inspector .c-car::before{content:&#x27;&#x27;;position:absolute;left:10px;bottom:-6px;width:12px;height:12px;border-radius:50%;background:var(--h-ink);box-shadow:34px 0 var(--h-ink);}
+#range-agent-inspector .c-car::after{content:&#x27;&#x27;;position:absolute;right:8px;top:0;width:17px;height:12px;border-radius:3px;background:var(--c-window);}
+#range-agent-inspector .c-car.patrol{background:var(--a-blue-body);border-top-color:var(--a-eye);}
+#range-agent-inspector .c-siren{position:absolute;left:23px;top:-13px;width:21px;height:7px;background:linear-gradient(90deg,var(--a-red) 50%,var(--a-blue) 50%);border-radius:3px;}
+#range-agent-inspector .c-street-label{position:absolute;right:25%;top:464px;color:var(--c-mark);font:500 10px/1.4 ui-monospace,monospace;letter-spacing:3px;transform:rotate(-5deg);}
+#range-agent-inspector .a-building[data-building=&quot;api&quot;]{top:164px;left:50%;}
+#range-agent-inspector .a-building[data-building=&quot;web&quot;]{top:258px;left:11%;}
+#range-agent-inspector .a-building[data-building=&quot;db&quot;]{top:249px;left:88%;}
+#range-agent-inspector .a-world .a-agent[data-agent=&quot;red&quot;]{top:322px;left:31%;}
+#range-agent-inspector .a-world .a-agent[data-agent=&quot;blue&quot;]{top:322px;left:69%;}
+#range-agent-inspector .a-world .a-agent[data-agent=&quot;referee&quot;]{top:476px;left:51%;}
+#range-agent-inspector .a-agent-role{background:var(--a-surface);padding:1px 4px;border-radius:4px;}
+#range-agent-inspector .a-world .a-agent-name{background:var(--a-surface);padding:2px 7px;border-radius:5px;}
+#range-agent-inspector .a-routes{z-index:4;}
+#range-agent-inspector .a-route-base{opacity:.35;}
+#range-agent-inspector .a-defense{top:272px;left:calc(50% + 91px);}
+#range-agent-inspector .a-scene-status{margin:12px 0;}
+@media(max-width:1000px){#range-agent-inspector .a-workspace{grid-template-columns:1fr;}#range-agent-inspector .a-inspector{border-left:0;border-top:1px solid var(--a-line);}}
+@media(max-width:420px){#range-agent-inspector .a-arena{padding:20px 10px;}#range-agent-inspector .c-building{width:40px;}#range-agent-inspector .c-building.distant{display:none;}#range-agent-inspector .c-building.police{left:78%;width:48px;}#range-agent-inspector .c-shop-sign{font-size:9px;letter-spacing:0;}#range-agent-inspector .a-building[data-building=&quot;web&quot;]{left:14%;top:231px;}#range-agent-inspector .a-building[data-building=&quot;db&quot;]{left:86%;top:234px;}#range-agent-inspector .a-building[data-building=&quot;api&quot;]{top:157px;}#range-agent-inspector .a-world .a-agent[data-agent=&quot;red&quot;]{left:26%;top:320px;}#range-agent-inspector .a-world .a-agent[data-agent=&quot;blue&quot;]{left:76%;top:320px;}#range-agent-inspector .a-world .a-agent[data-agent=&quot;referee&quot;]{top:476px;}#range-agent-inspector .a-defense{top:357px;left:calc(50% - 19px);}#range-agent-inspector .c-street-label{display:none;}}
 &lt;/style&gt;
 &lt;header class=&quot;a-header&quot;&gt;&lt;span class=&quot;a-brand&quot;&gt;RANGE / THE HEIST&lt;/span&gt;&lt;span class=&quot;a-tag&quot;&gt;Sample heist replay&lt;/span&gt;&lt;/header&gt;
 &lt;div class=&quot;a-workspace&quot;&gt;
  &lt;main class=&quot;a-arena&quot;&gt;
-  &lt;h1&gt;One bank. Two sides.&lt;/h1&gt;&lt;p class=&quot;a-caption&quot;&gt;Robbers test the locks. Cops protect the vault. You follow the evidence.&lt;/p&gt;
-  &lt;div class=&quot;a-world&quot; data-world data-phase=&quot;0&quot; role=&quot;group&quot; aria-label=&quot;Bank diorama with flat robber, police officer, and auditor characters&quot;&gt;
+  &lt;h1&gt;The downtown heist.&lt;/h1&gt;&lt;p class=&quot;a-caption&quot;&gt;Pick your agent. Follow the break-in. See how the city fights back.&lt;/p&gt;
+  &lt;div class=&quot;a-world&quot; data-world data-phase=&quot;0&quot; role=&quot;group&quot; aria-label=&quot;Game-like downtown city with a bank, streets, police station, and selectable security agents&quot;&gt;
    &lt;div class=&quot;a-land&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
+   &lt;div class=&quot;c-scenery&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;div class=&quot;c-level&quot;&gt;DOWNTOWN / BANK DISTRICT&lt;span&gt;Training city · Select a character to inspect&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;c-road c-road-side one&quot;&gt;&lt;/div&gt;&lt;div class=&quot;c-road c-road-side two&quot;&gt;&lt;/div&gt;&lt;div class=&quot;c-road c-road-main&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;c-crosswalk one&quot;&gt;&lt;/div&gt;&lt;div class=&quot;c-crosswalk two&quot;&gt;&lt;/div&gt;&lt;div class=&quot;c-block&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;c-building&quot; style=&quot;--x:5%;--y:107px;--h:92px&quot;&gt;&lt;span class=&quot;c-windows&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;c-building terracotta distant&quot; style=&quot;--x:23%;--y:95px;--h:78px;--w:47px&quot;&gt;&lt;span class=&quot;c-windows&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;c-building distant&quot; style=&quot;--x:67%;--y:89px;--h:82px;--w:43px&quot;&gt;&lt;span class=&quot;c-windows&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;c-building police&quot; style=&quot;--x:82%;--y:101px;--h:105px;--w:69px&quot;&gt;&lt;span class=&quot;c-windows&quot;&gt;&lt;/span&gt;&lt;span class=&quot;c-shop-sign&quot;&gt;POLICE&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;c-building terracotta&quot; style=&quot;--x:80%;--y:512px;--h:75px;--w:64px&quot;&gt;&lt;span class=&quot;c-windows&quot;&gt;&lt;/span&gt;&lt;span class=&quot;c-shop-sign&quot;&gt;CAFE&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;c-park&quot;&gt;&lt;/div&gt;&lt;span class=&quot;c-tree&quot; style=&quot;--x:10%;--y:534px&quot;&gt;&lt;/span&gt;&lt;span class=&quot;c-tree&quot; style=&quot;--x:23%;--y:556px&quot;&gt;&lt;/span&gt;
+    &lt;span class=&quot;c-tree&quot; style=&quot;--x:34%;--y:193px&quot;&gt;&lt;/span&gt;&lt;span class=&quot;c-tree&quot; style=&quot;--x:72%;--y:270px&quot;&gt;&lt;/span&gt;
+    &lt;div class=&quot;c-car&quot; style=&quot;--x:4%;--y:423px&quot;&gt;&lt;/div&gt;&lt;div class=&quot;c-car patrol&quot; style=&quot;--x:81%;--y:408px&quot;&gt;&lt;span class=&quot;c-siren&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;span class=&quot;c-street-label&quot;&gt;VAULT AVENUE&lt;/span&gt;
+   &lt;/div&gt;
    &lt;svg class=&quot;a-routes&quot; aria-hidden=&quot;true&quot;&gt;&lt;path class=&quot;a-route-base&quot; data-route=&quot;services&quot;&gt;&lt;/path&gt;&lt;path class=&quot;a-route-red&quot; data-route=&quot;red&quot;&gt;&lt;/path&gt;&lt;path class=&quot;a-route-blue&quot; data-route=&quot;blue&quot;&gt;&lt;/path&gt;&lt;circle class=&quot;a-packet&quot; r=&quot;4&quot; data-packet&gt;&lt;/circle&gt;&lt;/svg&gt;
    &lt;div class=&quot;a-building&quot; data-building=&quot;web&quot;&gt;&lt;div class=&quot;a-building-face&quot;&gt;&lt;i data-lucide=&quot;monitor&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;span class=&quot;a-server-slot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;span class=&quot;a-building-label&quot;&gt;Lobby · Web&lt;/span&gt;&lt;/div&gt;
    &lt;div class=&quot;a-building&quot; data-building=&quot;api&quot;&gt;&lt;div class=&quot;a-building-face&quot;&gt;&lt;span class=&quot;h-bank-sign&quot;&gt;BANK&lt;/span&gt;&lt;span class=&quot;h-columns&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;h-bank-door&quot;&gt;&lt;i data-lucide=&quot;key-round&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/span&gt;&lt;/div&gt;&lt;span class=&quot;a-building-label&quot;&gt;Security gate · API&lt;/span&gt;&lt;/div&gt;
@@ -1809,7 +1871,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   evidence.append(make(&#x27;p&#x27;,&#x27;Only available sample fields are shown. Raw credentials are never displayed.&#x27;,&#x27;a-muted&#x27;));
   q(&#x27;[data-announcement]&#x27;).textContent=`${profile.name} selected · ${tab[0].toUpperCase()+tab.slice(1)}`;
  }
- function save(){window.openai?.setWidgetState?.({modelContent:{design:&#x27;Bank heist arena&#x27;,selectedAgent:agent,section:tab,checkpoint:moves[move].title},privateContent:{agent,tab,move}}).catch(()=&gt;{});}
+ function save(){window.openai?.setWidgetState?.({modelContent:{design:&#x27;Downtown heist city&#x27;,selectedAgent:agent,section:tab,checkpoint:moves[move].title},privateContent:{agent,tab,move}}).catch(()=&gt;{});}
  function restore(state){const p=state?.privateContent;if(p&amp;&amp;Object.hasOwn(profiles,p.agent))agent=p.agent;if(p&amp;&amp;[&#x27;overview&#x27;,&#x27;activity&#x27;,&#x27;evidence&#x27;].includes(p.tab))tab=p.tab;if(p&amp;&amp;Number.isInteger(p.move)&amp;&amp;p.move&gt;=0&amp;&amp;p.move&lt;moves.length)move=p.move;render();}
  q(&#x27;[data-next]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{move=(move+1)%moves.length;render();drawRoutes();animateMove();save();});
  q(&#x27;[data-previous]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{if(move&gt;0){move--;render();drawRoutes();animateMove();save();}});
