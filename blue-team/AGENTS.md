@@ -65,7 +65,7 @@ The orchestrator stops the task and asks the human whenever:
 - a run changes something it should not, or
 - a previous run was interrupted.
 
-`orchestrate.py escalations` lists stopped tasks. The human chooses `retry`, `reopen`, or `accept`.
+`orchestrate.py escalations` lists stopped tasks. The human chooses `retry`, `reopen`, `accept` (a stalled vote), or `revise` (a review objection goes back to the implementer, with a new approval).
 
 ## Git restrictions
 

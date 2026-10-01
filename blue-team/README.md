@@ -28,7 +28,7 @@ Other commands:
 - `strategy`: a read-only round on more secure, efficient, and effective blue work across the project.
 - `discuss <thread> "<question>"`: ask every model a question in a thread.
 - `state B-06`: show a task's phase and recent history.
-- `resolve B-06 retry|reopen|accept --note "..."`: answer an escalation.
+- `resolve B-06 retry|reopen|accept|revise --note "..."`: answer an escalation. `revise` sends a task stopped in review back to the implementer.
 
 ## Who does what
 

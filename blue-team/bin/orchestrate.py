@@ -13,7 +13,7 @@ branches. When anything is unclear, the task stops for the human.
     python blue-team/bin/orchestrate.py approve B-06 [--implementer codex] [--note "..."]
     python blue-team/bin/orchestrate.py close B-06 [--commit]
     python blue-team/bin/orchestrate.py escalations
-    python blue-team/bin/orchestrate.py resolve B-06 retry|reopen|accept --note "..."
+    python blue-team/bin/orchestrate.py resolve B-06 retry|reopen|accept|revise --note "..."
     python blue-team/bin/orchestrate.py state B-06
     python blue-team/bin/orchestrate.py strategy
     python blue-team/bin/orchestrate.py discuss <thread> "<question>"
@@ -107,7 +107,7 @@ def stop(st: dict, reason: str, details: str, resume: str) -> None:
     sm.escalate(st, reason, details, resume)
     sm.save(st)
     board.post(task, "orchestrator", "status", f"Stopped for human review: **{reason}**. {details}\n\n"
-               f"Resolve with: `python blue-team/bin/orchestrate.py resolve {task} retry|reopen|accept --note \"...\"`")
+               f"Resolve with: `python blue-team/bin/orchestrate.py resolve {task} retry|reopen|accept|revise --note \"...\"`")
     board.move(task, "blocked", "orchestrator", note=f"Needs human: {reason}")
     raise Escalated(f"{task} needs a human: {reason}. {details}")
 
@@ -437,6 +437,15 @@ def implement(session: Session, task: str) -> None:
         print(f"{task}: {implementer} changed {len(outcome['changed'])} files. Next: review {task}")
 
 
+def task_paths(st: dict) -> list[str]:
+    """Every file any implementation attempt of this task changed, not just the latest attempt."""
+    paths = set((st.get("implementation") or {}).get("changed_paths", []))
+    for entry in st["history"]:
+        if entry["event"] == "implementation recorded":
+            paths.update(entry["evidence"].get("changed", []))
+    return sorted(paths)
+
+
 def review_diff(paths: list[str]) -> str:
     tracked = set(git("ls-files", "--", *paths, check=False).splitlines()) if paths else set()
     diff = git("diff", "HEAD", "--", *paths, check=False) if paths else ""
@@ -473,7 +482,7 @@ def review(session: Session, task: str, explicit_models: bool) -> None:
         report = st["implementation"]["report"] or {}
         sections = [("Accepted decision", (ROOT / st["decision"]["record"]).read_text(encoding="utf-8")),
                     (f"Implementation report from {implementer}", render(report)),
-                    ("Diff under review", review_diff(st["implementation"]["changed_paths"]))]
+                    ("Diff under review", review_diff(task_paths(st)))]
         run_id, results = run_round(session, task, "review", "review", usable, "read", sections)
         post_outcomes(task, "review", "review", results)
         failed = {m: o["error"] for m, o in results.items() if not o["ok"]}
@@ -529,7 +538,7 @@ def run_checks_phase(session: Session, st: dict) -> None:
     task = st["task"]
     print("Running deterministic checks:")
     results = run_checks(session.config)
-    paths = st["implementation"]["changed_paths"]
+    paths = task_paths(st)
     st["checks"] = {"at": now(), "results": results, "passed": all(r["passed"] for r in results),
                     "tree_sha256": tree_digest(paths)}
     if not st["checks"]["passed"]:
@@ -562,7 +571,7 @@ def close(session: Session, task: str, commit: bool) -> None:
         st = sm.load(task)
         if st["phase"] != "ready_to_close":
             raise OrchestrationError(f"{task} is {st['phase']}; only a ready_to_close task can be closed.")
-        paths = st["implementation"]["changed_paths"]
+        paths = task_paths(st)
         if tree_digest(paths) != st["checks"]["tree_sha256"]:
             raise OrchestrationError(f"Files changed after the checks passed. Run: check {task}")
         if not decision_sha_ok(st):
@@ -608,6 +617,10 @@ def resolve(session: Session, task: str, action: str, note: str, implementer: st
         escalation = st["needs_human"]
         if action == "retry":
             sm.resume(st, escalation["resume_phase"], note)
+        elif action == "revise":
+            if escalation["from_phase"] != "reviewing" or not st.get("implementation"):
+                raise OrchestrationError("revise applies only to a task that stopped during review. Use retry or reopen.")
+            sm.resume(st, "changes_requested", note)
         elif action == "reopen":
             st.setdefault("archive", []).append({k: st[k] for k in ("round", "proposals", "draft", "votes", "decision",
                                                                     "implementation", "reviews", "checks")})
@@ -868,7 +881,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("command", choices=("doctor", "auto", "plan", "decide", "approve", "implement", "review",
                                             "check", "close", "resolve", "escalations", "state", "strategy", "discuss"))
     parser.add_argument("target", nargs="?", help="task ID (B-06) or thread name")
-    parser.add_argument("extra", nargs="?", default="", help="resolve: retry|reopen|accept; discuss: the question")
+    parser.add_argument("extra", nargs="?", default="", help="resolve: retry|reopen|accept|revise; discuss: the question")
     parser.add_argument("--models", help="comma-separated subset, e.g. claude,codex")
     parser.add_argument("--implementer", help="approve/resolve: which model implements")
     parser.add_argument("--note", default="", help="approve/resolve: your reason")
@@ -922,8 +935,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "close":
             close(session, args.target, args.commit)
         elif args.command == "resolve":
-            if args.extra not in ("retry", "reopen", "accept"):
-                raise OrchestrationError("resolve needs retry, reopen, or accept.")
+            if args.extra not in ("retry", "reopen", "accept", "revise"):
+                raise OrchestrationError("resolve needs retry, reopen, accept, or revise.")
             resolve(session, args.target, args.extra, args.note, args.implementer)
     except Escalated as stopped:
         print(f"orchestrate: STOPPED: {stopped}", file=sys.stderr)

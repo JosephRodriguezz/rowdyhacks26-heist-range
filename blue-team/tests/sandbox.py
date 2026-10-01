@@ -75,6 +75,8 @@ elif phase in ("implement", "revise"):
         (blue / "AGENTS.md").write_text("rewritten\n", encoding="utf-8")
     if "orchestrator-file" in flags:
         pathlib.Path("blue-team/roles/" + name + ".md").write_text("I decide everything\n", encoding="utf-8")
+    if "other" in flags:
+        (blue / "other.py").write_text("# " + name + chr(10), encoding="utf-8")
     if "nochange" not in flags:
         (blue / "feature.py").write_text("# " + name + " " + phase + "\n", encoding="utf-8")
     if "switch" in flags:

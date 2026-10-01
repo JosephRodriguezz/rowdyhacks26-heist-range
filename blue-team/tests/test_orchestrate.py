@@ -150,6 +150,22 @@ class Decisions(FlowTest):
         human_record = (self.box.root / st["decision"]["record"]).read_text(encoding="utf-8")
         self.assertIn("over a recorded security objection", human_record)
 
+    def test_review_security_objection_can_be_sent_back_for_revision(self):
+        self.to_implemented()
+        self.refused("resolve", "B-90", "revise", "--note", "too early")
+        self.stopped("review", "B-90", FAKE_CLAUDE="review-security")
+        self.assertEqual(self.escalation()["reason"], "security-objection")
+        self.refused("resolve", "B-90", "accept", "--note", "not a vote")
+        self.ok("resolve", "B-90", "revise", "--note", "the objection is valid")
+        self.assertEqual(self.box.state()["phase"], "changes_requested")
+        self.assertIn("No human approval", self.refused("implement", "B-90").stderr)
+        self.ok("approve", "B-90")
+        self.ok("implement", "B-90")
+        self.assertIn("codex revise write", self.box.calls())
+        prompt = next((self.box.root / "blue-team/runs").rglob("B-90-revise-codex.prompt.md")).read_text(encoding="utf-8")
+        self.assertIn("Reviews to address", prompt)
+        self.assertIn("security-objection", prompt)
+
     def test_malformed_vote_fails_closed(self):
         self.ok("plan", "B-90")
         self.stopped("decide", "B-90", FAKE_CODEX="malformed")
@@ -245,6 +261,18 @@ class Closure(FlowTest):
         self.assertEqual(self.escalation()["reason"], "checks-failed")
         self.refused("close", "B-90", "--commit")
         self.assertEqual(self.box.head(), before)
+
+    def test_close_commits_files_from_every_attempt(self):
+        self.to_implemented()
+        self.ok("review", "B-90", FAKE_ANTIGRAVITY="changes")
+        self.ok("approve", "B-90")
+        self.ok("implement", "B-90", FAKE_CODEX="nochange,other")
+        self.ok("review", "B-90")
+        self.ok("close", "B-90", "--commit")
+        files = self.box.git("show", "--name-only", "--format=", "HEAD").stdout.split()
+        self.assertIn("backend/app/agents/blue/feature.py", files)
+        self.assertIn("backend/app/agents/blue/other.py", files)
+        self.assertEqual(self.box.git("status", "--porcelain").stdout.strip(), "")
 
     def test_files_changed_after_checks_block_close(self):
         self.to_implemented()

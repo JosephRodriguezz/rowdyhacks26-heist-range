@@ -140,4 +140,5 @@ python blue-team/bin/orchestrate.py close B-06 --commit  # commit a ready task; 
    - `retry` re-runs the failed step. A write step needs a new `approve`.
    - `reopen` starts the task over, archiving the old round.
    - `accept` approves a decision that stopped at the vote, and is recorded as a human override.
+   - `revise` sends a task that stopped during review (for example on a valid security objection) back to the implementer. The reviews go into the revision prompt, and a new `approve` is needed.
 6. If a run was interrupted, the next command detects it and stops the task with `interrupted-run`. Check the working tree, then resolve.
