@@ -64,6 +64,8 @@ Record patch origin (generated or known-good fallback), patch identity, original
 
 ## User experience
 
+- Bank-heist theme: the website/network is the bank, red agents are robbers, blue agents are cops, and the independent referee is an auditor. Flat 2D characters inhabit a fixed-perspective 3D-style bank world. Clicking a character opens its tasks, actions, and evidence.
+- The lobby maps to the website, the security gate to API access controls, and the vault to private data. The current replay retains the storefront fixture's actual endpoints and records; introducing bank-specific records requires a coordinated lab/contract update.
 - One main screen: controls, environment map, red/blue activity, timeline, and selected evidence.
 - Guided mode: the presenter controls progression and authorizes supported defenses.
 - Autonomous mode: the same policies and bounded tools execute successive rounds automatically; add after guided mode is reliable.

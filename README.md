@@ -33,9 +33,11 @@ Requires Python 3. No package installation is needed.
 python3 -m http.server 8000 --bind 127.0.0.1 --directory frontend/preview
 ```
 
-Open <http://127.0.0.1:8000>. Use **Next move** to step through a five-move sample battle in the virtual arena. Click **Scout**, **Defender**, or **Referee**, then explore **Overview**, **Activity**, and **Evidence**. Each character opens its own operational history and evidence up to the selected replay checkpoint. The preview loads service icons from a CDN; the simple robot characters, core controls, and text work without those icons.
+Open <http://127.0.0.1:8000>. Use **Next move** to step through a five-move bank-heist replay with 2D characters in a 3D-style environment. Click **Robber**, **Officer**, or **Auditor**, then explore **Overview**, **Activity**, and **Evidence**. Each character opens its own operational history and evidence up to the selected replay checkpoint. The preview loads service icons from a CDN; the flat character cutouts, core controls, and text work without those icons.
 
 The earlier guided dashboard, with launch/defense/retest sample controls, remains at <http://127.0.0.1:8000/dashboard.html>.
+
+The bank is a visual theme over the existing storefront access-control fixture; technical evidence retains its original record and endpoint names.
 
 The preview does not execute security tools, modify a target, or call a model provider.
 

@@ -4,7 +4,9 @@ The interface should let a judge understand what is happening and choose the nex
 
 ## Character-first direction
 
-Use simple, original 2D robot characters with soft corners, minimal detail, and distinct role labels: Scout (red), Defender (blue), and Referee (neutral). Place the bots inside a shared virtual arena: a small raised island with website, API, and database buildings. Use a fixed perspective, simple shapes, clear paths, and brief event-driven attack/defense effects. Keep scenery secondary to the characters and service state. Respect reduced motion.
+Use simple flat 2D character cutouts in a fixed-perspective 3D-style bank diorama. Robber (red team) has a mask, striped shirt, and loot bag; Officer (blue team) has a police cap and badge; Auditor is the neutral independent verifier. The central bank has a raised roof, columns, side wall, and steps. The lobby represents the website, the security gate represents the API access boundary, and the vault represents private data. Keep brief event-driven attack/defense effects, character selection, and readable evidence central. Respect reduced motion.
+
+The heist is a presentation theme. Current evidence still comes from the storefront fixture and `/api/orders/{id}`; label that source explicitly. A future bank-record scenario must be coordinated with Members 2 and 3 through the shared contracts. Do not relabel raw evidence as financial transactions or imply that money was actually stolen.
 
 Each character is a native keyboard-accessible button. Clicking it selects the agent and opens a shared inspector beside the scene on desktop and below it on narrow screens. Keep the selection and chosen inspector section stable when new events arrive.
 
