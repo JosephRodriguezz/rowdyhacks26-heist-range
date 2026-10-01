@@ -98,7 +98,42 @@ Framework mappings live in `frameworks.py` with source links. They are analyst j
 
 **How people get the report:** for now, run the command above. In the app, Member 2 would serve it from an endpoint such as `GET /api/assessments/{id}/incident-report`, and Member 1 would add a download button to the evidence panel. Both need a contract change, which Member 2 coordinates.
 
-Not yet: `observe(context, tools)`, the patch diff (waiting on the lab), or detection of repeated denied probing.
+## Entry point: `observe(context, tools)`
+
+`observe.py` is the blue module boundary from the shared contract. It runs detection, session revocations, the ownership patch, and the incident report in that order, and returns one JSON-ready result. It adds no detection logic, makes no network calls, and executes nothing.
+
+```python
+from app.agents.blue import observe
+
+result = await observe({
+    "target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "live",
+    "telemetry": telemetry_records,
+    "access_policy": {"id": "private-orders-owner-only", "owner_only_actions": ["read_private_order"]},
+    "previous_defenses": [],                     # optional
+    "budgets": {"max_steps": 5},                 # optional
+    "assessment_id": "run-1",                    # optional
+    "generated_at": "2026-09-30T16:00:00Z",      # or tools.now()
+}, tools)
+# result: schema, status, target/version, data_source, alerts, defense_proposals,
+#         evidence_refs, skipped, summary, report, report_scope, notes
+```
+
+- **Strict context.** Any other top-level key (`events`, `candidates`, `ground_truth`, `red_*`, `verdicts`, ...) raises `ContextError`, so a leak from red or evaluation fails loudly. The raw context is never passed to the helpers.
+- **No fallback policy.** A missing or malformed `access_policy` raises `ContextError`; `PRIVATE_ORDERS_POLICY` is never substituted.
+- **Scoped, projected telemetry.** Records for another target, version, assessment, or data source, records the detector cannot evaluate, and repeats of a valid record's `request_id` go to `skipped`, never to an alert. A record is validated before its `request_id` is reserved, so a malformed record cannot hide a valid one with the same ID. Kept records are cut down to the detector's telemetry fields with string, integer, or null values, so extra fields (ground truth, secrets, nested data) never reach the report or its digests.
+- **Previous defenses** must be contract `defense.proposed` (actor `blue`), `defense.applied`, or `defense.failed` (actor `system`) events, or blue's own `DefenseProposal` objects. Bare payloads are rejected because they name no target or assessment. Any other event type, such as `retest.completed` or `finding.verified`, raises `ContextError`. Each entry is validated and projected onto IDs, action type, session or patch parameters, origin, and versions. Summaries, reasons on proposals, and unknown fields are dropped. A `defense.failed` reason is checked to be a string and replaced with a fixed message (`FAILED_REASON`); core's free text is never copied, since it may hold a credential value.
+- **Scoped previous defenses.** Only defenses for this target, assessment, and `data_source` deduplicate proposals, so a fixture or recorded event never changes a live report and the reverse. `DefenseProposal` objects carry no assessment or data source and count for the current ones. Only `defense.applied`/`defense.failed` outcomes that also concern this target version (its own version, or a patch from or to it) reach the report. Everything left out is counted in `notes`.
+- **Containment must cover every alert.** `defense.applied` names no session, so an applied revocation is tied to a session through a scoped `defense.proposed` with the same `defense_id`, or through the revocation ID blue derives for an alerted session (`revocation_id`). If any alert is anonymous, comes from a session no applied revocation names (a fresh session, say), or shows an unauthorized read at or after its session's first applied revocation (same-second reads count, since they cannot be ordered), the applied revocations are left out of the report with a note, so it stays `open` instead of claiming `contained`. Revoked sessions are not proposed again.
+- **Blue-side report.** The report gets blue's own alerts and proposals from this observation plus those scoped system outcomes, never referee verdicts or retests. Its status is `open`, `contained`, `awaiting_retest`, or `fix_failed`, never `resolved`. `report_scope` says it is not the final incident record; the full report with Recover verdicts stays with core and `report.py`.
+- **Patch.** Always `ownership-fix-001` from `defenses/patches/`, never a path or ID from the context. If the manifest cannot be loaded, alerts and revocations are still returned with a note.
+- **Budgets and cancellation.** `max_steps` or `timeout_seconds` at 0 or below, or `tools.cancelled()` returning true, gives an empty result with status `budget_exhausted` or `cancelled`. `max_requests` is not checked because observe sends no requests; check it once tools can execute.
+- **Tools are inert in M1.** observe reads only `tools.cancelled()` and `tools.now()` when present.
+- `data_source` must be `fixture`, `live`, or `recorded` and is passed through unchanged.
+- `app.agents.blue.observe` is the function, not the module. To patch the module, use `importlib.import_module("app.agents.blue.observe")`.
+
+The context key names and the `access_policy` shape are a blue proposal. Member 2 must confirm them before core integration.
+
+Not yet: the patch diff (waiting on the lab), detection of repeated denied probing, and a stricter `incident._status` that resolves only when every required retest check passed (needed before core builds reports with referee events).
 
 ## Tests
 

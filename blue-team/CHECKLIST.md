@@ -2,9 +2,9 @@
 
 Generated from `tasks.json` by `python blue-team/bin/board.py`. Do not edit by hand.
 
-Last updated 2026-10-01T00:00:00Z by claude.
+Last updated 2026-10-01T20:18:54Z by orchestrator.
 
-Progress: 0 in progress · 1 in review · 3 blocked · 10 to do · 4 done
+Progress: 0 in progress · 1 in review · 3 blocked · 9 to do · 5 done
 
 ## In progress
 
@@ -26,8 +26,6 @@ None.
 
 ## To do
 
-- [ ] **B-06** observe(context, tools) entry point that runs detection, proposals, and the report · milestone M1 · owner: unassigned
-  - Contract boundary from shared/contracts/README.md. Suggested implementer: claude.
 - [ ] **B-07** Stand-in defense executor and an end-to-end blue flow test on the shared fixture · milestone M1 · owner: unassigned
   - Work packet step 6. Suggested implementer: codex.
 - [ ] **B-08** Structured outcomes for rejected, failed, and rolled-back defenses; request a referee retest · milestone M1 · owner: unassigned
@@ -53,3 +51,5 @@ None.
 - [x] **B-02** Session revocation proposals labeled as containment · milestone M1 · owner: claude · commits: df91162
 - [x] **B-03** Patch manifest format and ownership patch proposal (patch is a draft) · milestone M1 · owner: claude · commits: 67e0aaf
 - [x] **B-04** Incident evidence report: NIST CSF 2.0 sections, ATT&CK/CWE/OWASP mapping, SHA-256 evidence · milestone M1 · owner: claude · commits: 67e0aaf
+- [x] **B-06** observe(context, tools) entry point that runs detection, proposals, and the report · milestone M1 · owner: claude · reviewers: antigravity, codex · [thread](comms/threads/B-06.md)
+  - Ready to close. The human runs: orchestrate.py close B-06 --commit

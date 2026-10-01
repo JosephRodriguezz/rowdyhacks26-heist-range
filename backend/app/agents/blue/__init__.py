@@ -12,6 +12,7 @@ from .detection import (
     parse_utc_timestamp,
 )
 from .incident import REPORT_SCHEMA, build_incident_report, render_markdown
+from .observe import OBSERVE_SCHEMA, BlueContext, ContextError, observe, parse_context
 from .patches import PatchManifest, PatchManifestError, load_patch_manifest, parse_patch_manifest
 from .proposals import (
     APPLY_PATCH,
@@ -28,12 +29,15 @@ __all__ = [
     "APPLY_PATCH",
     "CONTAINMENT",
     "CROSS_USER_READ",
+    "OBSERVE_SCHEMA",
     "PRIVATE_ORDERS_POLICY",
     "REMEDIATION",
     "REPORT_SCHEMA",
     "REVOKE_SESSION",
     "AccessPolicy",
     "Alert",
+    "BlueContext",
+    "ContextError",
     "DefenseProposal",
     "DetectionResult",
     "PatchManifest",
@@ -42,6 +46,8 @@ __all__ = [
     "build_incident_report",
     "detect_suspicious_access",
     "load_patch_manifest",
+    "observe",
+    "parse_context",
     "parse_patch_manifest",
     "parse_utc_timestamp",
     "propose_ownership_patch",

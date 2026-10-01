@@ -78,7 +78,7 @@ def detect_suspicious_access(telemetry: Iterable[Any], policy: AccessPolicy) -> 
     """
     skipped, hits = [], []
     for record in telemetry:
-        problem = _problem(record, policy)
+        problem = record_problem(record, policy)
         if problem:
             request_id = record.get("request_id") if isinstance(record, Mapping) else None
             skipped.append(SkippedRecord(request_id if isinstance(request_id, str) else None, problem))
@@ -95,7 +95,8 @@ def detect_suspicious_access(telemetry: Iterable[Any], policy: AccessPolicy) -> 
     return DetectionResult(tuple(_alert(key, records) for key, records in groups.items()), tuple(skipped))
 
 
-def _problem(record: Any, policy: AccessPolicy) -> str | None:
+def record_problem(record: Any, policy: AccessPolicy) -> str | None:
+    """Why the detector cannot evaluate this record, or None when it can."""
     if not isinstance(record, Mapping):
         return "record is not an object"
     missing = [name for name in TELEMETRY_FIELDS if name not in record]

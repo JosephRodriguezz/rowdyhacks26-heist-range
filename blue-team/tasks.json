@@ -72,12 +72,15 @@
       "id": "B-06",
       "title": "observe(context, tools) entry point that runs detection, proposals, and the report",
       "milestone": "M1",
-      "status": "todo",
-      "owner": null,
-      "reviewers": [],
-      "notes": "Contract boundary from shared/contracts/README.md. Suggested implementer: claude.",
+      "status": "done",
+      "owner": "claude",
+      "reviewers": [
+        "antigravity",
+        "codex"
+      ],
+      "notes": "Ready to close. The human runs: orchestrate.py close B-06 --commit",
       "commits": [],
-      "updated": "2026-10-01T00:00:00Z",
+      "updated": "2026-10-01T20:18:54Z",
       "context": [
         "shared/contracts/README.md",
         "docs/team/04-blue-team-defense.md",
@@ -255,6 +258,6 @@
       "context": []
     }
   ],
-  "updated": "2026-10-01T00:00:00Z",
-  "updated_by": "claude"
+  "updated": "2026-10-01T20:18:54Z",
+  "updated_by": "orchestrator"
 }

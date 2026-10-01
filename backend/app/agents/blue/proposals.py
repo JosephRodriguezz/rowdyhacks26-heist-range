@@ -68,12 +68,16 @@ def propose_session_revocations(alerts: Iterable[Alert],
                  for (target_id, session_ref), grouped in by_session.items())
 
 
+def revocation_id(target_id: str, session_ref: str) -> str:
+    """Stable defense ID for revoking one session on one target."""
+    return "defense-revoke-" + hashlib.sha256(repr((REVOKE_SESSION, target_id, session_ref)).encode()).hexdigest()[:12]
+
+
 def _revocation(target_id: str, session_ref: str, alerts: list[Alert]) -> DefenseProposal:
     latest = max(alerts, key=lambda alert: parse_utc_timestamp(alert.last_seen))
     owners = ", ".join(dict.fromkeys(owner for alert in alerts for owner in alert.resource_owner_refs))
-    digest = hashlib.sha256(repr((REVOKE_SESSION, target_id, session_ref)).encode()).hexdigest()[:12]
     return DefenseProposal(
-        defense_id=f"defense-revoke-{digest}",
+        defense_id=revocation_id(target_id, session_ref),
         action_type=REVOKE_SESSION,
         effect=CONTAINMENT,
         target_id=target_id,
