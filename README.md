@@ -4,6 +4,10 @@ An interactive cyber range for RowdyHacks: AI agents attack and defend an isolat
 
 **Status:** project foundation, four-person work packages, shared handoff contracts, and interactive UI preview. The preview uses sample data; live agents, the vulnerable application, defensive tools, and evaluation are not implemented yet.
 
+## Start this weekend
+
+Open [the 24-hour kickoff guide](docs/weekend/START_HERE.md), then run `python3 scripts/doctor.py`. It includes the named team roster, setup steps, first tasks, integration gates, and judge walkthrough.
+
 ## Four-person team setup
 
 Start with the [team build framework](docs/team/README.md). It includes four work packets, separate ownership/branches, starter prompts, a shared API/event contract, a synthetic run fixture, and integration acceptance checks.

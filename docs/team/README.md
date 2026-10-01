@@ -9,7 +9,9 @@ Build four separately testable modules in one repository. Use separate clones an
 | [3 — Red team and lab](03-red-team-lab.md) | `backend/app/agents/red/`, `cyber_range/`, related tests | Resettable lab + structured attack candidate | `codex/member-3-red` |
 | [4 — Blue team and defenses](04-blue-team-defense.md) | `backend/app/agents/blue/`, `defenses/`, related tests | Telemetry-based alert + reviewable defense proposal | `codex/member-4-blue` |
 
-Member numbers are role assignments, not experience rankings. Assign names before starting. Member 2 is the integration owner, not the only person who tests integration.
+Working roster: Joseph → Member 1, Aaron → Member 2, Diego → Member 3, Omar → Member 4. Names are confirmed; roles are provisional until kickoff. See the [24-hour kickoff guide](../weekend/START_HERE.md).
+
+Member numbers are role assignments, not experience rankings. Member 2 is the integration owner, not the only person who tests integration.
 
 ## Shared foundation
 

@@ -26,6 +26,13 @@ For team work, read docs/team/README.md and the assigned member packet. Preserve
 # Serve the sample-data preview
 python3 -m http.server 8000 --bind 127.0.0.1 --directory frontend/preview
 
+# Read-only team setup check
+python3 scripts/doctor.py
+
+# Check or synchronize the current preview (no Codex installation needed)
+python3 scripts/preview.py --check
+python3 scripts/preview.py
+
 # Check whitespace and patch formatting
 git diff --check
 
