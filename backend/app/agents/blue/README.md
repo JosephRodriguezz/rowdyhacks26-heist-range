@@ -23,7 +23,25 @@ for alert in result.alerts:
 - Alerts reference telemetry by `request_ids`; core maps those to evidence IDs.
 - `PRIVATE_ORDERS_POLICY` stands in until core supplies the access policy through the agent context.
 
-Not yet: `observe(context, tools)`, defense proposals, or detection of repeated denied probing.
+## Session revocation proposals
+
+`proposals.py` turns cross-user alerts into `revoke_session` proposals. Blue proposes; core's dispatcher executes.
+
+```python
+from app.agents.blue import propose_session_revocations
+
+proposals = propose_session_revocations(result.alerts, previous_defenses)
+for proposal in proposals:
+    proposal.event_data()  # defense.proposed payload: defense_id, action_type, summary, reason, parameters, ...
+```
+
+- One proposal per session. `parameters` holds only `session_ref`; the executor resolves the real credential through core.
+- Every proposal is labeled `effect: "containment"` and says it does not fix the ownership check. A new session for the same user is unaffected.
+- Sessions named by an earlier `revoke_session` in `previous_defenses` are not proposed again. A fresh session that repeats the read gets its own proposal.
+- Anonymous reads have no session to revoke. They need the ownership patch.
+- Defense IDs are stable, so repeated observations produce the same proposal.
+
+Not yet: `observe(context, tools)`, the ownership patch proposal, or detection of repeated denied probing.
 
 ## Tests
 

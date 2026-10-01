@@ -10,14 +10,19 @@ from .detection import (
     SkippedRecord,
     detect_suspicious_access,
 )
+from .proposals import CONTAINMENT, REVOKE_SESSION, DefenseProposal, propose_session_revocations
 
 __all__ = [
     "ANONYMOUS_READ",
+    "CONTAINMENT",
     "CROSS_USER_READ",
     "PRIVATE_ORDERS_POLICY",
+    "REVOKE_SESSION",
     "AccessPolicy",
     "Alert",
+    "DefenseProposal",
     "DetectionResult",
     "SkippedRecord",
     "detect_suspicious_access",
+    "propose_session_revocations",
 ]

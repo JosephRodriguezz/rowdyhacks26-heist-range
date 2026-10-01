@@ -1,7 +1,5 @@
 """Blue detector tests. Run from backend/: python -m unittest discover -s tests/blue -v"""
 
-import json
-from pathlib import Path
 import unittest
 
 from app.agents.blue import (
@@ -10,25 +8,7 @@ from app.agents.blue import (
     PRIVATE_ORDERS_POLICY,
     detect_suspicious_access,
 )
-
-ROOT = Path(__file__).resolve().parents[3]
-SECRET_KEYS = {"password", "token", "api_key", "authorization", "cookie"}
-
-
-def log(request_id, actor, owner, status=200, *, session=None, second=0, version="lab-v1",
-        action="read_private_order", resource="order-204"):
-    return {
-        "request_id": request_id,
-        "timestamp": f"2026-09-30T15:00:{second:02d}Z",
-        "target_id": "storefront-lab",
-        "target_version": version,
-        "actor_ref": actor,
-        "session_ref": session or (f"{actor}-session-1" if actor else None),
-        "resource_id": resource,
-        "resource_owner_ref": owner,
-        "action": action,
-        "http_status": status,
-    }
+from blue_test_helpers import load_shared, log, secret_keys
 
 
 def detect(*records):
@@ -37,8 +17,8 @@ def detect(*records):
 
 class FixtureTelemetry(unittest.TestCase):
     def setUp(self):
-        self.fixture = json.loads((ROOT / "shared/fixtures/demo-run.json").read_text())
-        self.contract = json.loads((ROOT / "shared/contracts/v1.json").read_text())
+        self.fixture = load_shared("shared/fixtures/demo-run.json")
+        self.contract = load_shared("shared/contracts/v1.json")
 
     def test_flags_only_the_cross_user_read(self):
         result = detect_suspicious_access(self.fixture["telemetry"], PRIVATE_ORDERS_POLICY)
@@ -58,7 +38,7 @@ class FixtureTelemetry(unittest.TestCase):
         self.assertLessEqual(set(required), data.keys())
         expected = next(e for e in self.fixture["events"] if e["type"] == "alert.created")
         self.assertEqual(data["request_ids"], expected["data"]["request_ids"])
-        self.assertFalse(SECRET_KEYS & {key.lower() for key in data})
+        self.assertEqual(secret_keys(data), set())
 
 
 class Detection(unittest.TestCase):
