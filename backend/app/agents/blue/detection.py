@@ -88,7 +88,7 @@ def detect_suspicious_access(telemetry: Iterable[Any], policy: AccessPolicy) -> 
             hits.append((kind, record))
 
     groups: dict[tuple, list[Mapping[str, Any]]] = {}
-    for kind, record in sorted(hits, key=lambda hit: (_timestamp(hit[1]["timestamp"]), hit[1]["request_id"])):
+    for kind, record in sorted(hits, key=lambda hit: (parse_utc_timestamp(hit[1]["timestamp"]), hit[1]["request_id"])):
         key = (policy.id, kind, record["target_id"], record["target_version"],
                record["actor_ref"], record["session_ref"])
         groups.setdefault(key, []).append(record)
@@ -109,7 +109,7 @@ def _problem(record: Any, policy: AccessPolicy) -> str | None:
             return f"{name} must be a non-empty string or null"
     if type(record["http_status"]) is not int:
         return "http_status must be an integer"
-    if _timestamp(record["timestamp"]) is None:
+    if parse_utc_timestamp(record["timestamp"]) is None:
         return "timestamp must be ISO 8601 UTC ending in Z"
     if record["action"] in policy.owner_only_actions and record["resource_owner_ref"] is None:
         return "resource owner unknown for an owner-only action"
@@ -151,7 +151,7 @@ def _alert(key: tuple, records: list[Mapping[str, Any]]) -> Alert:
     )
 
 
-def _timestamp(value: Any) -> datetime | None:
+def parse_utc_timestamp(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value.endswith("Z"):
         return None
     try:
