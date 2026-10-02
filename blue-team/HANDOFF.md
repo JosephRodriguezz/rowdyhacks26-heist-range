@@ -195,7 +195,16 @@ Following the PM's 2026-10-01 direction (heist theme, red and blue swarms, 3D bo
 
 `Mayo` now includes the kickoff kit from the PR #1 branch (`docs/weekend/`), merged in commit `52d2a05`.
 
-**Roster to confirm.** `docs/weekend/START_HERE.md` lists Aaron as Member 2 (core and integration) and Omar as Member 4 (blue), marked provisional. All work on `Mayo` so far was done by Aaron as blue. Confirm roles at kickoff.
+**Roster in the new repository.** `JosephRodriguezz/rowdyhacks26-heist-range` sets the team shape. It supersedes the provisional roster in `docs/weekend/START_HERE.md`:
+
+| Person | Role there | Old member packet it covers |
+| --- | --- | --- |
+| Joseph | Red Team: a Scout and an Operator | Red agent (Member 3's red half) |
+| Aaron | Blue Team: a Monitor and a Defender, extending this work | Member 4 |
+| Diego | Core control plane, referee, and the bank lab | Member 2, and Member 3's lab half |
+| Omar | Arena: the judge-facing 3D bank view | Member 1 |
+
+So requests in section 7 addressed to Member 2 or Member 3's lab now go to Diego, and Member 1's go to Omar. One difference to settle: the new README says Blue "recommends or performs bounded responses". Blue here only proposes, and core executes. That keeps blue from acting outside verified, reversible actions.
 
 **Website first.** `docs/weekend/DECISIONS.md` fixes one isolated website/API for the first slice, with the bank as a visual skin over the storefront contract. That matches everything blue has built. Network attacks remain a stretch goal.
 
