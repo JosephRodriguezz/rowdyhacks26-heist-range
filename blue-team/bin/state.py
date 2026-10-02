@@ -16,6 +16,7 @@ import json
 import os
 import time
 
+import dashboard
 from common import FRAMEWORK, atomic_write, now
 
 STATE_DIR = FRAMEWORK / "state"
@@ -68,6 +69,7 @@ def load(task: str) -> dict:
 
 def save(state: dict) -> None:
     atomic_write(path_for(state["task"]), json.dumps(state, indent=2) + "\n")
+    dashboard.refresh()
 
 
 def transition(state: dict, to: str, event: str, evidence: dict | None = None) -> None:
@@ -207,3 +209,4 @@ def task_lock(task: str):
     finally:
         os.close(handle)
         lock.unlink(missing_ok=True)
+        dashboard.refresh()

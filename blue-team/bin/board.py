@@ -24,6 +24,7 @@ import re
 import sys
 import time
 
+import dashboard
 from common import FRAMEWORK, atomic_write, load_config, now, participants, sha256_bytes, voters
 import state as workflow
 
@@ -59,6 +60,7 @@ def save_tasks(data: dict, who: str) -> None:
     data["updated_by"] = who
     atomic_write(TASKS, json.dumps(data, indent=2) + "\n")
     atomic_write(CHECKLIST, render_checklist(data))
+    dashboard.refresh()
 
 
 def find_task(data: dict, task_id: str) -> dict:
@@ -167,6 +169,7 @@ def post(thread: str, who: str, kind: str, body: str, title: str | None = None, 
         message = {"time": now(), "from": who, "type": kind, "body": safe}
         with path.open("a", encoding="utf-8", newline="\n") as handle:
             handle.write(f"\n### {message['time']} | {who} | {kind}\n\n{safe}{source}\n")
+        dashboard.refresh()
     return message
 
 
@@ -347,7 +350,8 @@ def main(argv: list[str] | None = None) -> int:
             print(_status_text())
         elif args.command == "render":
             atomic_write(CHECKLIST, render_checklist(load_tasks()))
-            print("Rendered blue-team/CHECKLIST.md")
+            dashboard.refresh()
+            print("Rendered blue-team/CHECKLIST.md and blue-team/STATUS.md")
         elif args.command == "add":
             task = add_task(args.task_id, args.title, args.milestone, args.model, args.owner, args.notes,
                             args.status, args.context)

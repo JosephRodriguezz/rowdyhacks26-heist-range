@@ -2,5 +2,7 @@
 runs/
 .board.lock
 state/.locks/
+# The live dashboard is generated and local; rebuild it with board.py render.
+STATUS.md
 # Obsidian settings and workspace state stay on your machine.
 .obsidian/

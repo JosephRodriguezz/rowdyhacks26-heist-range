@@ -140,7 +140,7 @@ class Sandbox:
         self.git("config", "user.name", "Test")
         self.git("config", "core.autocrlf", "false")
         shutil.copytree(SOURCE, self.root / "blue-team", ignore=shutil.ignore_patterns(
-            "runs", "__pycache__", ".board.lock", "tests", "comms", "decisions", "state"))
+            "runs", "__pycache__", ".board.lock", "tests", "comms", "decisions", "state", "STATUS.md", ".obsidian"))
         for hook in (self.root / "blue-team" / "hooks").iterdir():
             hook.chmod(hook.stat().st_mode | stat.S_IEXEC)
         fake = self.base / "fake_model.py"

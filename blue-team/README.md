@@ -63,6 +63,7 @@ The hooks apply to everyone using this clone, including you. To commit elsewhere
 | --- | --- |
 | `AGENTS.md`, `ARCHITECTURE.md` | Rules for models; design for people |
 | `ROADMAP.md`, `CHECKLIST.md`, `tasks.json` | Scope and goal; live task board (edit with `board.py`) |
+| `STATUS.md` | Live dashboard: what needs you now, tasks, workflow, decisions, threads. Generated, local only (git-ignored). Rebuild with `board.py render`. |
 | `roles/`, `prompts/`, `schemas/` | Role cards, phase instructions, reply formats |
 | `config.json` | Branch, paths, checks, policy, and each CLI's commands |
 | `state/`, `decisions/`, `comms/threads/` | Workflow state, decision records, and threads (shared memory) |

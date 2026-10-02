@@ -44,6 +44,9 @@ class FlowTest(unittest.TestCase):
         self.assertEqual(st["phase"], "needs_human")
         return st["needs_human"]
 
+    def page(self):
+        return (self.box.root / "blue-team/STATUS.md").read_text(encoding="utf-8")
+
 
 class HappyPath(FlowTest):
     def test_full_flow_closes_only_after_the_human_commits(self):
@@ -54,6 +57,9 @@ class HappyPath(FlowTest):
         self.assertIn("Recorded by the orchestrator: run", thread)
         last_prompt = next((self.box.root / "blue-team/runs").rglob("B-90-propose-antigravity.prompt.md"))
         self.assertNotIn("claude plan", last_prompt.read_text(encoding="utf-8"))
+        page = self.page()
+        self.assertIn("Paused after proposed.", page)
+        self.assertNotIn("holds the task lock", page)
 
         self.ok("decide", "B-90")
         st = self.box.state()
@@ -89,6 +95,10 @@ class HappyPath(FlowTest):
         self.assertNotIn("README.md", files)
         self.assertEqual(self.box.git("status", "--porcelain").stdout.strip(), "")
         self.assertEqual(self.box.state()["phase"], "closed")
+        page = self.page()
+        self.assertIn("Nothing is waiting for you.", page)
+        self.assertIn("| closed | 1 / 1 | accepted |", page)
+        self.assertIn("| [0001](decisions/0001-b-90.md) | B-90 | accepted | codex |", page)
         self.assertEqual(self.box.tasks()["B-90"]["status"], "done")
         self.assertEqual(self.box.script("guard.py", "verify").returncode, 0)
 
@@ -142,6 +152,10 @@ class Decisions(FlowTest):
         record = (self.box.root / self.box.state()["decision"]["record"]).read_text(encoding="utf-8")
         self.assertIn("- antigravity on B-90: antigravity says security-objection", record)
         self.assertIn("B-90: security-objection", self.ok("escalations").stdout)
+        page = self.page()
+        self.assertIn("Stopped for a human: security-objection.", page)
+        self.assertIn("resolve B-90 retry|reopen|accept --note", page)
+        self.assertNotIn("holds the task lock", page)
         self.refused("approve", "B-90")
         self.refused("resolve", "B-90", "accept")
         self.ok("resolve", "B-90", "accept", "--note", "I reviewed the objection; it does not apply here")

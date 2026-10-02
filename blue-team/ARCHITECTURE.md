@@ -70,6 +70,7 @@ Everything lives in files on the branch, so every model and teammate sees the sa
 | `comms/threads/*.md` | Readable record of every reply, with run ID and reply hash | Orchestrator, plus interactive posts through `board.py` |
 | `comms/threads/handoffs.md` | Requests for other team members | Anyone, through `board.py` |
 | `tasks.json`, `CHECKLIST.md` | Task board | `board.py` only |
+| `STATUS.md` | Dashboard: what needs the human, plus tasks, workflow, decisions, and threads. A read-only view of the files above; nothing depends on it. | `dashboard.py`, refreshed on every change; git-ignored |
 | `roles/`, `prompts/`, `schemas/` | Role cards, phase instructions, reply formats | Human |
 | `runs/` | Prompts and raw CLI output (local only, not committed) | Orchestrator |
 
