@@ -2,7 +2,7 @@
 
 ## Project state
 
-This repository is the planning foundation for the RowdyHacks 2026 submission. It currently contains planning documents and agent workflow skills, not a working cyber range or finished demo. Preparation, research, contracts, and isolated prototypes may happen before the event; do not describe the integrated contest or final demo as complete until it has been built and verified during the hackathon.
+This repository is the planning foundation for the RowdyHacks 2026 submission. It includes a standalone, loopback-only Red prototype, but not the integrated control plane, Blue team, arena, or finished demo. Preparation, research, contracts, and isolated prototypes may happen before the event; do not describe the integrated contest or final demo as complete until it has been built and verified during the hackathon.
 
 The product name, visual design, languages, frameworks, model provider, and deployment approach remain open unless the team records a decision in [the decision log](docs/DECISIONS.md).
 
@@ -43,9 +43,14 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
   python3 .agent-toolkit/bin/workspace_toolkit.py inventory .
   python3 .agent-toolkit/bin/workspace_toolkit.py validate .
   git diff --check
+  python3 -m compileall -q red
+  python3 -m unittest discover -s tests -v
+  python3 -m red.prototype.cli evaluate
+  python3 -m red.prototype.cli run --scenario access_control --mode deterministic_baseline
+  python3 -m red.prototype.cli replay --from artifacts/access.run.json
   ```
 
-  There is no live application test suite yet. Do not report the planning preview or fixture data as evidence of live security behavior.
+  The Red tests exercise the disposable local mock only. The deterministic baseline is a labeled comparison, and the fixture-provider adaptation test is control-flow evidence rather than model performance. No remote model run or integrated contest has been verified.
 - Git changes are manual by default. Do not commit, create branches, push, merge, or stash unless Joseph explicitly asks.
 
 ## Workflow skills

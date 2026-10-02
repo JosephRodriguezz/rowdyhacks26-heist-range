@@ -15,6 +15,7 @@ These roles may be implemented as separate model executions or another team-appr
 
 ## Before the hackathon
 
+- Maintain the [standalone Red prototype](../red/README.md), review its deterministic regression checks, and document observed gaps before integration.
 - Read the project brief, architecture, integration contracts, and evaluation plan.
 - Study the supplied OWASP references for the supported families: access control, authentication/session management, and input handling.
 - Propose bounded exploration and ranking criteria. Separate observed facts from hypotheses and confirmed findings.

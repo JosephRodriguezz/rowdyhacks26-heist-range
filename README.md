@@ -2,7 +2,7 @@
 
 An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around a fictional bank and a protected vault.
 
-**Status:** Planning foundation. The integrated contest and final demo will be built during the hackathon. The project name and arena implementation remain open for the team to decide.
+**Status:** Planning foundation plus a standalone Red preparation prototype. The integrated contest and final demo will be built during the hackathon. The project name and arena implementation remain open for the team to decide.
 
 ## Start here
 
@@ -11,11 +11,25 @@ An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around
 - [Architecture](docs/ARCHITECTURE.md) — system boundaries, control flow, and information separation.
 - [Team brief](docs/TEAM_BRIEF.md) — copy-ready project message for Discord.
 - [Role packets](docs/roles/README.md) — responsibilities, preparation, event work, and acceptance checks.
+- [Red prototype preparation](docs/red/README.md) — standalone prototype boundaries, evaluation cases, and build sequence.
 - [Integration contracts](docs/INTEGRATION_CONTRACTS.md) — draft task, handoff, event, target, and referee records.
 - [Hackathon plan](docs/HACKATHON_PLAN.md) — pre-event preparation and event build sequence.
 - [Evaluation plan](docs/EVALUATION_PLAN.md) — safe, evidence-based iteration criteria.
 - [References](docs/REFERENCES.md) — learning and verification resources.
 - [Decision log](docs/DECISIONS.md) — confirmed choices and open questions.
+
+## Run the standalone Red prototype
+
+The prototype uses Python's standard library and starts its target on `127.0.0.1`. Each run creates a fresh synthetic bank state. It supports labeled local scenarios for access control, session lifecycle, input handling, simulated defense, and secure baselines.
+
+```sh
+python3 -m red.prototype.cli run --scenario access_control --mode deterministic_baseline --report artifacts/access.run.json
+python3 -m red.prototype.cli replay --from artifacts/access.run.json
+python3 -m red.prototype.cli evaluate
+python3 -m unittest discover -s tests -v
+```
+
+To inspect the target in a browser, run `python3 -m red.prototype.cli serve --scenario clean`; stop and restart the command to reset it. The model-driven mode uses an optional OpenAI Responses adapter and makes no provider request unless `--mode model --allow-remote-model` is supplied with `OPENAI_API_KEY` and `OPENAI_MODEL` configured. The provider remains replaceable and is not selected for the full project. Run records label local HTTP, deterministic-baseline, model, and simulated-defense activity; evaluator-only scenario details are stored under `evaluation_private` and never added to Red's model context.
 
 ## Mission
 

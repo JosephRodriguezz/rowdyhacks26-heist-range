@@ -20,6 +20,10 @@ Use these sources to build the scenario, study the weakness families, and design
 
 - [OWASP WebGoat](https://github.com/WebGoat/WebGoat) — a deliberately vulnerable educational application with lessons. Use it to study lesson structure and vulnerability concepts only; it is not the target for this project. If anyone runs it locally for learning, follow its official isolation guidance and never expose it to an untrusted network.
 
+## Optional model adapter reference
+
+- [OpenAI function calling](https://developers.openai.com/api/docs/guides/function-calling) — official Responses API reference for typed function tools and strict schemas used by the optional local prototype adapter. This does not select OpenAI as the project-wide provider.
+
 ## How we use references
 
 - Map each target weakness to a specific lesson or test reference, a safe synthetic behavior, detection evidence, a corrective change, and a regression check.
