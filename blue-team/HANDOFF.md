@@ -204,7 +204,7 @@ Following the PM's 2026-10-01 direction (heist theme, red and blue swarms, 3D bo
 | Diego | Core control plane, referee, and the bank lab | Member 2, and Member 3's lab half |
 | Omar | Arena: the judge-facing 3D bank view | Member 1 |
 
-So requests in section 7 addressed to Member 2 or Member 3's lab now go to Diego, and Member 1's go to Omar. One difference to settle: the new README says Blue "recommends or performs bounded responses". Blue here only proposes, and core executes. That keeps blue from acting outside verified, reversible actions.
+So requests in section 7 addressed to Member 2 or Member 3's lab now go to Diego, and Member 1's go to Omar. **Blue's response principle (decision 0004, settled 2026-10-02):** "AI specialists analyze sanitized telemetry and recommend responses, while deterministic code enforces permissions, runs approved defenses, and verifies outcomes independently." This is how the new README's "recommends or performs bounded responses" applies: responses are performed, but by deterministic code, never by an AI model directly. Narrow, reversible responses may run automatically; broader ones need review and a retest.
 
 **Website first.** `docs/weekend/DECISIONS.md` fixes one isolated website/API for the first slice, with the bank as a visual skin over the storefront contract. That matches everything blue has built. Network attacks remain a stretch goal.
 

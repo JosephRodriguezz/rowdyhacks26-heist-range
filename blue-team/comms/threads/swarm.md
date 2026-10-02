@@ -152,3 +152,9 @@ Blue supplies structured data through observe() and core event stream:
 **Stance:** agree
 
 _Recorded by the orchestrator: run 20261001T202953Z-discuss-a2b2, reply sha256 94e11c223fb485cb._
+
+### 2026-10-02T05:19:46Z | human | decision
+
+Decision 0004: **accepted**. Approved by the human.
+
+Record: blue-team/decisions/0004-swarm.md
