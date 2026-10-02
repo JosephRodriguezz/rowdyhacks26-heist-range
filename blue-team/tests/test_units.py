@@ -225,6 +225,9 @@ class Snapshots(unittest.TestCase):
         patterns = self.config["watch_ignore"]
         self.assertTrue(watch.ignored("backend/app/agents/blue/__pycache__/x.pyc", patterns))
         self.assertTrue(watch.ignored("blue-team/runs/abc/prompt.md", patterns))
+        self.assertTrue(watch.ignored("blue-team/.obsidian/workspace.json", patterns))
+        self.assertTrue(watch.ignored("blue-team/.obsidian/", patterns))
+        self.assertFalse(watch.ignored("blue-team/obsidian-notes.md", patterns))
         self.assertFalse(watch.ignored("backend/app/agents/blue/feature.py", patterns))
 
     def test_branch_switch_and_commit_are_violations(self):

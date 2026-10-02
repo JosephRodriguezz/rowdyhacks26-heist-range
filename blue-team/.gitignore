@@ -2,3 +2,5 @@
 runs/
 .board.lock
 state/.locks/
+# Obsidian settings and workspace state stay on your machine.
+.obsidian/

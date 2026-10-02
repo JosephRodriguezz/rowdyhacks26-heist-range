@@ -23,7 +23,8 @@
     ".pytest_cache/",
     "blue-team/runs/",
     "blue-team/.board.lock",
-    "blue-team/state/.locks/"
+    "blue-team/state/.locks/",
+    ".obsidian/"
   ],
   "default_context": [
     "blue-team/ROADMAP.md",
