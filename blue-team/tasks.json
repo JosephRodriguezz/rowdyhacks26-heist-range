@@ -165,45 +165,50 @@
     },
     {
       "id": "B-12",
-      "title": "Contract proposals for Member 2: blue context, previous_defenses format, executor results, report endpoint, refusing draft patches",
+      "title": "Send Diego the interface requests: observe input names and access_policy shape, new actions and events, windowed telemetry, hashed client_ref, login telemetry, canary records and decoy endpoint, refusal of draft patches",
       "milestone": "M2",
       "status": "todo",
       "owner": null,
       "reviewers": [],
-      "notes": "Draft in the handoffs thread. Suggested: antigravity drafts, claude reviews.",
+      "notes": "Decision 0005 and the swarm thread define the swarm items. Contingency and Emergency tiers need new action types; cluster, PACE tier, and posture need new events. Draft in the handoffs thread. Suggested: antigravity drafts, claude reviews.",
       "commits": [],
-      "updated": "2026-10-01T00:00:00Z",
+      "updated": "2026-10-02T23:37:15Z",
       "context": [
         "shared/contracts/README.md",
         "docs/team/02-orchestrator-referee.md",
-        "docs/team/INTEGRATION.md"
+        "docs/team/INTEGRATION.md",
+        "blue-team/decisions/0005-swarm.md",
+        "blue-team/comms/threads/swarm.md",
+        "blue-team/HANDOFF.md"
       ]
     },
     {
       "id": "B-13",
-      "title": "Finalize ownership-fix-001: allowed_files and diff against Member 3's order handler",
+      "title": "Finalize ownership-fix-001: allowed_files and diff against Diego's order handler",
       "milestone": "M2",
       "status": "blocked",
       "owner": null,
       "reviewers": [],
-      "notes": "Waiting on Member 3 to publish the lab's order handler.",
+      "notes": "Waiting on Diego (core and bank lab) to publish the lab's order handler.",
       "commits": [],
-      "updated": "2026-10-01T00:00:00Z",
+      "updated": "2026-10-02T23:37:15Z",
       "context": []
     },
     {
       "id": "B-14",
-      "title": "Plain-language alert and defense labels for Member 1's UI",
+      "title": "Give Omar blue's arena data and labels: heist names for the seven D3FEND armor slots, plain-language alerts and defenses, status for two blue characters (swarm mode later)",
       "milestone": "M2",
       "status": "todo",
       "owner": null,
       "reviewers": [],
-      "notes": "Suggested implementer: antigravity.",
+      "notes": "Decision 0005: armor credit follows proven state and is shown per attack path plus an overall number. Suggested implementer: antigravity.",
       "commits": [],
-      "updated": "2026-10-01T00:00:00Z",
+      "updated": "2026-10-02T23:37:16Z",
       "context": [
         "docs/team/01-arena-ui.md",
-        "docs/UI_DESIGN.md"
+        "docs/UI_DESIGN.md",
+        "blue-team/decisions/0005-swarm.md",
+        "blue-team/comms/threads/swarm.md"
       ]
     },
     {
@@ -223,14 +228,14 @@
     },
     {
       "id": "B-16",
-      "title": "Update Mayo from main after PR #1 merges, then open the blue-team pull request",
+      "title": "Join Mayo into the new repository's main, once the team decides how",
       "milestone": "M2",
       "status": "blocked",
       "owner": "human",
       "reviewers": [],
-      "notes": "Waiting on PR #1. Merging from main is a human step.",
+      "notes": "On hold by decision of Member 4 (2026-10-02). Mayo and the new main share no history, so a pull request needs a merge of unrelated histories first. Joseph owns main; agree what to bring in (all of Mayo or only blue's folders) before doing it.",
       "commits": [],
-      "updated": "2026-10-01T00:00:00Z",
+      "updated": "2026-10-02T23:37:16Z",
       "context": []
     },
     {
@@ -240,9 +245,9 @@
       "status": "blocked",
       "owner": null,
       "reviewers": [],
-      "notes": "Waiting on the lab (Member 3) and core (Member 2).",
+      "notes": "Waiting on Diego's lab and core.",
       "commits": [],
-      "updated": "2026-10-01T00:00:00Z",
+      "updated": "2026-10-02T23:37:17Z",
       "context": []
     },
     {
@@ -256,8 +261,42 @@
       "commits": [],
       "updated": "2026-10-01T00:00:00Z",
       "context": []
+    },
+    {
+      "id": "B-19",
+      "title": "Write the blue swarm design spec: cluster rules, scoring weights, PACE triggers by confidence, D3FEND armor scale and heist names, Monitor and Defender grouping, swarm mode",
+      "milestone": "swarm",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Design only: no code and no contract changes. Deliverable: backend/app/agents/blue/design/swarm-spec.md. Build tasks come from the spec. Suggested: antigravity drafts the standards research, claude reviews isolation and safeguards, codex reviews testability.",
+      "commits": [],
+      "context": [
+        "blue-team/decisions/0005-swarm.md",
+        "blue-team/decisions/0004-swarm.md",
+        "blue-team/comms/threads/swarm.md",
+        "blue-team/HANDOFF.md",
+        "backend/app/agents/blue/README.md",
+        "shared/contracts/README.md"
+      ],
+      "updated": "2026-10-02T23:37:17Z"
+    },
+    {
+      "id": "B-20",
+      "title": "Ask Joseph to confirm the organizer's rules on pre-built code, AI tools, and public repositories before more blue code is written",
+      "milestone": "swarm",
+      "status": "todo",
+      "owner": null,
+      "reviewers": [],
+      "notes": "Decision 0005 (timing): design now, check the rules, then build. The new repo's kickoff decisions list this as pending an organizer check. Blue's existing code and the swarm prototypes would be disclosed as prepared work.",
+      "commits": [],
+      "context": [
+        "blue-team/decisions/0005-swarm.md",
+        "docs/weekend/DECISIONS.md"
+      ],
+      "updated": "2026-10-02T23:37:18Z"
     }
   ],
-  "updated": "2026-10-01T20:18:54Z",
-  "updated_by": "orchestrator"
+  "updated": "2026-10-02T23:37:18Z",
+  "updated_by": "human"
 }

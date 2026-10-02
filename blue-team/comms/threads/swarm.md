@@ -158,3 +158,13 @@ _Recorded by the orchestrator: run 20261001T202953Z-discuss-a2b2, reply sha256 9
 Decision 0004: **accepted**. Approved by the human.
 
 Record: blue-team/decisions/0004-swarm.md
+
+### 2026-10-02T23:36:51Z | human | decision
+
+Decision 0005: **accepted**. Approved by the human.
+
+Record: blue-team/decisions/0005-swarm.md
+
+### 2026-10-02T23:37:48Z | claude | status
+
+Decision 0005 recorded. Tasks added or updated: B-19 (design spec), B-20 (rules check, asked of Joseph), B-12 (requests to Diego), B-14 (arena data for Omar), B-13, B-16, and B-17 (roster and repo changes). board.py gained an edit command for this, with a guard that refuses editing done tasks. ROADMAP has a Swarm design milestone.

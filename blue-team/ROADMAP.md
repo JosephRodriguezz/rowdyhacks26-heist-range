@@ -10,25 +10,27 @@ In a clean live run, blue detects the cross-user read from telemetry alone and p
 
 **In scope:** `backend/app/agents/blue/`, `backend/tests/blue/`, `defenses/`, and this `blue-team/` folder. Also proposals to teammates about the interfaces blue depends on.
 
-**Out of scope:** the lab (Member 3), core, the referee, the executor, and shared contracts (Member 2), and the frontend (Member 1). Blue reads their work and proposes changes in `comms/threads/handoffs.md`. It never edits their files.
+**Out of scope:** Diego's core, referee, executor, shared contracts, and bank lab; Joseph's red team; and Omar's arena. Blue reads their work and proposes changes in `comms/threads/handoffs.md`. It never edits their files.
 
 ## Milestones
 
 | Milestone | Exit criteria | Tasks |
 | --- | --- | --- |
 | **M1: Complete on the fixture** | Detection, containment proposal, patch proposal, incident report, `observe()`, and a stand-in executor all run end to end on the shared fixture, with tests that fail when the code is wrong | B-01 to B-11 |
-| **M2: Ready to integrate** | Member 2 accepts the interfaces (blue context, previous defenses, executor results, report endpoint). The patch is finalized against Member 3's handler. Labels are handed to Member 1. Mayo is up to date with main. | B-12 to B-16 |
+| **M2: Ready to integrate** | Diego accepts the interfaces (blue context, previous defenses, executor results, report endpoint, swarm actions and events). The patch is finalized against Diego's order handler. Armor data and labels are handed to Omar. Mayo is joined into the new repository's main once the team decides how. | B-12 to B-16 |
 | **M3: Live demo gate** | Every blue item on the integration checklist's live demo gate passes from a clean reset, and a live incident report is produced | B-17 |
+| **Swarm design** (decision 0005) | The design spec is written, the requests to teammates are sent, and Joseph has confirmed the organizer's rules on pre-built code. Blue starts with two characters, a Monitor and a Defender; the full swarm is a separate mode built after a successful demo. Build tasks come from the spec. | B-19, B-20 |
 | **Ongoing** | The strategy thread is reviewed at least once per milestone and accepted ideas become tasks or handoffs | B-18 |
 
 ## Dependencies on teammates
 
 | Needed from | What | Blocks |
 | --- | --- | --- |
-| Whole team | Merge PR #1 so Mayo can update from main | B-16 |
-| Member 3 | The lab's order handler file and its stable patch surface | B-13, B-17 |
-| Member 2 | Blue context shape, executor results, refusal of draft patches, report endpoint | B-12, B-17 |
-| Member 1 | A report download in the evidence panel | after B-12 |
+| Whole team | A decision on how Mayo joins the new repository's main (all of it, or only blue's folders) | B-16 |
+| Diego (lab) | The order handler file and its stable patch surface; canary records, a decoy endpoint, login and session telemetry, a hashed `client_ref` | B-13, B-17, B-19 |
+| Diego (core) | Blue context shape, executor results, refusal of draft patches, report endpoint, windowed telemetry, new swarm actions and events | B-12, B-17 |
+| Omar | Show the armor slots, the per-path threat model, and two blue characters (swarm mode later), with the heist labels | B-14 |
+| Joseph | The organizer's rules on pre-built code, AI tools, and public repositories | B-20 |
 
 ## Standing questions for the strategy thread
 

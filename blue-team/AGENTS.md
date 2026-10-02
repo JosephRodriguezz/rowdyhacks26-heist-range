@@ -100,7 +100,7 @@ Write access requires an approval the human records with `orchestrate.py approve
 
 ## Talking outside orchestrated runs
 
-In an interactive session, use `board.py post <thread> --model <you> --type <type> --body "..."`. Use `board.py claim` and `board.py move` for the task board. Never edit `tasks.json`, `CHECKLIST.md`, `STATUS.md`, threads, decisions, or state files by hand. `STATUS.md` is a generated dashboard for the human; it is local and never evidence, so do not rely on it or cite it.
+In an interactive session, use `board.py post <thread> --model <you> --type <type> --body "..."`. Use `board.py claim` and `board.py move` for the task board, and `board.py edit` to correct a task's title, notes, milestone, owner, or context files (never a done task). Never edit `tasks.json`, `CHECKLIST.md`, `STATUS.md`, threads, decisions, or state files by hand. `STATUS.md` is a generated dashboard for the human; it is local and never evidence, so do not rely on it or cite it.
 
 Standing threads:
 - `strategy`: more secure, more efficient, more effective blue work across the project.

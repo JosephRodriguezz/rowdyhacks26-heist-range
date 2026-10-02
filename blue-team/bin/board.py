@@ -74,6 +74,8 @@ def add_task(task_id: str, title: str, milestone: str, who: str, owner: str | No
              notes: str = "", status: str = "todo", context: list[str] | None = None) -> dict:
     _require(TASK_ID.fullmatch(task_id) is not None, "Task IDs look like B-07.")
     _require(status in STATUSES, f"Status must be one of: {', '.join(STATUSES)}.")
+    _require(bool(title.strip()) and bool(milestone.strip()), "A task needs a title and a milestone.")
+    _check_context(context or [])
     with _locked():
         data = load_tasks()
         _require(all(t["id"] != task_id for t in data["tasks"]), f"{task_id} already exists.")
@@ -82,6 +84,35 @@ def add_task(task_id: str, title: str, milestone: str, who: str, owner: str | No
         data["tasks"].append(task)
         save_tasks(data, who)
     return task
+
+
+def edit_task(task_id: str, who: str, title: str | None = None, notes: str | None = None,
+              milestone: str | None = None, owner: str | None = None, context: list[str] | None = None) -> dict:
+    """Correct a task's text, milestone, owner, or context files. Status changes go through move().
+
+    A done task is final: its closing commit and decision records name it, so it cannot be edited.
+    """
+    changes = {"title": title, "notes": notes, "milestone": milestone, "owner": owner, "context": context}
+    changes = {key: value for key, value in changes.items() if value is not None}
+    _require(bool(changes), "Nothing to change: pass --title, --notes, --milestone, --owner, or --context.")
+    for key in ("title", "milestone"):
+        _require(key not in changes or bool(changes[key].strip()), f"{key} cannot be empty.")
+    _check_context(changes.get("context", []))
+    with _locked():
+        data = load_tasks()
+        task = find_task(data, task_id)
+        _require(task["status"] != "done", f"{task_id} is done; its record is final.")
+        task.update(changes, updated=now())
+        save_tasks(data, who)
+    return task
+
+
+def _check_context(paths: list[str]) -> None:
+    """Context files are read by every model, so they must be plain repository-relative paths."""
+    for path in paths:
+        parts = path.replace("\\", "/").split("/")
+        _require(bool(path) and not path.startswith(("/", "\\")) and ":" not in path and ".." not in parts,
+                 f"Context path {path!r} must be a repository-relative path without '..'.")
 
 
 def claim(task_id: str, who: str, force: bool = False) -> dict:
@@ -320,6 +351,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--notes", default=""); p.add_argument("--status", default="todo", choices=STATUSES)
     p.add_argument("--context", nargs="*", default=[], help="files every model must read for this task")
 
+    p = sub.add_parser("edit", help="correct a task's title, notes, milestone, owner, or context (not once done)")
+    p.add_argument("task_id"); p.add_argument("--model", required=True, choices=names)
+    p.add_argument("--title"); p.add_argument("--notes"); p.add_argument("--milestone")
+    p.add_argument("--owner", choices=names)
+    p.add_argument("--context", nargs="*", help="replaces the task's context files")
+
     p = sub.add_parser("claim", help="claim a task and mark it in progress")
     p.add_argument("task_id"); p.add_argument("--model", required=True, choices=names)
     p.add_argument("--force", action="store_true", help="human only: take over a task someone else holds")
@@ -356,6 +393,10 @@ def main(argv: list[str] | None = None) -> int:
             task = add_task(args.task_id, args.title, args.milestone, args.model, args.owner, args.notes,
                             args.status, args.context)
             print(f"Added {task['id']}.")
+        elif args.command == "edit":
+            task = edit_task(args.task_id, args.model, args.title, args.notes, args.milestone, args.owner,
+                             args.context)
+            print(f"Updated {task['id']}.")
         elif args.command == "claim":
             print(f"{claim(args.task_id, args.model, args.force)['id']} is now in progress, owned by {args.model}.")
         elif args.command == "move":
