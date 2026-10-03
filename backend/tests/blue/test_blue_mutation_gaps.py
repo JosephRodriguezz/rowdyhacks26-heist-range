@@ -3,15 +3,17 @@
 Run from backend/: python -m unittest discover -s tests/blue -v
 
 Each test kills one mutation that the baseline blue suite did not notice when
-it was applied by hand to detection.py, proposals.py, or patches.py. The
-comment above each test names the line and the surviving mutation. Every
-observe.py mutation in the sweep was already caught, so observe.py has no
-entry here. Tests read the shipped manifest; they create no files.
+it was applied by hand to detection.py, proposals.py, patches.py, or
+observe.py. The comment above each test names the line and the surviving
+mutation. Tests read the shipped manifest; they create no files.
 """
 
+import asyncio
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
+import importlib
 import unittest
+from unittest import mock
 
 from app.agents.blue import (
     ANONYMOUS_READ,
@@ -19,10 +21,12 @@ from app.agents.blue import (
     CROSS_USER_READ,
     PRIVATE_ORDERS_POLICY,
     REVOKE_SESSION,
+    ContextError,
     PatchManifestError,
     SkippedRecord,
     detect_suspicious_access,
     load_patch_manifest,
+    observe,
     parse_patch_manifest,
     parse_utc_timestamp,
     propose_ownership_patch,
@@ -31,7 +35,10 @@ from app.agents.blue import (
 from app.agents.blue.proposals import revocation_id
 from blue_test_helpers import load_shared, log
 
+observe_module = importlib.import_module("app.agents.blue.observe")
 MANIFEST_FILE = "defenses/patches/ownership-fix-001/manifest.json"
+GENERATED_AT = "2026-09-30T16:00:00Z"
+POLICY = {"id": "private-orders-owner-only", "owner_only_actions": ["read_private_order"]}
 
 
 def detect(*records):
@@ -44,6 +51,45 @@ def alerts_for(*records):
 
 def manifest_data():
     return load_shared(MANIFEST_FILE)
+
+
+def context(telemetry, **overrides):
+    base = {"target_id": "storefront-lab", "target_version": "lab-v1", "data_source": "live",
+            "telemetry": telemetry, "access_policy": POLICY, "previous_defenses": [],
+            "budgets": {"max_steps": 5, "max_requests": 10, "timeout_seconds": 30},
+            "assessment_id": "run-1", "generated_at": GENERATED_AT}
+    base.update(overrides)
+    return base
+
+
+def run(ctx):
+    return asyncio.run(observe(ctx))
+
+
+def event(kind, data, event_id, version="lab-v1", second=10):
+    actor = "blue" if kind == "defense.proposed" else "system"
+    return {"schema_version": "1.0", "id": event_id, "assessment_id": "run-1", "type": kind, "actor": actor,
+            "timestamp": f"2026-09-30T15:01:{second:02d}Z", "target_id": "storefront-lab", "target_version": version,
+            "data_source": "live", "evidence_refs": [], "data": data}
+
+
+def proposed(session="alice-session-1", defense_id=None, event_id=1):
+    return event("defense.proposed", {"defense_id": defense_id or f"d-{session}", "action_type": REVOKE_SESSION,
+                 "summary": "Revoke.", "reason": "Contain.", "parameters": {"session_ref": session}}, event_id)
+
+
+def revoke_applied(defense_id="d-alice-session-1", event_id=3, second=10):
+    return event("defense.applied", {"defense_id": defense_id, "action_type": REVOKE_SESSION, "origin": "policy_action",
+                 "original_version": "lab-v1", "resulting_version": "lab-v1"}, event_id, second=second)
+
+
+def patch_applied(version, original="lab-v1", resulting="lab-v2", event_id=3):
+    return event("defense.applied", {"defense_id": "d-patch", "action_type": APPLY_PATCH, "origin": "known_good_fallback",
+                 "original_version": original, "resulting_version": resulting}, event_id, version=version)
+
+
+def mitigation_ids(result):
+    return [entry["defense_id"] for entry in result["report"]["respond"]["mitigation"]]
 
 
 class DetectionGaps(unittest.TestCase):
@@ -260,6 +306,176 @@ class ManifestGaps(unittest.TestCase):
         for name in ("lab/../app.py", "app/..", "a/b/../../etc/passwd"):
             with self.subTest(name=name):
                 self.assertRejected({**manifest_data(), "allowed_files": [name]}, "relative path inside the repository")
+
+
+class ObserveGaps(unittest.TestCase):
+    def assertContextError(self, ctx, pattern):
+        with self.assertRaises(ContextError) as caught:
+            run(ctx)
+        self.assertRegex(str(caught.exception), pattern)
+
+    # observe.py:85 - dropping target_version from the non-empty loop accepts a blank or non-string version.
+    def test_target_version_must_be_a_non_empty_string(self):
+        for value in ("", "   ", 5, None):
+            with self.subTest(value=value):
+                self.assertContextError(context([], target_version=value), "target_version must be a non-empty string")
+
+    # observe.py:88 - dropping assessment_id from the loop accepts a blank or non-string assessment.
+    def test_assessment_id_must_be_a_non_empty_string_when_present(self):
+        for value in ("", "  ", 5):
+            with self.subTest(value=value):
+                self.assertContextError(context([], assessment_id=value), "assessment_id must be a non-empty string")
+
+    # observe.py:94 - <= to < rejects a batch of exactly MAX_TELEMETRY_RECORDS.
+    def test_telemetry_limit_is_inclusive(self):
+        limit = observe_module.MAX_TELEMETRY_RECORDS
+        result = run(context([{}] * limit))
+        self.assertEqual((result["status"], len(result["skipped"])), ("completed", limit))
+        self.assertContextError(context([{}] * (limit + 1)), f"telemetry exceeds {limit} records")
+
+    # observe.py:133 - running the patch step without alerts loads the manifest and writes patch notes
+    # for a clean observation.
+    def test_patch_step_is_skipped_when_nothing_is_detected(self):
+        loader = mock.Mock(side_effect=AssertionError("manifest must not be loaded without alerts"))
+        with mock.patch.object(observe_module, "load_patch_manifest", loader):
+            result = run(context([log("r1", "bob", "bob", version="lab-v2")], target_version="lab-v2"))
+        loader.assert_not_called()
+        self.assertEqual((result["alerts"], result["defense_proposals"], result["notes"]), ([], [], []))
+
+    # observe.py:190 - dropping the per-item string check accepts non-string or blank owner-only actions.
+    def test_policy_actions_must_all_be_non_empty_strings(self):
+        for actions in ([5], [""], ["  "], ["read_private_order", None]):
+            with self.subTest(actions=actions):
+                policy = {"id": "private-orders-owner-only", "owner_only_actions": actions}
+                self.assertContextError(context([], access_policy=policy), "owner_only_actions must be a non-empty list")
+
+    # observe.py:203 - skipping the list check lets a mapping pass silently and a scalar crash with TypeError.
+    def test_previous_defenses_must_be_a_list(self):
+        for value in ({}, None, 5):
+            with self.subTest(value=value):
+                self.assertContextError(context([], previous_defenses=value), "previous_defenses must be a list")
+
+    # observe.py:211 - skipping the identifier check accepts a DefenseProposal with an unusable target.
+    def test_in_process_proposal_needs_identifier_target_and_version(self):
+        proposal = propose_session_revocations(alerts_for(log("r1", "alice", "bob")))[0]
+        for change in ({"target_id": "bad target!"}, {"target_version": ""}, {"target_id": "a" * 200}):
+            with self.subTest(change=change):
+                ctx = context([log("r1", "alice", "bob")], previous_defenses=[replace(proposal, **change)])
+                self.assertContextError(ctx, "DefenseProposal target_id and target_version must be identifiers")
+
+    # observe.py:224 - skipping the schema_version check accepts events from another contract version.
+    def test_previous_defense_events_must_be_schema_version_1_0(self):
+        for value in ("2.0", 1.0, None):
+            with self.subTest(value=value):
+                ctx = context([], previous_defenses=[{**proposed(), "schema_version": value}])
+                self.assertContextError(ctx, "schema_version must be 1.0")
+
+    # observe.py:225 - isinstance(..., int) lets a boolean pass as an event id.
+    def test_previous_defense_event_id_rejects_booleans(self):
+        for value in (True, False):
+            with self.subTest(value=value):
+                ctx = context([], previous_defenses=[{**proposed(), "id": value}])
+                self.assertContextError(ctx, "event id must be an integer or identifier")
+
+    # observe.py:228 - skipping the scope identifier checks lets malformed scope fields through
+    # (they would be silently left out of scope instead of rejected).
+    def test_previous_defense_event_scope_fields_must_be_identifiers(self):
+        for key, value in (("target_id", "bad target!"), ("assessment_id", ""), ("target_version", None)):
+            with self.subTest(key=key):
+                ctx = context([], previous_defenses=[{**proposed(), key: value}])
+                self.assertContextError(ctx, f"event {key} must be an identifier")
+
+    # observe.py:229 - skipping the data_source check accepts an unlabeled event.
+    def test_previous_defense_event_data_source_must_be_a_contract_label(self):
+        for value in ("liveish", None, ""):
+            with self.subTest(value=value):
+                ctx = context([], previous_defenses=[{**proposed(), "data_source": value}])
+                self.assertContextError(ctx, "data_source must be fixture, live, or recorded")
+
+    # observe.py:242 - skipping the missing-key check accepts a proposal without a summary and turns a
+    # missing origin or reason into a KeyError.
+    def test_previous_defense_data_must_hold_every_required_key(self):
+        proposal_data = dict(proposed()["data"])
+        del proposal_data["summary"]
+        applied_data = dict(revoke_applied()["data"])
+        del applied_data["origin"]
+        cases = (("defense.proposed", proposal_data, "summary"),
+                 ("defense.applied", applied_data, "origin"),
+                 ("defense.failed", {"defense_id": "d-alice-session-1"}, "reason"))
+        for kind, data, missing in cases:
+            with self.subTest(kind=kind):
+                ctx = context([], previous_defenses=[event(kind, data, 1)])
+                self.assertContextError(ctx, f"{kind} data missing {missing}")
+
+    # observe.py:252 - keeping non-identifier parameters lets a session reference that failed the
+    # identifier check credit containment and suppress blue's own proposal.
+    def test_non_identifier_session_parameter_never_credits_containment(self):
+        session = "alice session 1"
+        previous = [proposed(session, defense_id="d-1"), revoke_applied("d-1")]
+        result = run(context([log("r1", "alice", "bob", session=session)], previous_defenses=previous))
+        self.assertEqual(result["report"]["status"], "open")
+        self.assertEqual([p["parameters"] for p in result["defense_proposals"] if p["action_type"] == REVOKE_SESSION],
+                         [{"session_ref": session}])
+        self.assertTrue(any("left out of the report" in note for note in result["notes"]), result["notes"])
+
+    # observe.py:286 - dropping the str guard echoes a non-string request_id in the skipped list.
+    def test_skipped_entries_never_echo_a_non_string_request_id(self):
+        result = run(context([{**log("r1", "alice", "bob"), "request_id": 7}]))
+        self.assertEqual(result["skipped"], [{"request_id": None, "reason": "request_id must be a non-empty string"}])
+
+    # observe.py:288 - isinstance(..., (str, int)) keeps booleans, which detection then reports as typed values
+    # instead of missing fields.
+    def test_projection_drops_booleans(self):
+        for field in ("actor_ref", "http_status", "resource_id"):
+            with self.subTest(field=field):
+                result = run(context([{**log("r1", "alice", "bob"), field: True}]))
+                self.assertEqual(result["alerts"], [])
+                self.assertEqual([entry["reason"] for entry in result["skipped"]], [f"missing {field}"])
+
+    # observe.py:333 - letting defense.proposed events through to outcomes puts a previous proposal in the report.
+    def test_previous_proposals_deduplicate_but_stay_out_of_the_report(self):
+        result = run(context([log("r1", "alice", "bob")], previous_defenses=[proposed()]))
+        self.assertEqual([p["action_type"] for p in result["defense_proposals"]], [APPLY_PATCH])
+        self.assertEqual(mitigation_ids(result), [p["defense_id"] for p in result["defense_proposals"]])
+
+    # observe.py:335 - ignoring original_version drops a patch whose event carries the resulting version.
+    def test_applied_patch_counts_for_its_original_version(self):
+        previous = [patch_applied(version="lab-v2", original="lab-v1", resulting="lab-v2")]
+        result = run(context([log("r1", "alice", "bob")], previous_defenses=previous))
+        self.assertEqual(result["report"]["status"], "awaiting_retest")
+        self.assertIn("d-patch", mitigation_ids(result))
+        self.assertFalse(any("another target version" in note for note in result["notes"]), result["notes"])
+
+    # observe.py:336 - ignoring resulting_version drops a patch whose event carries the original version.
+    def test_applied_patch_counts_for_its_resulting_version(self):
+        previous = [patch_applied(version="lab-v1", original="lab-v1", resulting="lab-v2")]
+        result = run(context([log("r1", "alice", "bob", version="lab-v2")], target_version="lab-v2",
+                             previous_defenses=previous))
+        self.assertEqual(result["report"]["status"], "fix_failed")
+        self.assertIn("d-patch", mitigation_ids(result))
+        self.assertFalse(any("another target version" in note for note in result["notes"]), result["notes"])
+
+    # observe.py:370 - dropping the kind check lets a revoked session cover an anonymous read.
+    def test_anonymous_read_is_never_contained_by_a_revoked_session(self):
+        previous = [proposed("s-anon"), revoke_applied("d-s-anon")]
+        result = run(context([log("r1", None, "bob", session="s-anon")], previous_defenses=previous))
+        self.assertEqual([a["kind"] for a in result["alerts"]], [ANONYMOUS_READ])
+        self.assertEqual(result["report"]["status"], "open")
+        self.assertNotIn("d-s-anon", mitigation_ids(result))
+        self.assertTrue(any("not covered by a revoked session" in note for note in result["notes"]), result["notes"])
+
+    # observe.py:435 - n <= 1 writes "0 patch" and "0 session revocation".
+    def test_zero_counts_are_plural(self):
+        result = run(context([log("r1", None, "bob", version="lab-v2")], target_version="lab-v2"))
+        self.assertIn("Proposed 0 session revocations (containment, not a fix) and 0 patches.", result["summary"])
+
+    # observe.py:439 - dropping strip() accepts whitespace-only identifiers.
+    def test_whitespace_only_text_fields_are_rejected(self):
+        for key in ("target_id", "target_version", "assessment_id", "generated_at"):
+            with self.subTest(key=key):
+                self.assertContextError(context([], **{key: " \t"}), f"{key} must be a non-empty string")
+        policy = {"id": "   ", "owner_only_actions": ["read_private_order"]}
+        self.assertContextError(context([], access_policy=policy), "access_policy id must be a non-empty string")
 
 
 if __name__ == "__main__":
