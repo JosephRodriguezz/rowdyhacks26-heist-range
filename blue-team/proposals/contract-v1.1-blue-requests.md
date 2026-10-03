@@ -154,13 +154,15 @@ All **implemented today**, each with tests in `backend/tests/blue/`:
 - **No secrets.** Blue never copies a failure reason. Report evidence drops fields whose names contain `password`, `token`, `secret`, `cookie`, `authorization`, or `api_key` before hashing.
 - **Fail closed.** Missing or malformed inputs raise or skip; nothing is guessed. A missing owner on an owner-only read is "owner unknown", not "protected".
 
-## 8. Pending B-19: swarm items, intentions only
+## 8. Swarm items: now specified in the B-19 design spec
 
-These are not requests in v1.1. The B-19 design spec will turn whatever survives review into concrete requests.
+B-19 is closed. The approved spec is `backend/app/agents/blue/design/swarm-spec.md`. Its section 10.2 is the current list of requests to Diego; where this file and the spec differ, the spec wins. Beyond sections 2 to 6 above, the spec asks core for:
 
-- **Clusters.** Group related reads across sessions and actors within a time window, using only core-generated telemetry fields (and `client_ref` from 2.3 if it arrives). A cluster would be an inference, never proof of coordination, and would need its own event type.
-- **PACE tiers.** Primary (revoke the attacking session) and Alternate (the ownership patch) exist today as proposals. Contingency (reroute the vulnerable route to the protected control, or force re-login) and Emergency (stop and reset, human only) would need new action types and lab adapters. Until then the arena should show them as unavailable, never armed.
-- **Posture.** Armor data for the arena (D3FEND's seven tactics with heist names) credited by proven state: a referee-verified fix counts fully, an applied patch partly, containment a little, a failed defense shows as cracked. This would need a posture event or endpoint and the referee's `retest.completed` results as its only source of "verified".
+- **Two new allowed actions, `reroute_endpoint` and `enforce_reauth`** (spec 10.2, item 1), for the Contingency tier. Contingency and Emergency stay unavailable until B-12 defines them, and Emergency is human-only. Any fallback route must come from the fixed target registry.
+- **Core-stamped telemetry timestamps** that are valid and monotonic, because the correlation windows, the dwell, and the revocation rate cap depend on them (item 2).
+- **Retention and replay of unproposed offending telemetry** across windows, and regular `observe()` calls, before the 5-revocations-per-60-seconds cap may be turned on (item 3). Until core confirms this, the cap is off and blue proposes one revocation per offending session, as it does today.
+
+Clusters, risk scores, the PACE planner, and armor posture are specified but not built (spec section 1.4, Groups B and C). Section 10.2 of the spec lists no cluster, PACE-tier, or posture event type, so this file requests none.
 
 ## 9. Machine-readable summary of the proposed v1.1 additions
 
