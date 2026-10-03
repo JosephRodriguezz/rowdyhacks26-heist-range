@@ -30,7 +30,9 @@ PATCH_APPLIED = event(3, "defense.applied", "system", {"defense_id": "d-patch", 
 
 
 def retest(result, checks=None):
-    checks = checks or [{"id": "unauthorized_access", "expected": "denied", "actual": "denied", "passed": True}]
+    if checks is None:
+        checks = [{"id": "unauthorized_access", "expected": "denied", "actual": "denied", "passed": True},
+                  {"id": "owner_access", "expected": "allowed", "actual": "allowed", "passed": True}]
     return event(4, "retest.completed", "referee", {"finding_id": "f-1", "defense_id": "d-patch",
                  "result": result, "checks": checks}, 30, "lab-v2", ["ev-retest"])
 
@@ -121,6 +123,82 @@ class Status(unittest.TestCase):
         records = self.exposure + [log("r2", "alice", "bob", second=40, version="lab-v2")]
         report = report_for(records, (PATCH_APPLIED, retest("passed")))
         self.assertEqual(report["status"], "fix_failed")
+
+    def test_passed_retest_requires_each_required_check(self):
+        for missing in ("unauthorized_access", "owner_access"):
+            with self.subTest(missing=missing):
+                checks = [c for c in retest("passed")["data"]["checks"] if c["id"] != missing]
+                report = report_for(self.exposure, (PATCH_APPLIED, retest("passed", checks)))
+                self.assertEqual(report["status"], "awaiting_retest")
+                self.assertIn("Missing required retest checks: " + missing, " ".join(report["limitations"]))
+
+    def test_every_check_must_explicitly_pass(self):
+        for passed in (False, 1, "true", None):
+            with self.subTest(passed=passed):
+                checks = retest("passed")["data"]["checks"]
+                checks[1]["passed"] = passed
+                report = report_for(self.exposure, (PATCH_APPLIED, retest("passed", checks)))
+                self.assertEqual(report["status"], "awaiting_retest")
+                self.assertIn("Failed or malformed retest checks: owner_access", " ".join(report["limitations"]))
+
+    def test_actual_must_match_expected(self):
+        checks = retest("passed")["data"]["checks"]
+        checks[0]["actual"] = "allowed"
+        report = report_for(self.exposure, (PATCH_APPLIED, retest("passed", checks)))
+        self.assertEqual(report["status"], "awaiting_retest")
+        self.assertIn("Failed or malformed retest checks: unauthorized_access", " ".join(report["limitations"]))
+
+    def test_extra_checks_must_also_pass(self):
+        for passed, actual, expected_status in ((True, "denied", "resolved"),
+                                                (False, "denied", "awaiting_retest"),
+                                                (True, "allowed", "awaiting_retest")):
+            with self.subTest(passed=passed, actual=actual):
+                checks = retest("passed")["data"]["checks"] + [
+                    {"id": "anonymous_access", "expected": "denied", "actual": actual, "passed": passed}]
+                report = report_for(self.exposure, (PATCH_APPLIED, retest("passed", checks)))
+                self.assertEqual(report["status"], expected_status)
+                if expected_status == "awaiting_retest":
+                    self.assertIn("Failed or malformed retest checks: anonymous_access", " ".join(report["limitations"]))
+
+    def test_malformed_checks_fail_closed_and_can_be_rendered(self):
+        complete = retest("passed")["data"]["checks"]
+        malformed = [None, {}, "checks", 7, [], [None], complete + ["bad"],
+                     complete + [{"id": [], "passed": True}]]
+        for field in ("id", "expected", "actual", "passed"):
+            checks = retest("passed")["data"]["checks"]
+            checks[1].pop(field)
+            malformed.append(checks)
+        malformed.append([{"id": c["id"], "passed": True} for c in complete])
+        for checks in malformed:
+            with self.subTest(checks=checks):
+                attempt = retest("passed")
+                attempt["data"]["checks"] = checks
+                report = report_for(self.exposure, (PATCH_APPLIED, attempt))
+                self.assertEqual(report["status"], "awaiting_retest")
+                self.assertIn("retest checks:", " ".join(report["limitations"]))
+                render_markdown(report)
+
+    def test_incomplete_pass_has_no_fix_verified_time(self):
+        checks = retest("passed")["data"]["checks"][:1]
+        report = report_for(self.exposure, (PATCH_APPLIED, retest("passed", checks)))
+        self.assertIsNone(report["times"]["fix_verified"])
+        self.assertIn("| Fix verified | N/A | N/A |", render_markdown(report))
+
+    def test_last_retest_controls_status(self):
+        for result, checks, status in (("passed", [], "awaiting_retest"),
+                                       ("failed", [], "fix_failed"),
+                                       ("passed", None, "resolved")):
+            with self.subTest(result=result, checks=checks):
+                latest = retest(result, checks)
+                latest["id"] = 5
+                report = report_for(self.exposure, (PATCH_APPLIED, retest("passed"), latest))
+                self.assertEqual(report["status"], status)
+
+    def test_passed_retest_requires_an_applied_patch(self):
+        self.assertEqual(report_for(self.exposure, (retest("passed"),))["status"], "open")
+        attempt = retest("passed")
+        attempt["data"]["defense_id"] = "d-session"
+        self.assertEqual(report_for(self.exposure, (REVOKE_APPLIED, attempt))["status"], "contained")
 
     def test_contained_report_says_containment_is_not_a_fix(self):
         report = report_for(self.exposure, (REVOKE_APPLIED,))

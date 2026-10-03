@@ -20,6 +20,7 @@ from typing import Any
 
 from . import frameworks
 from .detection import ANONYMOUS_READ, CROSS_USER_READ, Alert, parse_utc_timestamp
+from .patches import REQUIRED_CHECKS
 
 REPORT_SCHEMA = "range.blue.incident/v1"
 REPORT_EVENT_TYPES = {"alert.created", "defense.proposed", "defense.applied", "defense.failed",
@@ -61,7 +62,8 @@ def build_incident_report(*, assessment_id: str, data_source: str, telemetry: It
         "detected": _first_time(by_type.get("alert.created", [])),
         "contained": _first_time(e for e in applied.values() if e["data"].get("action_type") == "revoke_session"),
         "patched": _first_time(e for e in applied.values() if e["data"].get("action_type") == "apply_patch"),
-        "fix_verified": _first_time(e for e in patch_retests if e["data"].get("result") == "passed"),
+        "fix_verified": _first_time(e for e in patch_retests if e["data"].get("result") == "passed"
+                                    and not _retest_check_issues(e["data"].get("checks"))),
     }
     status = _status(alerts, times, patched_versions, patch_retests)
     owners = _unique(o for a in alerts for o in a.resource_owner_refs)
@@ -113,7 +115,7 @@ def build_incident_report(*, assessment_id: str, data_source: str, telemetry: It
             "verdicts": [_verdict(e) for t in ("finding.verified", "finding.rejected", "finding.inconclusive")
                          for e in by_type.get(t, [])],
             "retests": [{"finding_id": e["data"].get("finding_id"), "defense_id": e["data"].get("defense_id"),
-                         "result": e["data"].get("result"), "checks": list(e["data"].get("checks", [])),
+                         "result": e["data"].get("result"), "checks": _report_checks(e["data"].get("checks")),
                          "timestamp": e.get("timestamp"), "evidence_refs": list(e.get("evidence_refs", []))}
                         for e in by_type.get("retest.completed", [])],
         },
@@ -222,12 +224,39 @@ def _status(alerts, times, patched_versions, patch_retests) -> str:
     if patch_retests:
         result = patch_retests[-1]["data"].get("result")
         if result == "passed":
-            return "resolved"
+            return "awaiting_retest" if _retest_check_issues(patch_retests[-1]["data"].get("checks")) else "resolved"
         if result == "failed":
             return "fix_failed"
     if times["patched"]:
         return "awaiting_retest"
     return "contained" if times["contained"] else "open"
+
+
+def _retest_check_issues(checks) -> list[str]:
+    covered, failed = set(), []
+    if not isinstance(checks, list):
+        failed.append("checks must be a list")
+        checks = []
+    for index, check in enumerate(checks, 1):
+        if not isinstance(check, Mapping) or not isinstance(check.get("id"), str) or not check["id"].strip():
+            failed.append(f"check #{index}")
+            continue
+        covered.add(check["id"])
+        if (check.get("passed") is not True or "expected" not in check or "actual" not in check
+                or check["expected"] is None or check["actual"] != check["expected"]):
+            failed.append(check["id"])
+    notes = []
+    missing = sorted(REQUIRED_CHECKS - covered)
+    if missing:
+        notes.append("Missing required retest checks: " + ", ".join(missing) + ".")
+    if failed:
+        notes.append("Failed or malformed retest checks: " + ", ".join(failed) + ".")
+    return notes
+
+
+def _report_checks(checks) -> list[Mapping[str, Any]]:
+    # Malformed evidence stays in the event evidence and limitations, not table rows.
+    return [check for check in checks if isinstance(check, Mapping)] if isinstance(checks, list) else []
 
 
 def _defenses(by_type: Mapping[str, list[Mapping[str, Any]]]) -> list[dict[str, Any]]:
@@ -261,6 +290,8 @@ def _limitations(data_source: str, status: str, patch_retests) -> list[str]:
     notes = []
     if data_source != "live":
         notes.append(f"Built from {data_source} data. It shows the report format, not the result of a live run.")
+    if patch_retests:
+        notes.extend(_retest_check_issues(patch_retests[-1]["data"].get("checks")))
     if status == "resolved":
         covered = {c.get("id") for c in patch_retests[-1]["data"].get("checks", [])}
         missing = [check for check in ACCEPTANCE_CHECKS if check not in covered]
