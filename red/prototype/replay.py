@@ -40,6 +40,7 @@ def load_recorded_trace(path: str | Path) -> dict[str, Any]:
     if not isinstance(hypotheses, list) or len(hypotheses) > MAX_ITEMS or any(not isinstance(item, dict) for item in hypotheses):
         raise ReplayError("hypothesis entries must be bounded objects")
     public_events = [item for item in events if item.get("visibility") != "referee_only"]
+    availability = record.get("availability")
     return {
         "replay_id": "replay-" + uuid.uuid4().hex[:12],
         "source_mode": "recorded_replay",
@@ -48,6 +49,8 @@ def load_recorded_trace(path: str | Path) -> dict[str, Any]:
         "target_kind": str(record.get("target_kind", "unknown")),
         "original_planner_mode": str(record.get("planner_mode", "unknown")),
         "original_verdict": str(record.get("verdict", "unknown")),
+        # Separate from original_verdict by design: an outage is never vault access.
+        "original_availability_verdict": str(availability.get("verdict", "unknown")) if isinstance(availability, dict) else "unknown",
         "events": public_events,
         "evidence_records": evidence,
         "tasks": record.get("tasks", []) if isinstance(record.get("tasks", []), list) else [],

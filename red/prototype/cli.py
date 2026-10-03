@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from .domain import RunLimits
+from .domain import LoadProfile, RunLimits
 from .lab import DEFENSE_MODES, SCENARIOS, LabState, LocalBankServer
 from .providers import OpenAIResponsesProvider, ProviderError
 from .replay import ReplayError, load_recorded_trace
@@ -25,6 +25,15 @@ def _limits(args: argparse.Namespace) -> RunLimits:
         response_bytes=args.max_response_bytes,
         model_timeout_seconds=args.model_timeout,
         max_agent_turns=args.max_turns,
+    )
+
+
+def _load_profile(args: argparse.Namespace) -> LoadProfile:
+    return LoadProfile(
+        max_requests=args.load_max_requests,
+        concurrency=args.load_concurrency,
+        duration_seconds=args.load_duration_seconds,
+        request_timeout_seconds=args.load_timeout,
     )
 
 
@@ -44,6 +53,7 @@ def _run_once(args: argparse.Namespace, *, scenario: str | None = None,
             limits=_limits(args),
             defense_family=(defense if scenario is not None else args.simulated_defense),
             defense_after_actions=args.defense_after_actions,
+            load_profile=_load_profile(args),
         ),
         provider=provider,
     ).run()
@@ -75,6 +85,14 @@ def _add_run_options(parser: argparse.ArgumentParser, *, model: bool = True) -> 
     parser.add_argument("--max-turns", type=int, default=18)
     parser.add_argument("--simulated-defense", choices=DEFENSE_MODES)
     parser.add_argument("--defense-after-actions", type=int, default=4)
+    parser.add_argument("--load-max-requests", type=int, default=24,
+                        help="availability scenario: max requests in the bounded load profile")
+    parser.add_argument("--load-concurrency", type=int, default=6,
+                        help="availability scenario: concurrent requests in the bounded load profile")
+    parser.add_argument("--load-duration-seconds", type=float, default=4.0,
+                        help="availability scenario: max wall-clock duration of the bounded load profile")
+    parser.add_argument("--load-timeout", type=float, default=1.0,
+                        help="availability scenario: per-request timeout inside the bounded load profile")
 
 
 def make_parser() -> argparse.ArgumentParser:

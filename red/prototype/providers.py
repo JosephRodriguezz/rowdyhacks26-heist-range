@@ -59,7 +59,10 @@ STEP_TOOL: dict[str, Any] = {
             "action": {
                 "type": ["object", "null"],
                 "properties": {
-                    "capability": {"type": "string", "enum": ["read_page", "submit_form", "request_api", "start_account_session", "end_account_session"]},
+                    "capability": {"type": "string", "enum": [
+                        "read_page", "submit_form", "request_api", "start_account_session", "end_account_session",
+                        "start_load_test", "stop_load_test",
+                    ]},
                     "target_id": {"type": "string", "enum": ["bank-local"]},
                     "path": {"type": "string"},
                     "method": {"type": "string", "enum": ["GET", "POST"]},

@@ -8,6 +8,8 @@ This packet describes the standalone Red prototype. It uses a disposable local w
 - [Evaluation cases](EVALUATION_CASES.md) — mission, adaptation, isolation, and failure checks.
 - [Lab vulnerability catalog](VULNERABILITY_CATALOG.md) — six synthetic families, investigation techniques, and defense checks.
 - [Integration readiness](INTEGRATION_READINESS.md) — current limits and the Red/core/Blue handoff.
+- [Availability scenario](AVAILABILITY_SCENARIO.md) — standalone load/recovery scenario built ahead of the
+  original Gate 6 sequence; not yet reviewed by Joseph or wired to Blue/core/arena.
 - [Joseph's role packet](../roles/JOSEPH_RED.md) — ownership and event responsibilities.
 - [Project references](../REFERENCES.md) — starting material for model-readable lessons.
 

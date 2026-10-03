@@ -6,14 +6,16 @@ import http.client
 import json
 import re
 import threading
+import time
 import uuid
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from http.cookies import SimpleCookie
 from typing import Any
 
 from .board import BudgetExceeded, BudgetLedger, RedBoard, RunCancelled
-from .domain import API_BODY_FIELDS, ActionProposal, Evidence, Role, RunLimits
+from .domain import API_BODY_FIELDS, ActionProposal, Evidence, LoadProfile, Role, RunLimits
 from .lab import LabState
 
 
@@ -66,17 +68,28 @@ class ActionExecutor:
         board: RedBoard,
         max_response_bytes: int | None = None,
         before_dispatch: Any | None = None,
+        load_profile: LoadProfile | None = None,
     ) -> None:
         self.registry, self.state, self.limits, self.budget, self.board = registry, state, limits, budget, board
         self.max_response_bytes = max_response_bytes or limits.response_bytes
         self.before_dispatch = before_dispatch
+        self.load_profile = load_profile or LoadProfile()
         self._session_lock = threading.RLock()
         self._sessions: dict[str, dict[str, str]] = {}
         self._session_revision: dict[str, int] = {}
         self._target_revision = 0
         self._closed = False
+        self._load_lock = threading.Lock()
+        self._active_load: dict[str, Any] | None = None
 
     def close(self) -> None:
+        with self._load_lock:
+            active = self._active_load
+        if active is not None:
+            active["cancel"].set()
+            thread = active.get("thread")
+            if thread is not None:
+                thread.join(timeout=self.load_profile.request_timeout_seconds + 2)
         with self._session_lock:
             self._sessions.clear()
             self._session_revision.clear()
@@ -222,8 +235,22 @@ class ActionExecutor:
                 rendered = rendered.replace(secret, "[REDACTED]")
         return rendered[:2_048]
 
+    def _validate_load_proposal(self, proposal: ActionProposal) -> None:
+        if proposal.target_id != TARGET_ID:
+            raise ActionRejected("target is not registered")
+        if proposal.path != "/" or proposal.method != "GET" or proposal.body:
+            raise ActionRejected("load actions accept no parameters beyond the registered target")
+        if proposal.identity_ref or proposal.session_ref or proposal.form_ref:
+            raise ActionRejected("load actions do not accept identity, session, or form references")
+
     def execute(self, proposal: ActionProposal, *, role: Role, task_id: str) -> ActionResult:
         evidence_id = "ev-" + uuid.uuid4().hex[:16]
+        if proposal.capability == "start_load_test":
+            self._validate_load_proposal(proposal)
+            return self._execute_start_load(proposal, role=role, evidence_id=evidence_id)
+        if proposal.capability == "stop_load_test":
+            self._validate_load_proposal(proposal)
+            return self._execute_stop_load(proposal, role=role, evidence_id=evidence_id)
         method, path, body, identity_ref = self._validate(proposal)
         host, port = self.registry.resolve(proposal.target_id)
         cookie: str | None = None
@@ -340,3 +367,124 @@ class ActionExecutor:
         )
         self.board.add_evidence(evidence)
         return ActionResult(self.board.get_evidence(evidence_id), created_session_ref, receipt)  # type: ignore[arg-type]
+
+    def _execute_start_load(self, proposal: ActionProposal, *, role: Role, evidence_id: str) -> ActionResult:
+        """Start one bounded, labeled load profile in the background and return immediately.
+
+        The internal burst never goes through this boundary's per-call budget: Red spends
+        exactly one action deciding to request the test, not one action per HTTP request
+        the profile happens to send.
+        """
+        self.budget.reserve_action(evidence_id)
+        self.budget.check_active()
+        if self._closed:
+            raise RunCancelled("action executor is closed")
+        if self.before_dispatch:
+            self.before_dispatch()
+        host, port = self.registry.resolve(proposal.target_id)
+        with self._load_lock:
+            if self._active_load is not None:
+                evidence = Evidence(
+                    evidence_id, 0, role, proposal.capability, "LOAD_START", "/api/status", None,
+                    "A bounded load test is already active; stop it before starting another.", "",
+                    failure_kind="load_test_already_active",
+                )
+                self.board.add_evidence(evidence)
+                return ActionResult(self.board.get_evidence(evidence_id), dispatched=False)  # type: ignore[arg-type]
+            load_id = "load-" + uuid.uuid4().hex[:12]
+            cancel_event = threading.Event()
+            counts = {"dispatched": 0, "available": 0, "degraded": 0, "rate_limited": 0, "error": 0}
+            record: dict[str, Any] = {"id": load_id, "cancel": cancel_event, "counts": counts, "thread": None}
+            self._active_load = record
+        with self.state.lock:
+            self.state.active_load_test_id = load_id
+        profile = self.load_profile
+
+        def fire_one() -> None:
+            conn = http.client.HTTPConnection(host, port, timeout=profile.request_timeout_seconds)
+            try:
+                conn.request("GET", "/api/status", headers={"X-Lab-Action-ID": load_id})
+                response = conn.getresponse()
+                response.read(2_048)
+                key = {503: "degraded", 429: "rate_limited", 200: "available"}.get(response.status, "error")
+            except (OSError, http.client.HTTPException, TimeoutError):
+                key = "error"
+            finally:
+                conn.close()
+            with self._load_lock:
+                counts[key] += 1
+
+        def run_burst() -> None:
+            started = time.monotonic()
+            deadline = started + profile.duration_seconds
+            futures = []
+            with ThreadPoolExecutor(max_workers=profile.concurrency) as pool:
+                while True:
+                    with self._load_lock:
+                        if counts["dispatched"] >= profile.max_requests:
+                            break
+                        if cancel_event.is_set() or time.monotonic() >= deadline:
+                            break
+                        counts["dispatched"] += 1
+                    futures.append(pool.submit(fire_one))
+                for future in futures:
+                    remaining = max(0.1, deadline - time.monotonic()) + profile.request_timeout_seconds
+                    try:
+                        future.result(timeout=remaining)
+                    except Exception:
+                        with self._load_lock:
+                            counts["error"] += 1
+            with self._load_lock:
+                if self._active_load is record:
+                    self._active_load = None
+                final_counts = dict(counts)
+            with self.state.lock:
+                if self.state.active_load_test_id == load_id:
+                    self.state.active_load_test_id = None
+            self.board.record_event("availability.load_completed", {
+                "load_test_id": load_id, "stopped_early": cancel_event.is_set(), **final_counts,
+            })
+
+        thread = threading.Thread(target=run_burst, name="heist-red-load-" + load_id[5:], daemon=True)
+        with self._load_lock:
+            record["thread"] = thread
+        thread.start()
+        evidence = Evidence(
+            evidence_id, 0, role, proposal.capability, "LOAD_START", "/api/status", None,
+            f"Started a bounded load profile: up to {profile.max_requests} requests, "
+            f"{profile.concurrency} concurrent, for up to {profile.duration_seconds}s.",
+            json.dumps({"load_test_id": load_id}, separators=(",", ":")),
+        )
+        self.board.add_evidence(evidence)
+        self.board.record_event("availability.load_started", {"load_test_id": load_id})
+        return ActionResult(self.board.get_evidence(evidence_id))  # type: ignore[arg-type]
+
+    def _execute_stop_load(self, proposal: ActionProposal, *, role: Role, evidence_id: str) -> ActionResult:
+        self.budget.reserve_action(evidence_id)
+        self.budget.check_active()
+        if self._closed:
+            raise RunCancelled("action executor is closed")
+        with self._load_lock:
+            record = self._active_load
+            if record is None:
+                evidence = Evidence(
+                    evidence_id, 0, role, proposal.capability, "LOAD_STOP", "/api/status", None,
+                    "No active load test to stop.", "", failure_kind="no_active_load_test",
+                )
+                self.board.add_evidence(evidence)
+                return ActionResult(self.board.get_evidence(evidence_id), dispatched=False)  # type: ignore[arg-type]
+            record["cancel"].set()
+            thread = record["thread"]
+            load_id = record["id"]
+        if thread is not None:
+            thread.join(timeout=self.load_profile.request_timeout_seconds + 2)
+        with self._load_lock:
+            counts = dict(record["counts"])
+        evidence = Evidence(
+            evidence_id, 0, role, proposal.capability, "LOAD_STOP", "/api/status", None,
+            f"Stopped the bounded load test after {counts.get('dispatched', 0)} dispatched requests.",
+            json.dumps({"load_test_id": load_id, **counts}, separators=(",", ":")),
+        )
+        self.board.add_evidence(evidence)
+        self.board.record_event("availability.load_stopped", {"load_test_id": load_id, **counts})
+        return ActionResult(self.board.get_evidence(evidence_id))  # type: ignore[arg-type]
