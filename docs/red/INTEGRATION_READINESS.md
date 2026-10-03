@@ -4,7 +4,7 @@
 
 The Red branch supplies Scout/Operator orchestration, a private evidence/task board, typed proposals, enforced local actions and limits, lesson material, a disposable six-family lab, and independent local evaluation. Its fixture-provider test demonstrates concurrent handoff and response revision; it does not prove a real model can reliably discover or adapt.
 
-The current runner always creates `LabState` and a loopback `LocalBankServer`. The action executor depends on that local state for credentials, redaction, and simulated defense generations; prompts/provider schemas use `bank-local`. It cannot be pointed at Diego's URL as an integration switch. The local board is not yet Diego's canonical task/event store.
+By default the runner creates `LabState` and a loopback `LocalBankServer`. AV-05 adds `RunOptions.external_target_origin` and `run --target-origin` to use a caller-started prototype server in the same process, resolving its actual state through `LocalBankServer.running_at`. The runner neither starts nor closes that server. The action executor still depends on local state for credentials, redaction, and simulated defense generations; prompts/provider schemas use `bank-local`. A separate `serve` process or Diego's future bank is not supported: there is no HTTP identity/reset/referee adapter yet. The local board is not yet Diego's canonical task/event store. See the [README setup example](../../README.md#run-the-standalone-red-prototype).
 
 ## Connections to agree and build
 

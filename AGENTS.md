@@ -45,6 +45,7 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
   git diff --check
   python3 -m compileall -q red
   python3 -m unittest discover -s tests -v
+  python3 -m unittest discover -s tests -p 'test_external_target.py' -v
   python3 -m unittest discover -s tests -p 'test_hypoth*.py' -v
   python3 -m red.prototype.cli evaluate
   python3 -m red.prototype.cli run --scenario access_control --mode deterministic_baseline
@@ -52,6 +53,7 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
   ```
 
   The Red tests exercise the disposable local mock only. The deterministic baseline is a labeled comparison, and the fixture-provider adaptation test is control-flow evidence rather than model performance. No remote model run or integrated contest has been verified.
+- AV-05 permits a caller-started prototype target in the same process via `RunOptions.external_target_origin` or `run --target-origin`. Exact setup: `python3 -c "from red.prototype.lab import LabState, LocalBankServer; from red.prototype.cli import main; server = LocalBankServer(LabState('availability')).start(); main(['run', '--scenario', 'availability', '--target-origin', server.origin]); server.close()"`. See the README for ownership and fresh-state requirements. Separate-process services and Diego's bank remain unsupported.
 - Hypothesis statuses are Red agent assessments, not independently verified findings or mission verdicts. Keep their comparison evidence and revision history intact. Reopening requires new observations and a fresh baseline/comparison before a new conclusion; ambiguous failures remain inconclusive.
 - Git changes are manual by default. Do not commit, create branches, push, merge, or stash unless Joseph explicitly asks.
 

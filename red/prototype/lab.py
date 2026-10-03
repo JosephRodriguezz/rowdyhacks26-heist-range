@@ -594,6 +594,18 @@ class BankRequestHandler(http.server.BaseHTTPRequestHandler):
 class LocalBankServer:
     """Threaded HTTP server bound to 127.0.0.1 on an ephemeral port by default."""
 
+    _running: dict[str, "LocalBankServer"] = {}
+    _running_lock = threading.Lock()
+
+    @classmethod
+    def running_at(cls, origin: str) -> "LocalBankServer":
+        """Resolve an already-started prototype server in this process only."""
+        with cls._running_lock:
+            server = cls._running.get(origin)
+            if server is None or not server.thread.is_alive():
+                raise ValueError("external target requires an already-running LocalBankServer in this process; cross-process bank integration is not supported")
+            return server
+
     def __init__(self, state: LabState, port: int = 0) -> None:
         self.state = state
         self.httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), BankRequestHandler)
@@ -610,9 +622,13 @@ class LocalBankServer:
 
     def start(self) -> "LocalBankServer":
         self.thread.start()
+        with self._running_lock:
+            self._running[self.origin] = self
         return self
 
     def close(self) -> None:
+        with self._running_lock:
+            self._running.pop(self.origin, None)
         self.httpd.shutdown()
         self.httpd.server_close()
         if self.thread.is_alive():

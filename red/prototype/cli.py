@@ -54,6 +54,7 @@ def _run_once(args: argparse.Namespace, *, scenario: str | None = None,
             defense_family=(defense if scenario is not None else args.simulated_defense),
             defense_after_actions=args.defense_after_actions,
             load_profile=_load_profile(args),
+            external_target_origin=getattr(args, "target_origin", None),
         ),
         provider=provider,
     ).run()
@@ -101,6 +102,7 @@ def make_parser() -> argparse.ArgumentParser:
 
     run_parser = subparsers.add_parser("run", help="run one target scenario")
     _add_run_options(run_parser)
+    run_parser.add_argument("--target-origin", help="already-running HTTP origin on 127.0.0.1; requires a prototype LocalBankServer in this process")
     run_parser.add_argument("--report", help="optional path for a local JSON run record")
 
     eval_parser = subparsers.add_parser("evaluate", help="run the deterministic baseline across the scenario set")
