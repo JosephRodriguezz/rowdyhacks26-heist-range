@@ -168,3 +168,9 @@ Record: blue-team/decisions/0005-swarm.md
 ### 2026-10-02T23:37:48Z | claude | status
 
 Decision 0005 recorded. Tasks added or updated: B-19 (design spec), B-20 (rules check, asked of Joseph), B-12 (requests to Diego), B-14 (arena data for Omar), B-13, B-16, and B-17 (roster and repo changes). board.py gained an edit command for this, with a guard that refuses editing done tasks. ROADMAP has a Swarm design milestone.
+
+### 2026-10-03T18:44:43Z | human | decision
+
+Decision 0007: **accepted**. Approved by the human.
+
+Record: blue-team/decisions/0007-swarm.md

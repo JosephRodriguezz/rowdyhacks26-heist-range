@@ -135,6 +135,10 @@ The context key names and the `access_policy` shape are a blue proposal. Member 
 
 Not yet: the patch diff (waiting on the lab), detection of repeated denied probing, and a stricter `incident._status` that resolves only when every required retest check passed (needed before core builds reports with referee events).
 
+## Swarm specification
+
+The design for swarm clustering, explainable risk scoring, confidence-driven PACE triggers, D3FEND armor scaling, role grouping (Monitor/Defender MVP and post-demo 8-role swarm mode), and downstream handoffs is documented in [design/swarm-spec.md](design/swarm-spec.md), implementing decisions 0004, 0005, 0006, and 0007.
+
 ## Tests
 
 Standard library only. Run from `backend/`:
