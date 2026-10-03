@@ -8,7 +8,7 @@ import urllib.error
 import urllib.request
 from typing import Any, Protocol
 
-from .domain import AgentStep, ActionProposal, Role
+from .domain import API_BODY_FIELDS, AgentStep, ActionProposal, Role
 
 
 class ProviderError(RuntimeError):
@@ -47,12 +47,8 @@ STEP_TOOL: dict[str, Any] = {
                     "form_ref": {"type": ["string", "null"], "enum": ["contact_form", None]},
                     "body": {
                         "type": "object",
-                        "properties": {
-                            "query": {"type": ["string", "null"]},
-                            "name": {"type": ["string", "null"]},
-                            "message": {"type": ["string", "null"]},
-                        },
-                        "required": ["query", "name", "message"],
+                        "properties": {name: {"type": ["string", "null"]} for name in API_BODY_FIELDS},
+                        "required": list(API_BODY_FIELDS),
                         "additionalProperties": False,
                     },
                 },
@@ -88,11 +84,16 @@ def parse_step(value: Any) -> AgentStep:
         body = props.get("body")
         if not isinstance(body, dict):
             raise ProviderError("provider action body is invalid")
+        if set(body) - set(API_BODY_FIELDS):
+            raise ProviderError("provider action body contains unknown fields")
         props["body"] = {k: v for k, v in body.items() if v is not None}
         for name in ("identity_ref", "session_ref", "form_ref"):
             if props.get(name) is None:
                 props.pop(name, None)
-        action_value = ActionProposal.from_mapping(props)
+        try:
+            action_value = ActionProposal.from_mapping(props)
+        except ValueError as exc:
+            raise ProviderError(str(exc)) from None
     else:
         action_value = None
     return AgentStep(

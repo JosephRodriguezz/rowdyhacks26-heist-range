@@ -49,6 +49,7 @@ def run_surface_survey(
         except (ValueError, AttributeError):
             links = []
         catalog_body = ""
+        export_api: dict[str, Any] = {}
         for path in links:
             if not isinstance(path, str) or not path.startswith("/api/"):
                 continue
@@ -57,6 +58,21 @@ def run_surface_survey(
             if path == "/api/catalog":
                 evidence = board.evidence()[-1]
                 catalog_body = evidence.body
+            if path in ("/api/documents", "/api/exports"):
+                try:
+                    payload = json.loads(board.evidence()[-1].body)
+                except (ValueError, AttributeError):
+                    continue
+                if not isinstance(payload, dict):
+                    continue
+                if path == "/api/exports":
+                    export_api = payload
+                else:
+                    for document in payload.get("documents", [])[:2]:
+                        download = document.get("download") if isinstance(document, dict) else None
+                        if isinstance(download, str) and download.startswith("/api/"):
+                            if act("request_api", path=download) == "__achieved__":
+                                return
         if not catalog_body:
             return
         try:
@@ -88,6 +104,19 @@ def run_surface_survey(
                 if title and act("request_api", path="/api/search", method="POST", session=session_ref,
                                  body={"query": title}) == "__achieved__":
                     return
+                # Exercise only the ordinary, server-approved export path in the comparison baseline.
+                request_path, complete_path = export_api.get("request_path"), export_api.get("complete_path")
+                if isinstance(request_path, str) and isinstance(complete_path, str):
+                    requested = act("request_api", path=request_path, method="POST", session=session_ref,
+                                    body={"record_ref": str(own[0]["record_id"])})
+                    try:
+                        export = json.loads(requested)
+                    except (ValueError, AttributeError):
+                        export = {}
+                    if isinstance(export, dict) and export.get("state") == "approved" and isinstance(export.get("export_ref"), str):
+                        if act("request_api", path=complete_path, method="POST", session=session_ref,
+                               body={"export_ref": export["export_ref"]}) == "__achieved__":
+                            return
             # Compare a resource reference that the public catalog actually exposed.
             for record in other[:1]:
                 record_id = record.get("record_id")

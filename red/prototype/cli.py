@@ -139,7 +139,8 @@ def main(argv: list[str] | None = None) -> int:
             scenarios = sorted(SCENARIOS)
             reports = []
             for scenario in scenarios:
-                defense = {"defense_alternative": "access_control", "all_paths_blocked": "all"}.get(scenario)
+                defense = {"defense_alternative": "access_control", "all_paths_blocked": "all",
+                           "expanded_defense_alternative": "mass_assignment"}.get(scenario)
                 reports.append(_run_once(args, scenario=scenario, defense=defense))
             suite = {
                 "suite_mode": "deterministic_baseline",

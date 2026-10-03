@@ -17,9 +17,10 @@ These roles may be implemented as separate model executions or another team-appr
 
 - Maintain the [standalone Red prototype](../red/README.md), review its deterministic regression checks, and document observed gaps before integration.
 - Read the project brief, architecture, integration contracts, and evaluation plan.
-- Study the supplied OWASP references for the supported families: access control, authentication/session management, and input handling.
+- Study the supplied OWASP references for the initial integrated families and the [six-family standalone preparation catalog](../red/VULNERABILITY_CATALOG.md). Review additional bank families with Diego and Aaron before depending on them in joint runs.
 - Propose bounded exploration and ranking criteria. Separate observed facts from hypotheses and confirmed findings.
 - Review the target/action contract with Diego and the team. Identify the evidence Red needs without requesting hidden ground truth.
+- Use the [integration readiness checklist](../red/INTEGRATION_READINESS.md) to map the local prototype to core-owned targets, actions, tasks, evidence, and referee records.
 - Write down a small set of evaluation cases for normal exploration, inconclusive results, a Blue containment event, and a blocked route.
 
 Preparation can include research, plans, and isolated prototypes. The integrated contest and final demo are built during the hackathon.

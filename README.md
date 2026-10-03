@@ -12,6 +12,7 @@ An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around
 - [Team brief](docs/TEAM_BRIEF.md) — copy-ready project message for Discord.
 - [Role packets](docs/roles/README.md) — responsibilities, preparation, event work, and acceptance checks.
 - [Red prototype preparation](docs/red/README.md) — standalone prototype boundaries, evaluation cases, and build sequence.
+- [Red integration readiness](docs/red/INTEGRATION_READINESS.md) — what works locally and what Joseph, Diego, and Aaron need to connect.
 - [Integration contracts](docs/INTEGRATION_CONTRACTS.md) — draft task, handoff, event, target, and referee records.
 - [Hackathon plan](docs/HACKATHON_PLAN.md) — pre-event preparation and event build sequence.
 - [Evaluation plan](docs/EVALUATION_PLAN.md) — safe, evidence-based iteration criteria.
@@ -20,16 +21,19 @@ An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around
 
 ## Run the standalone Red prototype
 
-The prototype uses Python's standard library and starts its target on `127.0.0.1`. Each run creates a fresh synthetic bank state. It supports labeled local scenarios for access control, session lifecycle, input handling, simulated defense, and secure baselines.
+The prototype uses Python's standard library and starts its target on `127.0.0.1`. Each run creates a fresh synthetic bank state. Its six controlled families cover access control, session lifecycle, input handling, mass assignment, traversal in virtual document storage, and export workflow bypass. The [lab catalog](docs/red/VULNERABILITY_CATALOG.md) describes the investigative techniques and secure counterparts.
 
 ```sh
 python3 -m red.prototype.cli run --scenario access_control --mode deterministic_baseline --report artifacts/access.run.json
 python3 -m red.prototype.cli replay --from artifacts/access.run.json
 python3 -m red.prototype.cli evaluate
+python3 -m red.prototype.cli scenarios
 python3 -m unittest discover -s tests -v
 ```
 
 To inspect the target in a browser, run `python3 -m red.prototype.cli serve --scenario clean`; stop and restart the command to reset it. The model-driven mode uses an optional OpenAI Responses adapter and makes no provider request unless `--mode model --allow-remote-model` is supplied with `OPENAI_API_KEY` and `OPENAI_MODEL` configured. The provider remains replaceable and is not selected for the full project. Run records label local HTTP, deterministic-baseline, model, and simulated-defense activity; evaluator-only scenario details are stored under `evaluation_private` and never added to Red's model context.
+
+The deterministic baseline surveys the site, compares account access, checks logout behavior, and exercises ordinary document/export flows. It does not attempt every supported exploit; `not_achieved` in a baseline run is not proof that a scenario is secure. The unit suite checks the six controlled flaws and their defenses. No real-model performance or integrated Red/Blue contest has been verified. The runner currently creates its own local target; connecting Diego's bank requires the integration work described above.
 
 ## Mission
 

@@ -1,12 +1,12 @@
 # Red Team standalone prototype specification
 
-**Status:** Standalone prototype v0.1 implemented. **Owner:** Joseph. **Updated:** 2026-10-02.
+**Status:** Standalone prototype v0.2 implemented. **Owner:** Joseph. **Updated:** 2026-10-02.
 
 The prototype implements the agreed preparation scope in Python's standard library. Local interface details are implementation choices for this standalone experiment; they do not amend the shared integration contracts. A fixture-provider test demonstrates control flow, but no real remote-model run or agent-performance result exists yet.
 
 ## Goal and scope
 
-Build an isolated prototype in which model-driven Scout and Operator investigate a disposable local web app and attempt to obtain protected synthetic vault data. The target has actual HTTP behavior, resettable state, and hidden variations in the supported families: broken access control, authentication/session weakness, and input handling. An independent local evaluator checks the objective from target evidence.
+Build an isolated prototype in which model-driven Scout and Operator investigate a disposable local web app and attempt to obtain protected synthetic vault data. The target has actual HTTP behavior, resettable state, and hidden variations in six supported families: broken access control, authentication/session weakness, input handling, mass assignment, virtual document traversal, and approval-workflow bypass. An independent local evaluator checks the objective from target evidence. The additional families extend local preparation; the team still needs to agree on their integration into Diego's bank.
 
 The prototype develops Red behavior and evidence quality before integration with Diego's core/bank lab and Aaron's Blue agents. Its evaluation harness can change target behavior through a labeled simulated defense. Those changes test Red's response to observations; they are not measurements of Aaron's Blue capability.
 
@@ -58,6 +58,8 @@ The initial action set uses bounded HTTP and account/session operations. Browser
 
 The model may select an ordinary identity/session reference but cannot supply credential values, raw cookie material, authorization headers, a host override, or a destination origin. Allowed HTTP methods, body fields, request sizes, response sizes, and session-handle checks are validated by code. API actions accept only `GET` or `POST`, fixed string fields, and `/api/` or `/demo/` paths. Form submission resolves the fixed `contact_form` reference to its registered local handler.
 
+The local API body allowlist is `query`, `name`, `message`, `role`, `record_ref`, and `export_ref`; the target validates fields for each operation. Document selection uses a bounded query parameter. Its vulnerable canonicalization resolves only dictionary-backed synthetic storage and never reads the host filesystem. Query selectors are retained in sanitized request evidence. These local fields are proposals for shared capability mapping, not changes to the draft integration contract.
+
 The runner attaches a generated action ID, task ID, actor role, and target ID to each typed proposal. Evidence and handoff records reference those generated IDs. Budgets and permissions come from runner policy; a model cannot choose or raise them. Unknown fields and malformed variants are rejected rather than broadening an action.
 
 The toy app binds only to loopback. The runner registers its fixed origin before the run; the model cannot supply or replace that origin. Relative paths are canonicalized and must stay on it. Redirects are never followed, including redirects returned after form or login operations. The HTTP client connects directly to the registered loopback address and sends no target request through an inherited proxy or an unregistered destination.
@@ -82,7 +84,7 @@ The harness may apply its hidden simulated defense between these steps. Red rece
 
 ## Implemented concurrency and failure rules
 
-One task has one active owner. Claim and status updates use an atomic board lock so competing claims cannot both succeed. The board assigns the handed-off candidate to Operator and blocks another task from claiming it. The action boundary also blocks repeating the same exact test until the observed session/defense state changes. Comparing different identities or inputs remains distinct work. A handoff identifies evidence and a bounded next question; it does not grant capabilities or a second copy of the run budget.
+One task has one active owner. Claim and status updates use an atomic board lock so competing claims cannot both succeed. The board assigns the handed-off candidate to Operator and blocks another task from claiming it. The action boundary also blocks repeating the same exact test until the session/defense generation changes or a successful profile/export mutation reports an observed state change. No-op profile updates do not unlock duplicates. Comparing different identities or inputs remains distinct work. A handoff identifies evidence and a bounded next question; it does not grant capabilities or a second copy of the run budget.
 
 Each opaque session reference belongs to the current run and target and identifies one cookie context. Authentication/logout changes to the same context require exclusive ownership, so one role cannot silently change the other role's test conditions. Distinct contexts can be used concurrently. Reset invalidates every old session reference.
 
@@ -104,7 +106,7 @@ Cancellation stops new model calls, task claims, and target dispatch. In-flight 
 
 ## Learning material and honest reporting
 
-Prepare compact, source-linked lessons for the three families using the [curated references](../REFERENCES.md). Each lesson should explain the concept, ordinary versus suspicious behavior, evidence needed, common false conclusions, a bounded testing approach, and conditions for abandoning a hypothesis. Lessons teach a family; they must not contain hidden scenario endpoints, synthetic identifiers, or an answer sequence.
+Prepare compact, source-linked lessons for the six families using the [curated references](../REFERENCES.md). Each lesson explains the concept, ordinary versus suspicious behavior, evidence needed, common false conclusions, and a bounded testing approach. The investigation note covers surface mapping, ordinary baselines, comparisons that vary one condition, and reassessment after state changes. Lessons teach a family; they must not contain hidden scenario endpoints, synthetic identifiers, or an answer sequence. A successful profile update or pending export request is not itself proof of protected-data access.
 
 Model outputs should include a short evidence-based rationale and structured records suitable for inspection. The prototype report shows actions, observations, handoffs, and hypothesis changes; it does not require private model reasoning.
 
@@ -122,3 +124,5 @@ Report mission result, adaptation behavior, evidence quality, policy denials, bu
 | Held-out variation selection | Joseph; keep answer keys out of model-visible lessons and prompts |
 
 The local app, baseline, action policy, fixture-driven model path, and evaluation record are implemented. See [evaluation cases](EVALUATION_CASES.md) for deterministic coverage and the explicit limits on what those checks demonstrate.
+
+See [integration readiness](INTEGRATION_READINESS.md) for the remaining adapter and joint-test work. The current runner always starts its own local app, the provider schema uses `bank-local`, and the executor depends on local lab state. Supplying Diego's website URL alone cannot turn this into the integrated contest.

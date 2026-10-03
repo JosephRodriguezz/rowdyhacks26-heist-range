@@ -16,6 +16,15 @@ Use these sources to build the scenario, study the weakness families, and design
 - [Input Validation Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html) — input handling and validation guidance for a controlled lab scenario.
 - [Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html) — event collection and redaction principles for Blue telemetry and evaluation records.
 
+## Additional local lab lessons
+
+These references support the standalone preparation extension. Accessed 2026-10-02; the event bank's catalog remains subject to owner review.
+
+- [OWASP Mass Assignment Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html) — protected property binding, field allowlists, and safe update models; local case E-16.
+- [OWASP Path Traversal](https://community.owasp.org/attacks/Path_Traversal) — directory escape and file-access concepts; local case E-17 uses virtual synthetic storage only.
+- [OWASP Business Logic Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html) — trusted transitions and business-rule validation; local case E-18.
+- [OWASP WSTG v4.2, WSTG-BUSL-06: workflow circumvention](https://github.com/OWASP/www-project-web-security-testing-guide/blob/master/v42/4-Web_Application_Security_Testing/10-Business_Logic_Testing/06-Testing_for_the_Circumvention_of_Work_Flows.md) — verification of workflow ordering; local case E-18.
+
 ## Training application reference
 
 - [OWASP WebGoat](https://github.com/WebGoat/WebGoat) — a deliberately vulnerable educational application with lessons. Use it to study lesson structure and vulnerability concepts only; it is not the target for this project. If anyone runs it locally for learning, follow its official isolation guidance and never expose it to an untrusted network.

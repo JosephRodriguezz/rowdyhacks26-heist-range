@@ -13,13 +13,13 @@ from http.cookies import SimpleCookie
 from typing import Any
 
 from .board import BudgetExceeded, BudgetLedger, RedBoard, RunCancelled
-from .domain import ActionProposal, Evidence, Role, RunLimits
+from .domain import API_BODY_FIELDS, ActionProposal, Evidence, Role, RunLimits
 from .lab import LabState
 
 
 TARGET_ID = "bank-local"
 IDENTITY_REFS = frozenset({"account_a", "account_b"})
-BODY_FIELDS = frozenset({"query", "name", "message"})
+BODY_FIELDS = frozenset(API_BODY_FIELDS)
 SENSITIVE_KEYS = frozenset({
     "password", "passwd", "cookie", "set-cookie", "authorization", "token", "access_token", "session_token",
 })
@@ -73,6 +73,7 @@ class ActionExecutor:
         self._session_lock = threading.RLock()
         self._sessions: dict[str, dict[str, str]] = {}
         self._session_revision: dict[str, int] = {}
+        self._target_revision = 0
         self._closed = False
 
     def close(self) -> None:
@@ -207,6 +208,9 @@ class ActionExecutor:
         if identity_ref:
             return json.dumps({"identity_ref": identity_ref}, separators=(",", ":"))
         safe_body = self._sanitize_payload(proposal.body)
+        query = urllib.parse.urlsplit(proposal.path).query
+        if query:
+            safe_body = {**safe_body, "query_parameters": self._sanitize_payload(urllib.parse.parse_qs(query, keep_blank_values=True))}
         rendered = json.dumps(safe_body, ensure_ascii=False, separators=(",", ":")) if safe_body else ""
         if not rendered:
             return ""
@@ -231,9 +235,10 @@ class ActionExecutor:
         with self._session_lock, self.state.lock:
             session_revision = self._session_revision.get(proposal.session_ref or "", 0)
             defense_generation = tuple(sorted(self.state.defenses))
+            target_revision = self._target_revision
         fingerprint = json.dumps(
             [proposal.capability, method, path, sorted(body.items()), proposal.identity_ref, proposal.session_ref,
-             session_revision, defense_generation], separators=(",", ":"),
+             session_revision, defense_generation, target_revision], separators=(",", ":"),
         )
         if not self.board.claim_action_fingerprint(fingerprint, task_id):
             evidence = Evidence(
@@ -284,6 +289,13 @@ class ActionExecutor:
                     parsed_body = json.loads(raw.decode("utf-8")) if raw else {}
                     safe_body = self._sanitize_payload(parsed_body)
                     response_text = json.dumps(safe_body, ensure_ascii=False, separators=(",", ":"))
+                    if (
+                        method == "POST" and path in ("/api/profile", "/api/exports/request", "/api/exports/complete")
+                        and 200 <= status < 300 and isinstance(parsed_body, dict)
+                        and parsed_body.get("state_changed") is True
+                    ):
+                        with self._session_lock:
+                            self._target_revision += 1
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     response_text = raw.decode("utf-8", errors="replace")
                     response_text = response_text[: self.max_response_bytes]

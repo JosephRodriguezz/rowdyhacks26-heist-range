@@ -29,6 +29,7 @@ This file records decisions that shape the project. Update it when the team make
 | Red prototype provider | Keep the provider replaceable. Add an optional OpenAI Responses adapter with strict typed actions, explicit remote-call opt-in, and no project-wide provider selection. |
 | Red prototype limits | Start at 60 HTTP actions, 30 model calls, 180 seconds, 2-second target requests, 16 KiB response output, 30-second model calls, and 18 turns per role; enforce hard ceilings. |
 | Red prototype local scenarios | Exercise cross-owner object access, stale access after logout, and a synthetic SQL query flaw with secure counterparts; use a labeled surface-survey comparison baseline. |
+| Red preparation expansion | Joseph requested additional lab families and investigative techniques. Add mass assignment, traversal in virtual synthetic document storage, and export approval bypass with secure counterparts and evidence checks. This extends the standalone lab; event integration requires Joseph, Diego, and Aaron to agree on capabilities and telemetry. |
 
 ## Open decisions
 
@@ -42,6 +43,7 @@ This file records decisions that shape the project. Update it when the team make
 - Whether to add the availability mission in the event, based on the reliability of the first mission.
 - GitHub visibility and collaborator access before team-wide implementation/submission. The repo is currently private.
 - Expansion plan for additional agents, vulnerability families, and registered network labs.
+- Shared mapping of the six-family preparation catalog, local profile/export fields, and defense-state observations into Diego's bank/core; joint Red/Blue verification before integrated readiness claims.
 
 ## Change record
 
@@ -50,3 +52,4 @@ This file records decisions that shape the project. Update it when the team make
 | 2026-10-02 | Created the planning foundation, role packets, shared contracts, and tailored agent workflow setup in the new submission repo. | Give each owner shared direction and safe preparation guidance without building the final integrated demo before the event. | README, AGENTS, project brief, architecture, contracts, role packets, hackathon plan, evaluation plan, agent skills |
 | 2026-10-02 | Recorded confirmed Red prototype choices and drafted its local interface, evaluation cases, and build sequence. | Make Red preparation concrete before adding runnable code or integrating the team's components. | Red preparation packet, Joseph role packet, README |
 | 2026-10-02 | Built the standalone loopback Red prototype, deterministic baseline, optional typed model adapter, private evaluator record, and regression harness. | Validate local policy and Red coordination before event integration without claiming a live model result. | `red/`, `tests/`, README, AGENTS, Red specification/evaluation, references |
+| 2026-10-02 | Expanded the local lab to six families and added investigation lessons, defended state checks, and a core/Blue integration checklist. | Prepare additional adaptive investigation options while retaining synthetic targets and independent evidence; no shared contract or event bank implementation is selected by this extension. | `red/`, `tests/`, README, Red specification/evaluation/catalog/readiness, references |

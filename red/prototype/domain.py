@@ -8,6 +8,7 @@ from typing import Any, Literal
 Role = Literal["scout", "operator"]
 RunMode = Literal["model", "deterministic_baseline"]
 Verdict = Literal["achieved", "not_achieved", "inconclusive"]
+API_BODY_FIELDS = ("query", "name", "message", "role", "record_ref", "export_ref")
 
 
 @dataclass(frozen=True)

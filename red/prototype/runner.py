@@ -174,7 +174,7 @@ class PrototypeRunner:
             "visibility": "referee_only",
             "scenario_id": self.options.scenario_id,
             "scenario_seed": self.options.seed,
-            "target_version": "synthetic-bank/0.1.0",
+            "target_version": "synthetic-bank/0.2.0",
             "reset_receipt": reset_receipt,
             "reset_verified": reset_verified,
             "simulated_defense": ({
@@ -193,10 +193,10 @@ class PrototypeRunner:
         from .agents import SAFE_LESSONS, SYSTEM_PROMPT
 
         return {
-            "prototype_version": "red-prototype/0.1.0",
-            "agent_version": "scout-operator/0.1.0",
-            "policy_version": "loopback-http-policy/0.1.0",
-            "target_version": "synthetic-bank/0.1.0",
+            "prototype_version": "red-prototype/0.2.0",
+            "agent_version": "scout-operator/0.2.0",
+            "policy_version": "loopback-http-policy/0.2.0",
+            "target_version": "synthetic-bank/0.2.0",
             "source_mode": "local_mock_http",
             "limits": {
                 "action_calls": self.options.limits.action_calls,

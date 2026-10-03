@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import http.server
 import json
+import posixpath
 import random
 import secrets
 import sqlite3
@@ -16,7 +17,9 @@ from http.cookies import SimpleCookie
 from typing import Any
 
 
-FAMILIES = ("access_control", "session", "input_handling")
+FAMILIES = (
+    "access_control", "session", "input_handling", "mass_assignment", "path_traversal", "workflow_bypass",
+)
 DEFENSE_MODES = (*FAMILIES, "all")
 
 
@@ -31,9 +34,16 @@ SCENARIOS: dict[str, Scenario] = {
     "access_control": Scenario("access_control", frozenset({"access_control"})),
     "session": Scenario("session", frozenset({"session"})),
     "input_handling": Scenario("input_handling", frozenset({"input_handling"})),
+    "mass_assignment": Scenario("mass_assignment", frozenset({"mass_assignment"})),
+    "path_traversal": Scenario("path_traversal", frozenset({"path_traversal"})),
+    "workflow_bypass": Scenario("workflow_bypass", frozenset({"workflow_bypass"})),
     "multiple_candidates": Scenario("multiple_candidates", frozenset({"access_control", "input_handling"})),
     "defense_alternative": Scenario("defense_alternative", frozenset({"access_control", "input_handling"})),
     "all_paths_blocked": Scenario("all_paths_blocked", frozenset(FAMILIES)),
+    "expanded_candidates": Scenario("expanded_candidates", frozenset(FAMILIES)),
+    "expanded_defense_alternative": Scenario(
+        "expanded_defense_alternative", frozenset({"mass_assignment", "path_traversal", "workflow_bypass"}),
+    ),
 }
 
 
@@ -42,6 +52,13 @@ class LabSession:
     principal: str
     active: bool = True
     created_at: float = 0.0
+
+
+@dataclass
+class VaultExport:
+    requester: str
+    record_id: str
+    state: str
 
 
 class LabState:
@@ -58,6 +75,10 @@ class LabState:
         self.accounts: dict[str, dict[str, str]] = {}
         self.identities: dict[str, dict[str, str]] = {}
         self.sessions: dict[str, LabSession] = {}
+        self.profiles: dict[str, dict[str, str]] = {}
+        self.exports: dict[str, VaultExport] = {}
+        # These are dictionary entries, never paths passed to host filesystem APIs.
+        self.virtual_documents: dict[str, dict[str, Any]] = {}
         self.records: dict[str, dict[str, Any]] = {}
         self.read_log: list[dict[str, Any]] = []
         self.requests_seen: list[str] = []
@@ -78,6 +99,10 @@ class LabState:
             for ref, username in (("account_a", username_a), ("account_b", username_b))
         }
         self.accounts = {item["username"]: item for item in self.identities.values()}
+        self.profiles = {username: {"name": username, "role": "customer"} for username in self.accounts}
+        self.virtual_documents["documents/welcome.txt"] = {
+            "document_name": "welcome.txt", "content": "Public synthetic bank welcome document.",
+        }
         for ref, identity in self.identities.items():
             record_id = "rec-" + format(self._rng.getrandbits(40), "010x")
             record = {
@@ -88,6 +113,7 @@ class LabState:
                 "is_vault": True,
             }
             self.records[record_id] = record
+            self.virtual_documents[f"vault/{record_id}.json"] = record
         self.db = sqlite3.connect(":memory:", check_same_thread=False)
         self.db.row_factory = sqlite3.Row
         self.db.execute("CREATE TABLE records (record_id TEXT PRIMARY KEY, owner TEXT, title TEXT, content TEXT, is_vault INTEGER)")
@@ -138,13 +164,19 @@ class LabState:
             if family == "all":
                 self.active_flaws.clear()
                 self.defenses.append("all")
+                for profile in self.profiles.values():
+                    profile["role"] = "customer"
                 return
             self.active_flaws.discard(family)
             self.defenses.append(family)
+            if family == "mass_assignment":
+                # Revoke grants made through the unsafe profile update, as well as blocking new writes.
+                for profile in self.profiles.values():
+                    profile["role"] = "customer"
 
 
 class BankRequestHandler(http.server.BaseHTTPRequestHandler):
-    server_version = "HeistLocalLab/0.1"
+    server_version = "HeistLocalLab/0.2"
     sys_version = ""
 
     @property
@@ -209,7 +241,8 @@ class BankRequestHandler(http.server.BaseHTTPRequestHandler):
             "session" in self.state.active_flaws and session is not None and not session.active
             and session.principal == record["owner"]
         )
-        allowed = same_owner or cross_owner_flaw or stale_session_flaw
+        overposted_role = bool(active and session and self.state.profiles[session.principal]["role"] == "vault_auditor")
+        allowed = same_owner or cross_owner_flaw or stale_session_flaw or overposted_role
         if not allowed:
             self._send(401 if not active else 403, {"error": "record access denied"})
             return
@@ -217,6 +250,101 @@ class BankRequestHandler(http.server.BaseHTTPRequestHandler):
         if record["is_vault"]:
             self.state.add_vault_read(action_id, record, session, authorized=authorized)
         self._send(200, {k: record[k] for k in ("record_id", "owner", "title", "content")}, action_id=action_id)
+
+    def _document(self, query: str, session: LabSession | None, action_id: str) -> None:
+        fields = urllib.parse.parse_qs(query, keep_blank_values=True)
+        names = fields.get("name", [])
+        if set(fields) != {"name"} or len(names) != 1:
+            self._send(400, {"error": "one document name is required"})
+            return
+        name = names[0]
+        if not name or len(name) > 512 or name.startswith("/") or "\\" in name or any(ord(c) < 32 for c in name):
+            self._send(400, {"error": "invalid document name"})
+            return
+        resolved = posixpath.normpath("documents/" + name)
+        with self.state.lock:
+            if "path_traversal" not in self.state.active_flaws and not resolved.startswith("documents/"):
+                self._send(403, {"error": "document is outside the public document root"})
+                return
+            document = self.state.virtual_documents.get(resolved)
+        if document is None:
+            self._send(404, {"error": "document not found"})
+            return
+        if document.get("is_vault"):
+            # The public download operation grants no access to private virtual storage.
+            self.state.add_vault_read(action_id, document, session, authorized=False)
+            self._send(200, {k: document[k] for k in ("record_id", "owner", "title", "content")}, action_id=action_id)
+        else:
+            self._send(200, document)
+
+    def _update_profile(self, body: dict[str, Any], session: LabSession | None) -> None:
+        if not session or not session.active:
+            self._send(401, {"error": "active account session required"})
+            return
+        if not body or set(body) - {"name", "role"} or any(not isinstance(v, str) or len(v) > 240 for v in body.values()):
+            self._send(400, {"error": "invalid profile fields"})
+            return
+        with self.state.lock:
+            if "role" in body and "mass_assignment" not in self.state.active_flaws:
+                self._send(403, {"error": "role is managed by the bank"})
+                return
+            if "role" in body and body["role"] not in ("customer", "vault_auditor"):
+                self._send(400, {"error": "unknown account role"})
+                return
+            # Intentionally unsafe autobinding only in the isolated mass-assignment scenario.
+            changed = any(self.state.profiles[session.principal].get(key) != value for key, value in body.items())
+            self.state.profiles[session.principal].update(body)
+            profile = {"username": session.principal, **self.state.profiles[session.principal]}
+        self._send(200, {**profile, "state_changed": changed})
+
+    def _request_export(self, body: dict[str, Any], session: LabSession | None) -> None:
+        if not session or not session.active:
+            self._send(401, {"error": "active account session required"})
+            return
+        if set(body) != {"record_ref"} or not isinstance(body["record_ref"], str):
+            self._send(400, {"error": "one record reference is required"})
+            return
+        with self.state.lock:
+            record = self.state.records.get(body["record_ref"])
+            if record is None:
+                self._send(404, {"error": "record not found"})
+                return
+            if len(self.state.exports) >= 100:
+                self._send(429, {"error": "export queue is full"})
+                return
+            state = "approved" if record["owner"] == session.principal else "pending_review"
+            export_ref = "export-" + secrets.token_hex(8)
+            self.state.exports[export_ref] = VaultExport(session.principal, record["record_id"], state)
+        self._send(201, {"export_ref": export_ref, "state": state, "complete_path": "/api/exports/complete",
+                         "state_changed": True})
+
+    def _complete_export(self, body: dict[str, Any], session: LabSession | None, action_id: str) -> None:
+        if not session or not session.active:
+            self._send(401, {"error": "active account session required"})
+            return
+        if set(body) != {"export_ref"} or not isinstance(body["export_ref"], str):
+            self._send(400, {"error": "one export reference is required"})
+            return
+        with self.state.lock:
+            export = self.state.exports.get(body["export_ref"])
+            if export is None:
+                self._send(404, {"error": "export not found"})
+                return
+            if export.requester != session.principal:
+                self._send(403, {"error": "export belongs to another requester"})
+                return
+            if export.state == "completed":
+                self._send(409, {"error": "export has already completed"})
+                return
+            approved = export.state == "approved"
+            if not approved and "workflow_bypass" not in self.state.active_flaws:
+                self._send(403, {"error": "review approval required", "state": export.state})
+                return
+            record = self.state.records[export.record_id]
+            export.state = "completed"
+            self.state.add_vault_read(action_id, record, session, authorized=approved)
+        self._send(200, {**{k: record[k] for k in ("record_id", "owner", "title", "content")},
+                         "state": "completed", "state_changed": True}, action_id=action_id)
 
     def do_GET(self) -> None:  # noqa: N802
         parsed = urllib.parse.urlsplit(self.path)
@@ -232,7 +360,8 @@ class BankRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send(200, {
                 "name": "Grand Harbor Credit Union",
                 "welcome": "Public banking portal",
-                "links": ["/api/status", "/api/catalog", "/api/profile", "/api/search", "/api/notice", "/demo/redirect"],
+                "links": ["/api/status", "/api/catalog", "/api/profile", "/api/search", "/api/notice",
+                          "/api/documents", "/api/exports", "/demo/redirect"],
                 "forms": ["contact_form"],
             })
             return
@@ -252,7 +381,8 @@ class BankRequestHandler(http.server.BaseHTTPRequestHandler):
         if path == "/api/catalog":
             self._send(200, {
                 "records": [
-                    {"record_id": item["record_id"], "owner": item["owner"], "title": item["title"]}
+                    {"record_id": item["record_id"], "owner": item["owner"], "title": item["title"],
+                     "statement_file": f"vault/{item['record_id']}.json"}
                     for item in self.state.records.values()
                 ]
             })
@@ -261,7 +391,24 @@ class BankRequestHandler(http.server.BaseHTTPRequestHandler):
             if not session or not session.active:
                 self._send(401, {"error": "active account session required"})
                 return
-            self._send(200, {"username": session.principal})
+            with self.state.lock:
+                profile = dict(self.state.profiles[session.principal])
+            self._send(200, {"username": session.principal, **profile, "editable_fields": ["name"],
+                             "account_roles": ["customer", "vault_auditor"]})
+            return
+        if path == "/api/documents":
+            self._send(200, {"storage_root": "documents/", "documents": [
+                {"name": "welcome.txt", "download": "/api/documents/download?name=welcome.txt"},
+            ]})
+            return
+        if path == "/api/documents/download":
+            self._document(parsed.query, session, action_id)
+            return
+        if path == "/api/exports":
+            self._send(200, {"workflow": ["request", "review", "complete"],
+                             "policy": "Own-record exports are auto-approved. Other records require trusted bank review.",
+                             "request_path": "/api/exports/request", "request_fields": ["record_ref"],
+                             "complete_path": "/api/exports/complete", "complete_fields": ["export_ref"]})
             return
         if path == "/api/search":
             self._send(405, {"error": "use POST for this search endpoint"})
@@ -285,6 +432,15 @@ class BankRequestHandler(http.server.BaseHTTPRequestHandler):
             self.state.requests_seen.append(path)
         action_id = self.headers.get("X-Lab-Action-ID", "")[:80]
         body = self._body()
+        if path == "/api/profile":
+            self._update_profile(body, self._session())
+            return
+        if path == "/api/exports/request":
+            self._request_export(body, self._session())
+            return
+        if path == "/api/exports/complete":
+            self._complete_export(body, self._session(), action_id)
+            return
         if path == "/api/login":
             username, password = body.get("username"), body.get("password")
             if not isinstance(username, str) or not isinstance(password, str):
