@@ -157,6 +157,13 @@
       "prompt_notes": {
         "read": "",
         "write": ""
+      },
+      "transient": {
+        "markers": [
+          "Failed to refresh OAuth token"
+        ],
+        "retries": 2,
+        "delay_seconds": 60
       }
     },
     "codex": {
@@ -185,6 +192,10 @@
       ],
       "read": [
         "exec",
+        "-m",
+        "gpt-6.1-sol",
+        "-c",
+        "model_reasoning_effort=medium",
         "--sandbox",
         "read-only",
         "--cd",
@@ -197,6 +208,10 @@
       ],
       "write": [
         "exec",
+        "-m",
+        "gpt-6.1-sol",
+        "-c",
+        "model_reasoning_effort=medium",
         "--sandbox",
         "workspace-write",
         "--cd",

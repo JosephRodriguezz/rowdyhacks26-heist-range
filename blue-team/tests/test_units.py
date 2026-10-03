@@ -13,6 +13,7 @@ from unittest import mock
 from sandbox import FAKE_MODEL  # also puts blue-team/bin on sys.path
 
 import adapters
+import common
 from common import load_config
 import replies
 import state as sm
@@ -173,6 +174,44 @@ class Adapters(unittest.TestCase):
                 self.assertTrue(result.ok, result.error)
                 self.assertEqual(json.loads(result.text)["stance"], "agree")
                 self.assertTrue(result.reply_sha256)
+
+    TRANSIENT = {"markers": ["Failed to refresh OAuth token"], "retries": 2, "delay_seconds": 7}
+
+    def run_claude(self, fails, retries=0, transient=None):
+        env = {"FAKE_CLAUDE": "oauth", "FAKE_COUNTER": str(self.base / "oauth-counter"),
+               "FAKE_OAUTH_FAILS": str(fails)}
+        (self.base / "oauth-counter").unlink(missing_ok=True)
+        with mock.patch.dict(os.environ, env), mock.patch("adapters.time.sleep") as sleep:
+            result = self.adapter("claude", transient=transient or self.TRANSIENT).run(
+                "read", self.prompt("claude"), replies.schema_path("vote"), self.base, "claude", retries=retries)
+        return result, sleep
+
+    def test_transient_sign_in_errors_wait_and_retry_beyond_the_normal_retries(self):
+        result, sleep = self.run_claude(fails=2)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(result.attempts, 3)
+        self.assertEqual([call.args[0] for call in sleep.call_args_list], [7, 7])
+
+    def test_transient_retries_are_bounded_and_only_for_listed_errors(self):
+        result, sleep = self.run_claude(fails=99)
+        self.assertFalse(result.ok)
+        self.assertEqual(result.attempts, 3)
+        self.assertEqual(sleep.call_count, 2)
+        self.assertIn("OAuth", result.error)
+        with mock.patch.dict(os.environ, {"FAKE_CODEX": "fail"}), mock.patch("adapters.time.sleep") as sleep:
+            other = self.adapter("codex", transient=self.TRANSIENT).run(
+                "read", self.prompt("codex"), replies.schema_path("vote"), self.base, "codex", retries=1)
+        self.assertEqual((other.ok, other.attempts, sleep.call_count), (False, 2, 0))
+        plain, sleep = self.run_claude(fails=99, retries=1, transient={"markers": [], "retries": 5, "delay_seconds": 7})
+        self.assertEqual((plain.attempts, sleep.call_count), (2, 0))
+
+    def test_transient_settings_are_validated(self):
+        spec = load_config()["models"]["claude"]
+        self.assertEqual(common.validate_model(spec), [])
+        for bad in ({"markers": "x"}, {"markers": [""]}, {"markers": ["x"], "retries": -1},
+                    {"markers": ["x"], "delay_seconds": 9999}, "text"):
+            with self.subTest(transient=bad):
+                self.assertTrue(any("transient" in p for p in common.validate_model({**spec, "transient": bad})))
 
     def test_failures_are_bounded_and_reported(self):
         with mock.patch.dict(os.environ, {"FAKE_CODEX": "fail"}):

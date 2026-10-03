@@ -51,6 +51,15 @@ if "flaky" in flags:
     counter.write_text(str(count + 1))
     if count == 0:
         sys.exit(1)
+if "oauth" in flags:
+    counter = pathlib.Path(os.environ["FAKE_COUNTER"])
+    count = int(counter.read_text()) if counter.exists() else 0
+    counter.write_text(str(count + 1))
+    if count < int(os.environ.get("FAKE_OAUTH_FAILS", "2")):
+        print(json.dumps({"type": "result", "subtype": "success", "is_error": True, "result":
+                          "Failed to refresh OAuth token: another Claude Code process is refreshing it or exited "
+                          "mid-refresh. This is usually transient; retry in a minute"}))
+        sys.exit(1)
 if "fail" in flags:
     print("simulated failure", file=sys.stderr)
     sys.exit(1)

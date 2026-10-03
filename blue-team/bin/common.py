@@ -137,6 +137,14 @@ def validate_model(spec: dict) -> list[str]:
     notes = spec.get("prompt_notes", {})
     if not isinstance(notes, dict) or not all(isinstance(notes.get(m, ""), str) for m in ("read", "write")):
         problems.append("prompt_notes must map read and write to strings")
+    transient = spec.get("transient")
+    if transient is not None:
+        delay = transient.get("delay_seconds", 0) if isinstance(transient, dict) else None
+        if not (isinstance(transient, dict) and isinstance(transient.get("markers"), list)
+                and all(isinstance(m, str) and m for m in transient["markers"])
+                and isinstance(transient.get("retries", 0), int) and transient.get("retries", 0) >= 0
+                and isinstance(delay, (int, float)) and 0 <= delay <= 300):
+            problems.append("transient must be {markers: [strings], retries: integer >= 0, delay_seconds: 0 to 300}")
     return problems
 
 

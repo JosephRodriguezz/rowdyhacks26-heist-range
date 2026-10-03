@@ -19,7 +19,8 @@ In a clean live run, blue detects the cross-user read from telemetry alone and p
 | **M1: Complete on the fixture** | Detection, containment proposal, patch proposal, incident report, `observe()`, and a stand-in executor all run end to end on the shared fixture, with tests that fail when the code is wrong | B-01 to B-11 |
 | **M2: Ready to integrate** | Diego accepts the interfaces (blue context, previous defenses, executor results, report endpoint, swarm actions and events). The patch is finalized against Diego's order handler. Armor data and labels are handed to Omar. Mayo is joined into the new repository's main once the team decides how. | B-12 to B-16 |
 | **M3: Live demo gate** | Every blue item on the integration checklist's live demo gate passes from a clean reset, and a live incident report is produced | B-17 |
-| **Swarm design** (decision 0005) | The design spec is written, the requests to teammates are sent, and Joseph has confirmed the organizer's rules on pre-built code. Blue starts with two characters, a Monitor and a Defender; the full swarm is a separate mode built after a successful demo. Build tasks come from the spec. | B-19, B-20 |
+| **Ship (blue v1)** (decision 0007) | The event has started and building proceeds. Deterministic Monitor and Defender agents report their own status, the incident report resolves only on complete retests, the executor flow is tested end to end, the patch tests run in a read-only sandbox, and a ship package shows core how to call blue. The AI advisor follows once the model-call tool is agreed with Diego. | B-07 to B-11, B-21, B-23 to B-25 (AI advisor: B-22) |
+| **Swarm design** (decisions 0005 and 0007) | The design spec is written and reviewed, and the requests to teammates are sent. Blue starts with two characters, a Monitor and a Defender; the full swarm is a separate mode built after a successful demo. Work prepared before the event is disclosed to Joseph for the submission. | B-19, B-20 |
 | **Ongoing** | The strategy thread is reviewed at least once per milestone and accepted ideas become tasks or handoffs | B-18 |
 
 ## Dependencies on teammates
@@ -30,7 +31,7 @@ In a clean live run, blue detects the cross-user read from telemetry alone and p
 | Diego (lab) | The order handler file and its stable patch surface; canary records, a decoy endpoint, login and session telemetry, a hashed `client_ref` | B-13, B-17, B-19 |
 | Diego (core) | Blue context shape, executor results, refusal of draft patches, report endpoint, windowed telemetry, new swarm actions and events | B-12, B-17 |
 | Omar | Show the armor slots, the per-path threat model, and two blue characters (swarm mode later), with the heist labels | B-14 |
-| Joseph | The organizer's rules on pre-built code, AI tools, and public repositories | B-20 |
+| Joseph | The event start time, and confirmation that blue's pre-event work is disclosed in the submission | B-20 |
 
 ## Standing questions for the strategy thread
 

@@ -147,7 +147,15 @@ class ModelAdapter:
         timeout = self.spec["timeout_seconds"][mode]
         output_file = run_dir / f"{label}.reply.txt"
         started = time.monotonic()
-        for attempt in range(1, retries + 2):
+        # Transient errors (for example Claude's token refresh colliding with another Claude Code
+        # process) get extra attempts after a wait. Other failures use the normal retry count only.
+        transient = self.spec.get("transient") or {}
+        markers = [marker for marker in transient.get("markers", []) if marker]
+        transient_left = int(transient.get("retries", 0)) if markers else 0
+        delay = float(transient.get("delay_seconds", 0))
+        max_attempts, attempt = retries + 1, 0
+        while attempt < max_attempts:
+            attempt += 1
             result.attempts = attempt
             output_file.unlink(missing_ok=True)
             args = self.command(mode, prompt, schema, output_file, timeout)
@@ -172,6 +180,11 @@ class ModelAdapter:
                 break
             tail = redact((proc.stderr or proc.stdout).strip()[-400:]) or "no output"
             result.error = f"exit {proc.returncode}: {tail}"
+            if transient_left and any(marker in proc.stdout + proc.stderr for marker in markers):
+                transient_left -= 1
+                max_attempts += 1
+                if delay > 0:
+                    time.sleep(delay)
         result.seconds = round(time.monotonic() - started, 1)
         return result
 
