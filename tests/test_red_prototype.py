@@ -15,7 +15,7 @@ from red.evaluation.evaluator import DefenseSchedule, InvalidTarget, adaptation_
 from red.prototype.actions import BODY_FIELDS, ActionExecutor, ActionRejected, FixedTargetRegistry
 from red.prototype.agents import AgentWorker, SYSTEM_PROMPT
 from red.prototype.board import BudgetExceeded, BudgetLedger, RedBoard, RunCancelled
-from red.prototype.domain import API_BODY_FIELDS, ActionProposal, AgentStep, Evidence, RunLimits
+from red.prototype.domain import API_BODY_FIELDS, ActionProposal, AgentStep, Evidence, HypothesisUpdate, RunLimits
 from red.prototype.lab import SCENARIOS, LabState, LocalBankServer
 from red.prototype.providers import STEP_TOOL, ProviderError, parse_step
 from red.prototype.replay import load_recorded_trace
@@ -543,6 +543,11 @@ class CoordinationAndBudgetTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             board.handoff(from_task_id=scout.task_id, sender="scout-agent", evidence_refs=["missing"],
                           reason="candidate", candidate_key="route ownership")
+        board.apply_hypothesis(HypothesisUpdate(
+            "create", "cross-owner read", statement="Another account may read the referenced record.",
+            expected_result="The second account receives the same record content.", evidence_refs=("ev-1",),
+            assessment="An observed resource reference warrants an account comparison.",
+        ), task_id=scout.task_id, owner="scout-agent")
         work = board.handoff(from_task_id=scout.task_id, sender="scout-agent", evidence_refs=["ev-1"],
                              reason="Observed another owner's record reference", candidate_key="cross-owner read")
         self.assertEqual(work.role, "operator")
@@ -608,7 +613,7 @@ class ProviderSchemaTests(unittest.TestCase):
         self.assertEqual(set(schema["required"]), set(API_BODY_FIELDS))
         value = {
             "kind": "act", "rationale": "Compare one observed property.", "hypothesis": "A protected property may be writable.",
-            "candidate_key": "", "evidence_refs": [], "action": {
+            "candidate_key": "", "evidence_refs": [], "hypothesis_update": None, "action": {
                 "capability": "request_api", "target_id": "bank-local", "path": "/api/profile", "method": "POST",
                 "identity_ref": None, "session_ref": None, "form_ref": None,
                 "body": {name: None for name in API_BODY_FIELDS},
@@ -629,6 +634,7 @@ class ProviderSchemaTests(unittest.TestCase):
             "kind": "act", "rationale": "A response exposed a local link.",
             "hypothesis": "The API applies different owner checks.", "candidate_key": "",
             "evidence_refs": [],
+            "hypothesis_update": None,
             "action": {
                 "capability": "request_api", "target_id": "bank-local", "path": "/api/status",
                 "method": "GET", "identity_ref": None, "session_ref": None, "form_ref": None,
@@ -659,6 +665,7 @@ class ProviderSchemaTests(unittest.TestCase):
             replay = load_recorded_trace(source)
         self.assertEqual(replay["source_mode"], "recorded_replay")
         self.assertEqual(replay["evaluation_status"], "recorded_original_not_recomputed")
+        self.assertEqual(replay["hypotheses"], [])
         self.assertEqual(len(replay["events"]), 1)
         self.assertNotIn("secret-case", json.dumps(replay))
         self.assertNotIn("family", json.dumps(replay))
@@ -713,6 +720,13 @@ class FixtureProvider:
                     "A second account may receive data owned by the Scout identity.",
                     action=ActionProposal("read_page", path="/api/records/" + own["record_id"], method="GET"),
                     candidate_key="read Scout-owned record from second account", evidence_refs=(catalog["evidence_id"], profile["evidence_id"]),
+                    hypothesis_update=HypothesisUpdate(
+                        "create", "read Scout-owned record from second account",
+                        statement="A second account may receive data owned by the Scout identity.",
+                        expected_result="A cross-owner read returns the referenced record content.",
+                        evidence_refs=(catalog["evidence_id"], profile["evidence_id"]),
+                        assessment="Compare the observed owner with an independent ordinary account.",
+                    ),
                 )
             if turn == 5:
                 self._overlap.wait(timeout=3)

@@ -161,6 +161,7 @@ class PrototypeRunner:
             evidence_records=board.evidence_records(),
             tasks=board.tasks(),
             handoffs=board.handoffs(),
+            hypotheses=board.hypotheses(),
             budget=budget.snapshot(),
             metadata=self._metadata(),
             evaluation_private=self._private_evaluation(state, schedule, reset_receipt, reset_verified=True),
@@ -193,8 +194,9 @@ class PrototypeRunner:
         from .agents import SAFE_LESSONS, SYSTEM_PROMPT
 
         return {
-            "prototype_version": "red-prototype/0.2.0",
-            "agent_version": "scout-operator/0.2.0",
+            "prototype_version": "red-prototype/0.3.0",
+            "agent_version": "scout-operator/0.3.0",
+            "hypothesis_schema_version": "candidate-comparison/0.1.0",
             "policy_version": "loopback-http-policy/0.2.0",
             "target_version": "synthetic-bank/0.2.0",
             "source_mode": "local_mock_http",

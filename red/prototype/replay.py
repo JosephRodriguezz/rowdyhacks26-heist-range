@@ -30,12 +30,15 @@ def load_recorded_trace(path: str | Path) -> dict[str, Any]:
     if not isinstance(record, dict):
         raise ReplayError("run record must be an object")
     events, evidence = record.get("events"), record.get("evidence_records")
+    hypotheses = record.get("hypotheses", [])
     if not isinstance(events, list) or not isinstance(evidence, list):
         raise ReplayError("run record is missing its event or evidence list")
     if len(events) > MAX_ITEMS or len(evidence) > MAX_ITEMS:
         raise ReplayError("run record has too many events or evidence items")
     if any(not isinstance(item, dict) for item in [*events, *evidence]):
         raise ReplayError("event and evidence entries must be objects")
+    if not isinstance(hypotheses, list) or len(hypotheses) > MAX_ITEMS or any(not isinstance(item, dict) for item in hypotheses):
+        raise ReplayError("hypothesis entries must be bounded objects")
     public_events = [item for item in events if item.get("visibility") != "referee_only"]
     return {
         "replay_id": "replay-" + uuid.uuid4().hex[:12],
@@ -49,6 +52,7 @@ def load_recorded_trace(path: str | Path) -> dict[str, Any]:
         "evidence_records": evidence,
         "tasks": record.get("tasks", []) if isinstance(record.get("tasks", []), list) else [],
         "handoffs": record.get("handoffs", []) if isinstance(record.get("handoffs", []), list) else [],
+        "hypotheses": hypotheses,
         "evaluation_private": {"visibility": "referee_only", "included": False},
         "note": "Recorded activity only. Replay makes no target requests and does not recalculate the verdict.",
     }

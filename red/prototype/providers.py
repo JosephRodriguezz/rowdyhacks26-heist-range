@@ -8,7 +8,7 @@ import urllib.error
 import urllib.request
 from typing import Any, Protocol
 
-from .domain import API_BODY_FIELDS, AgentStep, ActionProposal, Role
+from .domain import API_BODY_FIELDS, AgentStep, ActionProposal, HypothesisUpdate, Role
 
 
 class ProviderError(RuntimeError):
@@ -22,6 +22,26 @@ class ProposalProvider(Protocol):
         """Return one typed step; the caller still validates and executes every action."""
 
 
+HYPOTHESIS_SCHEMA: dict[str, Any] = {
+    "type": ["object", "null"],
+    "properties": {
+        "operation": {"type": "string", "enum": ["create", "assess", "reopen"]},
+        "candidate_key": {"type": "string"},
+        "statement": {"type": "string"},
+        "expected_result": {"type": "string"},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "status": {"type": "string", "enum": ["supported", "rejected", "inconclusive"]},
+        "baseline_evidence_ref": {"type": ["string", "null"]},
+        "comparison_evidence_ref": {"type": ["string", "null"]},
+        "changed_condition": {"type": "string"},
+        "assessment": {"type": "string"},
+        "expected_revision": {"type": "integer"},
+    },
+    "required": list(HypothesisUpdate.__dataclass_fields__),
+    "additionalProperties": False,
+}
+
+
 STEP_TOOL: dict[str, Any] = {
     "type": "function",
     "name": "red_step",
@@ -30,11 +50,12 @@ STEP_TOOL: dict[str, Any] = {
     "parameters": {
         "type": "object",
         "properties": {
-            "kind": {"type": "string", "enum": ["act", "handoff", "blocked", "finished"]},
+            "kind": {"type": "string", "enum": ["act", "handoff", "update_hypothesis", "blocked", "finished"]},
             "rationale": {"type": "string"},
             "hypothesis": {"type": "string"},
             "candidate_key": {"type": "string"},
             "evidence_refs": {"type": "array", "items": {"type": "string"}},
+            "hypothesis_update": HYPOTHESIS_SCHEMA,
             "action": {
                 "type": ["object", "null"],
                 "properties": {
@@ -56,7 +77,7 @@ STEP_TOOL: dict[str, Any] = {
                 "additionalProperties": False,
             },
         },
-        "required": ["kind", "rationale", "hypothesis", "candidate_key", "evidence_refs", "action"],
+        "required": ["kind", "rationale", "hypothesis", "candidate_key", "evidence_refs", "hypothesis_update", "action"],
         "additionalProperties": False,
     },
 }
@@ -65,13 +86,13 @@ STEP_TOOL: dict[str, Any] = {
 def parse_step(value: Any) -> AgentStep:
     if not isinstance(value, dict):
         raise ProviderError("provider returned an invalid proposal")
-    required = {"kind", "rationale", "hypothesis", "candidate_key", "evidence_refs", "action"}
+    required = {"kind", "rationale", "hypothesis", "candidate_key", "evidence_refs", "hypothesis_update", "action"}
     if set(value) != required:
         raise ProviderError("provider proposal did not match the typed schema")
-    if value["kind"] not in ("act", "handoff", "blocked", "finished"):
+    if value["kind"] not in ("act", "handoff", "update_hypothesis", "blocked", "finished"):
         raise ProviderError("provider selected an unknown step kind")
     for name in ("rationale", "hypothesis", "candidate_key"):
-        if not isinstance(value[name], str) or len(value[name]) > 800:
+        if not isinstance(value[name], str) or len(value[name]) > (160 if name == "candidate_key" else 800):
             raise ProviderError("provider proposal contains invalid text")
     refs = value["evidence_refs"]
     if not isinstance(refs, list) or len(refs) > 12 or any(not isinstance(ref, str) or len(ref) > 80 for ref in refs):
@@ -96,9 +117,18 @@ def parse_step(value: Any) -> AgentStep:
             raise ProviderError(str(exc)) from None
     else:
         action_value = None
+    try:
+        update = HypothesisUpdate.from_mapping(value["hypothesis_update"]) if value["hypothesis_update"] is not None else None
+    except ValueError as exc:
+        raise ProviderError(str(exc)) from None
+    if value["kind"] == "update_hypothesis" and (update is None or action_value is not None):
+        raise ProviderError("update_hypothesis requires a structured update and no target action")
+    if update is not None and update.operation != "create" and value["kind"] != "update_hypothesis":
+        raise ProviderError("assessment and reopening require a board-only step")
     return AgentStep(
         kind=value["kind"], rationale=value["rationale"][:800], hypothesis=value["hypothesis"][:800],
         action=action_value, candidate_key=value["candidate_key"][:160], evidence_refs=tuple(refs),
+        hypothesis_update=update,
     )
 
 

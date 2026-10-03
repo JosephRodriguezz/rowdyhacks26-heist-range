@@ -8,6 +8,7 @@ from typing import Any, Literal
 Role = Literal["scout", "operator"]
 RunMode = Literal["model", "deterministic_baseline"]
 Verdict = Literal["achieved", "not_achieved", "inconclusive"]
+HypothesisStatus = Literal["supported", "rejected", "inconclusive"]
 API_BODY_FIELDS = ("query", "name", "message", "role", "record_ref", "export_ref")
 
 
@@ -77,13 +78,59 @@ class ActionProposal:
 
 
 @dataclass(frozen=True)
+class HypothesisUpdate:
+    operation: Literal["create", "assess", "reopen"]
+    candidate_key: str
+    statement: str = ""
+    expected_result: str = ""
+    evidence_refs: tuple[str, ...] = ()
+    status: HypothesisStatus = "inconclusive"
+    baseline_evidence_ref: str | None = None
+    comparison_evidence_ref: str | None = None
+    changed_condition: str = ""
+    assessment: str = ""
+    expected_revision: int = 0
+
+    def __post_init__(self) -> None:
+        if self.operation not in ("create", "assess", "reopen"):
+            raise ValueError("unknown hypothesis operation")
+        if self.status not in ("supported", "rejected", "inconclusive"):
+            raise ValueError("unknown hypothesis status")
+        bounds = {"candidate_key": 160, "statement": 800, "expected_result": 800,
+                  "changed_condition": 300, "assessment": 800}
+        for name, limit in bounds.items():
+            value = getattr(self, name)
+            if not isinstance(value, str) or len(value) > limit:
+                raise ValueError("invalid hypothesis text")
+        if not self.candidate_key.strip():
+            raise ValueError("hypothesis requires a candidate key")
+        if type(self.expected_revision) is not int or self.expected_revision < 0:
+            raise ValueError("invalid hypothesis revision")
+        if not isinstance(self.evidence_refs, (tuple, list)) or len(self.evidence_refs) > 12:
+            raise ValueError("invalid hypothesis evidence references")
+        refs = [*self.evidence_refs, self.baseline_evidence_ref, self.comparison_evidence_ref]
+        if any(ref is None for ref in self.evidence_refs):
+            raise ValueError("invalid hypothesis evidence reference")
+        if any(ref is not None and (not isinstance(ref, str) or not ref or len(ref) > 80) for ref in refs):
+            raise ValueError("invalid hypothesis evidence reference")
+
+    @classmethod
+    def from_mapping(cls, value: Any) -> "HypothesisUpdate":
+        fields = set(cls.__dataclass_fields__)
+        if not isinstance(value, dict) or set(value) != fields or not isinstance(value["evidence_refs"], list):
+            raise ValueError("hypothesis update did not match the typed schema")
+        return cls(**{**value, "evidence_refs": tuple(value["evidence_refs"])})
+
+
+@dataclass(frozen=True)
 class AgentStep:
-    kind: Literal["act", "handoff", "blocked", "finished"]
+    kind: Literal["act", "handoff", "update_hypothesis", "blocked", "finished"]
     rationale: str
     hypothesis: str
     action: ActionProposal | None = None
     candidate_key: str = ""
     evidence_refs: tuple[str, ...] = ()
+    hypothesis_update: HypothesisUpdate | None = None
 
 
 @dataclass(frozen=True)
@@ -130,6 +177,7 @@ class RunReport:
     evidence_records: list[dict[str, Any]] = field(default_factory=list)
     tasks: list[dict[str, Any]] = field(default_factory=list)
     handoffs: list[dict[str, Any]] = field(default_factory=list)
+    hypotheses: list[dict[str, Any]] = field(default_factory=list)
     budget: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
     evaluation_private: dict[str, Any] = field(default_factory=dict)

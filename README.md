@@ -29,11 +29,14 @@ python3 -m red.prototype.cli replay --from artifacts/access.run.json
 python3 -m red.prototype.cli evaluate
 python3 -m red.prototype.cli scenarios
 python3 -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -p 'test_hypoth*.py' -v
 ```
 
 To inspect the target in a browser, run `python3 -m red.prototype.cli serve --scenario clean`; stop and restart the command to reset it. The model-driven mode uses an optional OpenAI Responses adapter and makes no provider request unless `--mode model --allow-remote-model` is supplied with `OPENAI_API_KEY` and `OPENAI_MODEL` configured. The provider remains replaceable and is not selected for the full project. Run records label local HTTP, deterministic-baseline, model, and simulated-defense activity; evaluator-only scenario details are stored under `evaluation_private` and never added to Red's model context.
 
 The deterministic baseline surveys the site, compares account access, checks logout behavior, and exercises ordinary document/export flows. It does not attempt every supported exploit; `not_achieved` in a baseline run is not proof that a scenario is secure. The unit suite checks the six controlled flaws and their defenses. No real-model performance or integrated Red/Blue contest has been verified. The runner currently creates its own local target; connecting Diego's bank requires the integration work described above.
+
+Model-mode candidates now retain supporting evidence, a prediction, and a status history in the Red-only board. Scout can hand off an unproven candidate. Operator must cite a successful ordinary baseline and a later controlled comparison before recording a supported or rejected assessment. New contradictory observations reopen the same candidate as inconclusive; both baseline and comparison must then be fresh. Run records and replay include this history. Code validates references, ordering, ownership, and required comparison fields; the model interprets response content, and the independent referee determines mission success. The focused tests use typed fixture providers and local HTTP; they do not measure real-model improvement.
 
 ## Mission
 

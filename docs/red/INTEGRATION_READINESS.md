@@ -24,6 +24,8 @@ The local `query`, `name`, `message`, `role`, `record_ref`, and `export_ref` fie
 
 Local records also need schema mapping: task `role/description` to agreed `assigned_role/objective`; capability/budget/target/visibility fields validated by core; complete handoff metadata; and core-issued event IDs, actor/target fields, sequence, and source mode. Red-private evidence is not automatically safe for judges. Never forward an entire prototype report: its `evaluation_private` section is referee-only.
 
+The local hypothesis ledger now adds stable candidate keys, predictions, baseline/comparison references, optimistic revisions, reopening, and an append-only status history. Handoffs link its hypothesis ID and expected result. These are prototype-only records; their mapping into core-owned team boards and permitted event views remains an integration review item. A supported hypothesis is an agent assessment and cannot replace the referee's verdict.
+
 ## First joint test sequence
 
 1. Reset Diego's bank and verify public health plus normal access using both ordinary account references.

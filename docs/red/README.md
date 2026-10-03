@@ -38,13 +38,23 @@ The deterministic planner is a comparison baseline for the tool and evaluation m
 
 | Path | Purpose |
 |---|---|
-| red/prototype/ | Standalone runner, typed action boundary, optional provider adapter, Red board, deterministic baseline, and operator commands |
+| red/prototype/ | Standalone runner, typed action boundary, optional provider adapter, Red board and hypothesis ledger, deterministic baseline, and operator commands |
 | red/knowledge/ | Source-linked, scenario-independent investigation notes and lessons for all six families |
 | red/evaluation/ | Hidden scenario setup, objective checks, simulated defense schedule, and private evaluation record |
 | red/prototype/lab.py | Disposable HTTP app with synthetic state, fresh per-run reset, and ordinary-user access checks |
 | tests/ | Standard-library regression checks for boundaries, state, secrecy, and fixture-run coordination |
 
 Keep hidden evaluation/target internals outside the material assembled for model prompts. The model action interface has no filesystem access.
+
+## Candidate investigation
+
+Each candidate has a stable key, statement, expected result, supporting evidence references, and an append-only assessment history. It starts inconclusive. Scout's handoff carries that record and a bounded test question; Operator may also create a distinct alternative from observed evidence.
+
+Operator proposes supported or rejected only after an ordinary successful baseline and a distinct later comparison. The prediction must predate the comparison. It names the changed condition and explains the observed effect. Code validates reference provenance, ordering, ownership, revision, and required fields; interpreting the responses remains the model's responsibility. These statuses are agent assessments, not confirmed vulnerabilities or referee verdicts.
+
+Reopening preserves the prior result and records the contradictory observation. The current status becomes inconclusive, and both baseline and comparison must be observed after reopening. Timeouts, failed logins, server errors, redirects, truncated output, rate limiting, and policy denials cannot support a conclusion. Hypothesis-only steps consume model turns but no HTTP actions. Saved reports/replays retain the records, and cited evidence remains available beyond the most recent 24 observations.
+
+Run `python3 -m unittest discover -s tests -p 'test_hypoth*.py' -v` for candidate lifecycle, evidence requirements, concurrency, and typed fixture traces. The runner still stops when the referee verifies the objective; an unfinished agent assessment may remain inconclusive in a successful mission report. Repeated real-model runs are needed to measure behavioral improvement.
 
 ## Implemented prototype settings
 

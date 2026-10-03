@@ -1,6 +1,6 @@
 # Red Team standalone prototype specification
 
-**Status:** Standalone prototype v0.2 implemented. **Owner:** Joseph. **Updated:** 2026-10-02.
+**Status:** Standalone prototype v0.3 implemented. **Owner:** Joseph. **Updated:** 2026-10-03.
 
 The prototype implements the agreed preparation scope in Python's standard library. Local interface details are implementation choices for this standalone experiment; they do not amend the shared integration contracts. A fixture-provider test demonstrates control flow, but no real remote-model run or agent-performance result exists yet.
 
@@ -28,6 +28,7 @@ These requirements preserve the confirmed prototype choices and existing project
 | R-08 | Mission verdicts and findings rely on independent evidence; blocked, failed, and inconclusive outcomes remain distinct | E-01–E-08 |
 | R-09 | Budgets, request timeouts, cancellation, and output bounds are enforced outside the models | E-10–E-12 |
 | R-10 | Records identify the target, planner, and defense modes accurately | E-15 and run-report inspection |
+| R-11 | Candidates retain predictions and evidence; conclusions require controlled comparisons, and reopening preserves history while requiring fresh tests | E-19 and typed fixture trace |
 
 ## Context and component boundaries
 
@@ -72,15 +73,31 @@ Normal login/logout flows use tool-owned credentials and cookie storage. Respons
 
 1. The harness resets a chosen hidden scenario and verifies target health and authorized baseline behavior.
 2. The runner gives Red the objective, registered target reference, public entry surface, two ordinary identity references, lesson material, and configured limits.
-3. Scout records observations and creates a hypothesis with evidence, a proposed next test, and its uncertainty.
-4. An evidence-backed candidate is handed to Operator. Operator claims its task; Scout continues work on distinct questions.
+3. Scout records an inconclusive candidate with a stable key, statement, observable expected result, supporting evidence, and proposed next test.
+4. The candidate and bounded test question are handed to Operator. Operator claims its task; Scout continues work on distinct questions. Proof of the prediction is not required for handoff.
 5. The boundary validates each action and reserves the shared budget atomically before dispatch.
 6. The actual HTTP result becomes an immutable evidence record and an ordered action/result event. The board updates through validated operations.
-7. Both roles reassess from their permitted observations. Contradictory responses weaken or invalidate a hypothesis; a timeout alone does not confirm a defense.
+7. Operator assesses the candidate using cited baseline/comparison evidence. New contradictory observations reopen a concluded candidate as inconclusive; the prior history remains intact, and both observations for its next conclusion must follow reopening.
 8. The runner checks objective evidence after each observed action. Agents can report their assessment, but cannot set the verdict; the evaluator checks actual target behavior independently.
 9. The runner stops at objective completion, explicit cancellation, exhausted limits, or a supported blocked/inconclusive outcome and produces a run report.
 
 The harness may apply its hidden simulated defense between these steps. Red receives target responses rather than a message revealing what the harness changed.
+
+## Hypothesis record and transitions
+
+`HypothesisUpdate` is a prototype-only typed proposal with `operation`, `candidate_key`, `statement`, `expected_result`, `evidence_refs`, `status`, `baseline_evidence_ref`, `comparison_evidence_ref`, `changed_condition`, `assessment`, and `expected_revision`. The optional `hypothesis_update` on an agent step permits ordinary exploration without inventing a candidate. `update_hypothesis` is a board-only step; it sends no target request. Scout handoffs require a recorded candidate.
+
+| Operation | Required evidence and effect |
+|---|---|
+| create | Existing target observations, a statement, prediction, and concise assessment; starts inconclusive at revision 1 |
+| assess | Operator owns the candidate and cites the current revision. Supported/rejected require a successful ordinary baseline, a distinct later Operator comparison, one named changed condition, and an explanation of the response content against the prediction |
+| reopen | New contradictory observations follow the prior assessment. Preserve the statement, prediction, and earlier history; set current status inconclusive and require a fresh baseline and comparison |
+
+Missing or foreign-run evidence, stale revisions, old comparisons, invalid ownership, and unsupported status proposals are rejected before accompanying target dispatch. A prediction cannot be rewritten to fit a response; a different prediction uses a separate candidate. Ambiguous transport/output failures, HTTP server errors, rate limits, redirects, and failed logins cannot establish support or rejection. An ordinary authorization denial may reject a prediction only through a valid comparison and the agent's response assessment.
+
+A combined create-and-handoff validates both operations under the board lock before committing the candidate and queued task. Rejected handoffs cannot commit assessments or create candidates. Assessment and reopening use separate steps. Model context excludes observations tagged to other runs; returned board views are detached from stored evidence references and history.
+
+The ledger validates structural requirements and provenance. It cannot verify whether the named condition was the only relevant change or whether the model's interpretation is correct. Records explicitly label conclusions `agent_assessed`; only the independent evaluator determines vault access. The runner's existing stop-on-objective behavior remains in place, so completion can precede an agent's final assessment. Full histories appear in `hypotheses` on run reports and replay, while model context retains cited evidence beyond the rolling observation window.
 
 ## Implemented concurrency and failure rules
 
@@ -90,7 +107,7 @@ Each opaque session reference belongs to the current run and target and identifi
 
 Both roles draw from the same HTTP-action, model-call, and wall-clock limits. Reservations occur before dispatch. A denied or malformed proposal is audited and consumes a model turn; it cannot cause a request or replenish remaining budget. The defaults and hard ceilings are listed below and recorded in every report.
 
-The runner generates unique action IDs, and the board prevents exact test replay while state is unchanged. A changed hypothesis creates a new task/action with new evidence. Do not automatically retry a mutating HTTP request after an ambiguous timeout: its target effect may already have occurred. Any further request is a deliberate bounded action with its own record.
+The runner generates unique action IDs, and the board prevents exact test replay while state is unchanged. A changed prediction uses a separate candidate; a changed observation can reopen the same candidate with its history intact. Any subsequent test uses a new action/evidence record. Reopening does not bypass the action boundary's duplicate-test policy. Do not automatically retry a mutating HTTP request after an ambiguous timeout: its target effect may already have occurred. Any further request is a deliberate bounded action with its own record.
 
 Cancellation stops new model calls, task claims, and target dispatch. In-flight work receives cancellation where supported; late results remain auditable but cannot schedule more work. Stopping the local run does not undo a request that already reached the target. Reset cancels/drains the old run before establishing the next baseline.
 
