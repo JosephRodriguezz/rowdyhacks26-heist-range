@@ -1,0 +1,42 @@
+{
+  "patch_id": "ready-with-diff",
+  "title": "Check order ownership before returning a private order",
+  "status": "ready",
+  "origin": "known_good_fallback",
+  "base_version": "lab-v1",
+  "policy_id": "private-orders-owner-only",
+  "target_route": "GET /api/orders/{id}",
+  "allowed_files": [
+    "cyber_range/app.py"
+  ],
+  "diff_file": "fix.diff",
+  "change": "Before returning an order, compare the order's owner with the user on the current session. When they differ, or there is no session, respond exactly as GET /api/secure-orders/{id} does for the same case.",
+  "explanation": "The route trusts the order ID in the URL and returns any order that exists. Checking ownership on the server closes the gap for every session, including new ones, which revoking a single session cannot do.",
+  "regression_checks": [
+    {
+      "id": "unauthorized_access",
+      "description": "Alice reads Bob's order 204",
+      "expected": "denied"
+    },
+    {
+      "id": "owner_access",
+      "description": "Bob reads his own order 204",
+      "expected": "allowed"
+    },
+    {
+      "id": "second_owner_access",
+      "description": "Alice reads her own order 101",
+      "expected": "allowed"
+    },
+    {
+      "id": "anonymous_access",
+      "description": "A request with no session reads order 204",
+      "expected": "denied"
+    },
+    {
+      "id": "protected_control",
+      "description": "GET /api/secure-orders/{id} behaves as before for all four cases",
+      "expected": "unchanged"
+    }
+  ]
+}

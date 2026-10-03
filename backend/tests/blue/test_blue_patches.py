@@ -3,7 +3,6 @@
 from dataclasses import replace
 import json
 from pathlib import Path
-import tempfile
 import unittest
 
 from app.agents.blue import (
@@ -19,6 +18,7 @@ from app.agents.blue import (
 from blue_test_helpers import ROOT, load_shared, log, secret_keys
 
 MANIFEST_PATH = ROOT / "defenses/patches/ownership-fix-001/manifest.json"
+FIXTURES_DIR = Path(__file__).parent / "fixtures" / "patches"
 
 
 def manifest_data():
@@ -76,19 +76,11 @@ class ManifestValidation(unittest.TestCase):
     def test_load_refuses_path_tricks_and_mismatches(self):
         with self.assertRaises(PatchManifestError):
             load_patch_manifest("../ownership-fix-001")
-        with tempfile.TemporaryDirectory() as tmp:
-            folder = Path(tmp) / "other-fix"
-            folder.mkdir()
-            (folder / "manifest.json").write_text(json.dumps(manifest_data()), encoding="utf-8")
-            with self.assertRaisesRegex(PatchManifestError, "folder"):
-                load_patch_manifest("other-fix", Path(tmp))
-            data = {**manifest_data(), "patch_id": "other-fix", "status": "ready",
-                    "allowed_files": ["cyber_range/app.py"], "diff_file": "fix.diff"}
-            (folder / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
-            with self.assertRaisesRegex(PatchManifestError, "missing"):
-                load_patch_manifest("other-fix", Path(tmp))
-            (folder / "fix.diff").write_text("placeholder\n", encoding="utf-8")
-            self.assertTrue(load_patch_manifest("other-fix", Path(tmp)).ready)
+        with self.assertRaisesRegex(PatchManifestError, "folder"):
+            load_patch_manifest("mismatched-id", FIXTURES_DIR)
+        with self.assertRaisesRegex(PatchManifestError, "missing"):
+            load_patch_manifest("missing-diff", FIXTURES_DIR)
+        self.assertTrue(load_patch_manifest("ready-with-diff", FIXTURES_DIR).ready)
 
 
 class OwnershipPatchProposal(unittest.TestCase):
