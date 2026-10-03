@@ -95,6 +95,9 @@ The first `run` reports `"availability": {"verdict": "achieved", ...}`; the defe
 
 - AV-01 (go/no-go) and AV-05 (point Red at Diego's bank instead of its own loopback lab) are still real
   gaps if this is meant to run against the integrated contest rather than the standalone prototype.
+  AV-05 now has a prototype-only origin switch: a caller-started `LocalBankServer` in the same process
+  can be selected by origin, with real loopback HTTP and its actual evaluation state. This does not
+  implement Diego's bank protocol or cross-process integration; see [integration readiness](INTEGRATION_READINESS.md).
 - AV-07 (judge view) has a natural hook: poll `/api/status` or watch for `availability.load_started` /
   `availability.load_completed` / `availability.load_stopped` board events.
 - AV-08 (Blue wiring) is out of scope for now per the team's current direction; the deterministic recovery

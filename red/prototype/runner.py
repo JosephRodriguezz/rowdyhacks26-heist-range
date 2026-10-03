@@ -1,4 +1,4 @@
-"""Own the local target lifecycle, isolated teams, budget, and final objective check."""
+"""Run against an owned or caller-started local lab, with budgets and evaluation."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import queue
 import threading
 import time
 import uuid
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -18,7 +19,7 @@ from ..evaluation.evaluator import (
     evaluate_objective,
     preflight_local_target,
 )
-from .actions import ActionExecutor, FixedTargetRegistry
+from .actions import TARGET_ID, ActionExecutor, FixedTargetRegistry
 from .agents import AgentWorker, HandoffWork
 from .availability import run_availability_baseline
 from .baseline import run_surface_survey
@@ -37,6 +38,7 @@ class RunOptions:
     defense_family: str | None = None
     defense_after_actions: int = 4
     load_profile: LoadProfile = LoadProfile()
+    external_target_origin: str | None = None
 
 
 class PrototypeRunner:
@@ -56,7 +58,18 @@ class PrototypeRunner:
     def run(self) -> RunReport:
         run_id = "run-" + uuid.uuid4().hex[:12]
         reset_receipt = "reset-" + uuid.uuid4().hex[:12]
-        state = LabState(self.options.scenario_id, seed=self.options.seed)
+        external = self.options.external_target_origin is not None
+        if external:
+            registry = FixedTargetRegistry(self.options.external_target_origin)
+            host, port = registry.resolve(TARGET_ID)
+            server = LocalBankServer.running_at(f"http://{host}:{port}")
+            state = server.state
+            if state.scenario_id != self.options.scenario_id or state.seed != self.options.seed:
+                raise ValueError("external target scenario and seed must match RunOptions")
+            if state.read_log or state.status_log or state.defenses:
+                raise ValueError("external target must have fresh evaluation state; create a new LabState and server")
+        else:
+            state = LabState(self.options.scenario_id, seed=self.options.seed)
         board = RedBoard(session_id=run_id)
         cancel = threading.Event()
         budget = BudgetLedger(self.options.limits, cancel)
@@ -65,7 +78,7 @@ class PrototypeRunner:
         run_events: list[dict[str, Any]] = []
         schedule = DefenseSchedule(self.options.defense_family, self.options.defense_after_actions) if self.options.defense_family else None
 
-        with LocalBankServer(state) as server:
+        with (nullcontext(server) if external else LocalBankServer(state)) as server:
             try:
                 preflight_local_target(server.origin, state, timeout=self.options.limits.request_timeout_seconds)
             except InvalidTarget as exc:
@@ -180,7 +193,7 @@ class PrototypeRunner:
             hypotheses=board.hypotheses(),
             budget=budget.snapshot(),
             metadata=self._metadata(),
-            evaluation_private=self._private_evaluation(state, schedule, reset_receipt, reset_verified=True),
+            evaluation_private=self._private_evaluation(state, schedule, reset_receipt, reset_verified=not external),
             failures=failures,
             availability={
                 "verdict": availability_result.verdict,
@@ -197,7 +210,7 @@ class PrototypeRunner:
             "scenario_id": self.options.scenario_id,
             "scenario_seed": self.options.seed,
             "target_version": "synthetic-bank/0.2.0",
-            "reset_receipt": reset_receipt,
+            "reset_receipt": None if self.options.external_target_origin is not None else reset_receipt,
             "reset_verified": reset_verified,
             "simulated_defense": ({
                 "family": schedule.family,
@@ -214,7 +227,7 @@ class PrototypeRunner:
 
         from .agents import SAFE_LESSONS, SYSTEM_PROMPT
 
-        return {
+        metadata = {
             "prototype_version": "red-prototype/0.3.0",
             "agent_version": "scout-operator/0.3.0",
             "hypothesis_schema_version": "candidate-comparison/0.1.0",
@@ -238,3 +251,6 @@ class PrototypeRunner:
             "planner_mode": self.options.mode,
             "defense_mode": "simulated" if self.options.defense_family else "none",
         }
+        if self.options.external_target_origin is not None:
+            metadata["target_lifecycle"] = "caller_owned_local_mock"
+        return metadata
