@@ -1,6 +1,27 @@
 # Blue team handoff: state of the Mayo branch
 
-Written 2026-10-01 for the PM's planning of the new repository. Branch `Mayo` of `JosephRodriguezz/RowdyHacks26`, owned by Member 4 (blue team). Latest commit `6e244f7`, pushed.
+Written 2026-10-01 for the PM's planning of the new repository, and updated 2026-10-03 for the handoff of blue to a Codex-only owner. Branch `Mayo` of `JosephRodriguezz/rowdyhacks26-heist-range`, owned by Member 4 (blue team). **Start with section 0 below; the new owner should then read [CODEX_HANDOFF.md](CODEX_HANDOFF.md).** Sections 1 to 7 and 9 to 10 are the 2026-10-01 text, kept for history, with the stale numbers corrected.
+
+## 0. Status at 2026-10-03 (read this first)
+
+**B-19, the swarm design spec, is done and closed.** `backend/app/agents/blue/design/swarm-spec.md` was approved by two independent reviewers (Claude and Codex) after 18 attempts, and all deterministic checks passed. It is a design, not code. Its section 1.4 sorts every capability into Group A (built today), Group B (specified, buildable on today's contract, not built: clustering, risk scoring, the PACE planner, armor posture, the revocation cap) and Group C (inert until core supplies telemetry event IDs). The first demo must not show Groups B or C. Decision 0007 records the staged build: deterministic Monitor and Defender with per-agent status first, an AI advisor later through core's model-call tool.
+
+**Merged since 2026-10-01** (from the Codex lane and the Cursor lane; each reviewed by Claude and independently by Antigravity, see `comms/threads/lane-review.md`): B-23 (a retest resolves an incident only when every required check passed), B-25 (patch tests need no temp files), B-07 (a stand-in executor and end-to-end flow tests; a test double, not core's executor), B-11 (defense action docs), adversarial and mutation-gap tests, and the contract v1.1 requests for Diego (B-12 draft, not yet sent).
+
+**Verification at handoff:** 233 blue tests pass plus 7 `expectedFailure` tests that document real bugs, 84 framework tests pass, the handoff check passes, and `git diff --check` is clean. Nothing runs against the live lab: the lab, core's executor, and the referee are Diego's and are not built.
+
+**Open list, in order.** Full detail, prompts, and the Fable audit mapping are in [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
+
+1. **The Fable audit (21 findings).** Its first item, the `resolved` bug, is fixed by B-23. What remains: B-26 and B-27 (three bugs the adversarial tests found), B-29 (two reproduced `incident.py` gaps and report items), B-28 (the unauthenticated human gate, P0 for the framework), B-30 to B-32 (CI, team-owned file reports, framework hygiene).
+2. **B-21:** build the Monitor and Defender agents.
+3. **B-12:** send the requests to Diego and collect answers.
+4. **B-14:** labels and arena data for Omar.
+5. **B-20:** tell Joseph which blue work was prepared before the event.
+6. Then B-24 (ship package), B-09, B-08, B-10; B-13, B-17, B-22, and the new B-33 (availability signal) are blocked.
+
+**Who runs this next.** A Codex-only owner cannot use the three-model orchestrator, because it needs a Claude facilitator and two independent reviewers. CODEX_HANDOFF.md explains the replacement: tests first, and a human reviewer in place of the second model.
+
+**Not part of the blue code, but now on the table:** a proposal for the availability (outage and recovery) mission, as sub-tasks, in `proposals/red-availability-subtasks.md`.
 
 ## 1. What blue is
 
@@ -12,7 +33,7 @@ Blue is the defending side of RANGE. It reads telemetry from the lab target, det
 
 ## 2. What is built and tested
 
-Everything is in `backend/app/agents/blue/` (code), `backend/tests/blue/` (105 passing tests), and `defenses/` (patch artifacts). It uses only the Python standard library.
+Everything is in `backend/app/agents/blue/` (code), `backend/tests/blue/` (233 passing tests at 2026-10-03, plus 7 documented known-bug tests; 105 when this was first written), and `defenses/` (patch artifacts). It uses only the Python standard library.
 
 | Piece | File | What it does |
 | --- | --- | --- |
@@ -59,7 +80,7 @@ Blue is developed by three AI coding agents working together through files on th
   - `orchestrate.py doctor` and `doctor --live` check tools, git, and each model.
   - `auto <task> --dry-run` shows the plan.
   - `auto <task>` runs until a human step.
-  - 63 framework tests run against stand-in model programs.
+  - 84 framework tests run against stand-in model programs (about five minutes).
 - **Shared memory:**
   - `tasks.json` / `CHECKLIST.md`: task board.
   - `comms/threads/`: discussion.
@@ -98,7 +119,7 @@ Built for the scenario in the spec: one website/API, Alice and Bob with private 
 - **Known open weakness red could exploit:** flooding telemetry past 10,000 records makes `observe` reject the input instead of degrading. Core should window telemetry. Listed for the swarm plan.
 - **Correlation limit:** telemetry has no client fingerprint, so blue can link sessions into one swarm only by timing and targets. A hashed `client_ref` from the lab would make swarm detection much stronger.
 
-## 6. Swarm direction (discussed, not decided)
+## 6. Swarm direction (decided; the design spec is approved)
 
 Following the PM's 2026-10-01 direction (heist theme, red and blue swarms, 3D bot UI, live target on a second laptop), the three models and Member 4 discussed blue's swarm. The full thread is `blue-team/comms/threads/swarm.md`.
 
@@ -164,32 +185,12 @@ Following the PM's 2026-10-01 direction (heist theme, red and blue swarms, 3D bo
 | The order-route handler file | Member 3 | Finalize the patch (B-13) |
 | Display armor, threat model, and labels | Member 1 (UI) | The game view |
 
-## 8. Task board snapshot
+## 8. Task board snapshot (2026-10-03; the live board is `tasks.json` and `CHECKLIST.md`)
 
-- **Done:**
-  - B-01: detector.
-  - B-02: revocation.
-  - B-03: patch proposal.
-  - B-04: incident report.
-  - B-06: `observe`.
-- **In review:** B-05, the multi-model framework.
-- **To do, Milestone 1:**
-  - B-07: stand-in executor and end-to-end test.
-  - B-08: failed and rolled-back defense results.
-  - B-09: probing detection.
-  - B-10: executor edge tests.
-  - B-11: defense-action docs.
-- **To do, other:**
-  - B-12: contract requests.
-  - B-14: UI labels.
-  - B-15: cross-branch review.
-  - B-18: strategy review.
-- **Blocked:**
-  - B-13: patch, waiting on the lab.
-  - B-16: needs PR #1 merged.
-  - B-17: live run, waiting on lab and core.
-
-**Known issue to fix before live reporting:** `incident.py` marks a fix "resolved" when any retest passes, without checking that every required check passed.
+- **Done:** B-01 detector, B-02 revocation, B-03 patch proposal, B-04 incident report, B-06 `observe`, B-07 stand-in executor and flow tests, B-11 defense docs, B-19 swarm design spec, B-23 retest-completeness fix, B-25 fixture-based patch tests.
+- **In review:** B-05, the multi-model framework (Fable audit item 20 asks that it go through its own review).
+- **To do:** B-08, B-09, B-10 (partly covered by lane tests), B-12 (drafted, not sent), B-14, B-15, B-18, B-20, B-21, B-24, and the new B-26, B-27, B-29 (bugs and report gaps), B-28, B-30, B-31, B-32 (audit follow-ups).
+- **Blocked:** B-13 (waiting on Diego's order handler), B-16 (joining `Mayo` into `main`, on hold), B-17 (needs the lab and core), B-22 (AI advisor, needs B-12), B-33 (availability signal, needs the team's availability decision).
 
 ## 9. Alignment with the team kickoff kit
 

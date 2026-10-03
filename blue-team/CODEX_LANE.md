@@ -1,11 +1,14 @@
 # Codex lane: tasks Aaron can hand to Codex by hand
 
+> **Status 2026-10-03:** Tasks 1 to 3 below (B-23, B-25, B-07) were completed, reviewed, and merged into `Mayo`. This file stays as the working pattern for a Codex task. The current work queue, the rules, and the prompts for the next tasks are in [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
+
+
 These are well-bounded blue tasks you can run in Codex yourself while the orchestrator works on B-19 in the main folder. They avoid every file B-19 touches, so nothing collides. Decision 0007 allows this lane.
 
 ## The rules of the lane
 
 - **Use a separate clone, never the main folder.** The orchestrator's watcher stops a task if any file in the main folder changes during a run. The clone must be outside OneDrive so its `.git` does not sync.
-- **Use Astra:** start Codex with `codex -m gpt-6-astra`.
+- **Model:** we ran Codex with `codex -m gpt-6.1-sol -c model_reasoning_effort=medium`. This is a setting, not a requirement.
 - **Stay in your task's files.** Do not touch `blue-team/`, the task board, threads, decisions, or state files. Do not edit any `AGENTS.md` or `CLAUDE.md`. Do not touch `backend/app/agents/blue/design/` or `backend/app/agents/blue/README.md` (B-19 owns those).
 - **Do not run `orchestrate.py`, `board.py`, or `guard.py install` in the clone.** You are outside the orchestrated workflow; the review below replaces it.
 - **Never push.** The work comes back through a local branch that Claude fetches, as described at the end.
