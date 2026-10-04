@@ -127,6 +127,55 @@ def evaluate_availability(state: LabState) -> EvaluationResult:
     )
 
 
+def evaluate_ordinary_access_during_load(state: LabState, *, latency_multiplier: float = 3.0) -> EvaluationResult:
+    """Independent, target-side check: did ordinary access keep working during the load.
+
+    Scored entirely from LabState.ordinary_access_log, recorded by the server itself for
+    every /api/catalog request -- never from Red's own timing of its own call. The latency
+    threshold is this lab's own measured idle baseline times `latency_multiplier`, not an
+    invented number: ground rule from blue-team/proposals/red-availability-subtasks.md is
+    "no one should invent defaults," and `latency_multiplier` is itself only a standalone
+    *prototype* default (this lab's own fixture), not a calibrated bound for any real bank --
+    that calibration is explicitly Diego's and Joseph's to set from a measured real baseline
+    before this check (or one shaped like it) is ever pointed at a real target.
+
+    Blocking everyone, timeouts, and non-200s are never "ordinary access held" -- matching
+    the same rule the availability scenario's own degrade/recover check already follows.
+    """
+    baseline = [row for row in state.ordinary_access_log if row["load_test_id"] is None]
+    during_load = [row for row in state.ordinary_access_log if row["load_test_id"] is not None]
+    if not baseline:
+        return EvaluationResult(
+            "inconclusive",
+            "No idle-baseline ordinary-access observation was recorded; "
+            "a latency threshold cannot be computed without one.",
+            (),
+        )
+    if not during_load:
+        return EvaluationResult(
+            "inconclusive",
+            "No ordinary-access observation was recorded while a load test was active.",
+            (),
+        )
+    baseline_latency = max(row["latency_seconds"] for row in baseline)
+    threshold = baseline_latency * latency_multiplier
+    refs = tuple(f"ordinary-access-{row['sequence']}" for row in during_load[-5:])
+    failed = [row for row in during_load if row["status"] != 200 or row["latency_seconds"] > threshold]
+    if failed:
+        return EvaluationResult(
+            "not_achieved",
+            f"{len(failed)} of {len(during_load)} ordinary-access requests during the load either "
+            f"failed or exceeded {threshold:.3f}s ({latency_multiplier}x this lab's measured idle baseline).",
+            refs,
+        )
+    return EvaluationResult(
+        "achieved",
+        f"All {len(during_load)} ordinary-access requests during the load succeeded within "
+        f"{threshold:.3f}s ({latency_multiplier}x this lab's measured idle baseline).",
+        refs,
+    )
+
+
 @dataclass
 class DefenseSchedule:
     family: str

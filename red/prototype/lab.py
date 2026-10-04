@@ -109,6 +109,12 @@ class LabState:
         self.status_log: list[dict[str, Any]] = []
         self._status_sequence = 0
         self.active_load_test_id: str | None = None
+        # Target-side record of ordinary (non-load) access, tagged with whether a load
+        # test was active at the moment the server handled it. This is what an
+        # independent "did ordinary access keep working during the load" check reads;
+        # it is never Red's own timing of its own request.
+        self.ordinary_access_log: list[dict[str, Any]] = []
+        self._ordinary_access_sequence = 0
         self._init_data()
 
     def _init_data(self) -> None:
@@ -216,6 +222,24 @@ class LabState:
             self.status_log.append({
                 "sequence": self._status_sequence,
                 "label": label,
+                "load_test_id": load_test_id,
+                "observed_at": time.monotonic(),
+            })
+
+    def record_ordinary_access_observation(self, status: int, latency_seconds: float,
+                                            load_test_id: str | None) -> None:
+        """Target-side ground truth for "did ordinary access keep working during the load".
+
+        Recorded by the server for every /api/catalog request, loaded or not, so the
+        evaluator can compare during-load latency against this same lab's own measured
+        idle baseline instead of an invented number.
+        """
+        with self.lock:
+            self._ordinary_access_sequence += 1
+            self.ordinary_access_log.append({
+                "sequence": self._ordinary_access_sequence,
+                "status": status,
+                "latency_seconds": latency_seconds,
                 "load_test_id": load_test_id,
                 "observed_at": time.monotonic(),
             })
@@ -449,13 +473,22 @@ class BankRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send(200, {"status": "finished"})
             return
         if path == "/api/catalog":
-            self._send(200, {
+            # The stand-in "ordinary access" route for the availability scenario's
+            # during-load check: public, unauthenticated, and recorded on every call
+            # (loaded or not) so the evaluator has this lab's own idle baseline to
+            # compare against, not an invented latency threshold.
+            started = time.monotonic()
+            with self.state.lock:
+                load_test_id = self.state.active_load_test_id
+            payload = {
                 "records": [
                     {"record_id": item["record_id"], "owner": item["owner"], "title": item["title"],
                      "statement_file": f"vault/{item['record_id']}.json"}
                     for item in self.state.records.values()
                 ]
-            })
+            }
+            self.state.record_ordinary_access_observation(200, time.monotonic() - started, load_test_id)
+            self._send(200, payload)
             return
         if path == "/api/profile":
             if not session or not session.active:

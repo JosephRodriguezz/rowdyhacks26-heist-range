@@ -12,7 +12,7 @@ import threading
 import time
 import unittest
 
-from red.evaluation.evaluator import evaluate_availability, evaluate_objective
+from red.evaluation.evaluator import evaluate_availability, evaluate_objective, evaluate_ordinary_access_during_load
 from red.prototype.actions import ActionExecutor, ActionRejected, ActionResult, FixedTargetRegistry
 from red.prototype.board import BudgetLedger, RedBoard
 from red.prototype.domain import ActionProposal, LoadProfile, RunLimits
@@ -78,6 +78,32 @@ class StartStopLoadTests(LoadActionHarness):
         recovered = self.probe_status()
         self.assertEqual(recovered["status"], "available")
         self.assertEqual(evaluate_availability(self.state).verdict, "achieved")
+
+    def test_ordinary_access_is_recorded_target_side_and_tagged_by_load_state(self) -> None:
+        # Distinct query strings so the action boundary's exact-replay dedup (correct for
+        # a literal repeat) does not also swallow these two genuinely different probes --
+        # the server ignores the query entirely; /api/catalog's routing is path-only.
+        # Idle baseline, before any load exists: tagged load_test_id=None.
+        idle = self.act("request_api", path="/api/catalog?probe=baseline")
+        self.assertEqual(idle.evidence.status, 200)
+        self.assertEqual(self.state.ordinary_access_log[-1]["load_test_id"], None)
+
+        start = self.act("start_load_test")
+        load_test_id = json.loads(start.evidence.body)["load_test_id"]
+        during = self.act("request_api", path="/api/catalog?probe=during")
+        self.assertEqual(during.evidence.status, 200)
+        self.assertEqual(self.state.ordinary_access_log[-1]["load_test_id"], load_test_id)
+        self.act("stop_load_test")
+
+        # On this lab, /api/status's processing delay and /api/catalog's handling are
+        # independent, so ordinary access is expected to hold throughout -- the point of
+        # this check is that it is verified, target-side, not assumed. The exact verdict
+        # is a real wall-clock latency comparison (see AvailabilityRunnerTests for why
+        # this test does not pin "achieved" specifically); what matters here is already
+        # covered above -- correct tagging and a real recorded sample either side.
+        result = evaluate_ordinary_access_during_load(self.state)
+        self.assertIn(result.verdict, ("achieved", "not_achieved"))
+        self.assertTrue(result.evidence_refs)
 
     def test_second_start_is_rejected_while_one_load_test_is_active(self) -> None:
         self.act("start_load_test")
@@ -154,6 +180,66 @@ class AvailabilityEvaluatorTests(unittest.TestCase):
         state.close()
 
 
+class OrdinaryAccessEvaluatorTests(unittest.TestCase):
+    """evaluate_ordinary_access_during_load, isolated from any real HTTP or timing --
+    this is where the threshold-from-measured-baseline logic itself gets proven, not
+    just exercised incidentally by a real run."""
+
+    def test_no_observations_at_all_is_inconclusive(self) -> None:
+        state = LabState("availability", seed=1)
+        self.assertEqual(evaluate_ordinary_access_during_load(state).verdict, "inconclusive")
+        state.close()
+
+    def test_during_load_samples_without_any_idle_baseline_is_inconclusive(self) -> None:
+        # No baseline means no threshold can be computed -- this must never fall back to
+        # an invented number.
+        state = LabState("availability", seed=1)
+        state.record_ordinary_access_observation(200, 0.01, "load-x")
+        self.assertEqual(evaluate_ordinary_access_during_load(state).verdict, "inconclusive")
+        state.close()
+
+    def test_baseline_without_any_during_load_sample_is_inconclusive(self) -> None:
+        state = LabState("availability", seed=1)
+        state.record_ordinary_access_observation(200, 0.01, None)
+        self.assertEqual(evaluate_ordinary_access_during_load(state).verdict, "inconclusive")
+        state.close()
+
+    def test_during_load_samples_within_the_baseline_multiple_are_achieved(self) -> None:
+        state = LabState("availability", seed=1)
+        state.record_ordinary_access_observation(200, 0.01, None)  # baseline
+        state.record_ordinary_access_observation(200, 0.02, "load-x")  # 2x baseline, under default 3x
+        result = evaluate_ordinary_access_during_load(state)
+        self.assertEqual(result.verdict, "achieved")
+        self.assertTrue(result.evidence_refs)
+        state.close()
+
+    def test_a_during_load_sample_past_the_threshold_is_not_achieved(self) -> None:
+        state = LabState("availability", seed=1)
+        state.record_ordinary_access_observation(200, 0.01, None)  # baseline
+        state.record_ordinary_access_observation(200, 0.05, "load-x")  # 5x baseline, over default 3x
+        self.assertEqual(evaluate_ordinary_access_during_load(state).verdict, "not_achieved")
+        state.close()
+
+    def test_a_failed_during_load_request_is_not_achieved_even_if_fast(self) -> None:
+        # A fast failure is still a failure -- matches the project rule that timeouts and
+        # non-200s are never counted as "it still worked."
+        state = LabState("availability", seed=1)
+        state.record_ordinary_access_observation(200, 0.01, None)  # baseline
+        state.record_ordinary_access_observation(503, 0.01, "load-x")
+        self.assertEqual(evaluate_ordinary_access_during_load(state).verdict, "not_achieved")
+        state.close()
+
+    def test_the_latency_multiplier_is_an_explicit_prototype_default_not_a_calibrated_bank_value(self) -> None:
+        # A stricter multiplier correctly flips the same samples to not_achieved -- proof
+        # that the threshold is actually derived from the baseline argument, not hardcoded.
+        state = LabState("availability", seed=1)
+        state.record_ordinary_access_observation(200, 0.01, None)
+        state.record_ordinary_access_observation(200, 0.02, "load-x")
+        self.assertEqual(evaluate_ordinary_access_during_load(state, latency_multiplier=3.0).verdict, "achieved")
+        self.assertEqual(evaluate_ordinary_access_during_load(state, latency_multiplier=1.5).verdict, "not_achieved")
+        state.close()
+
+
 class AvailabilityScoreIsolationTests(unittest.TestCase):
     def test_availability_never_counts_as_vault_access(self) -> None:
         state = LabState("availability", seed=1)
@@ -182,6 +268,18 @@ class AvailabilityRunnerTests(unittest.TestCase):
         )).run()
         self.assertEqual(report.verdict, "achieved")
         self.assertEqual(report.availability["verdict"], "achieved")
+        # Degraded/recovered is not the same claim as "ordinary access held throughout" --
+        # both are checked and reported, independently, on the same run. This is a real
+        # wall-clock latency measurement, not a fixture: asserting the exact achieved/
+        # not_achieved outcome here would tie test-passing to this process's momentary
+        # scheduling (it shares the GIL with every other test in the suite), which the
+        # evaluator is correctly sensitive to by design (fail closed on real contention).
+        # What must always hold is that the mechanism actually ran and recorded real
+        # target-side samples; evaluate_ordinary_access_during_load's own exact-outcome
+        # logic is proven deterministically, with no real timing involved, in
+        # OrdinaryAccessEvaluatorTests.
+        self.assertIn(report.ordinary_access["verdict"], ("achieved", "not_achieved"))
+        self.assertTrue(report.ordinary_access["evidence_refs"])
         self.assertIn("load_test_id", json.dumps(report.events))
 
     def test_defended_availability_run_reports_not_achieved(self) -> None:
@@ -194,10 +292,18 @@ class AvailabilityRunnerTests(unittest.TestCase):
         )).run()
         self.assertEqual(report.verdict, "not_achieved")
         self.assertEqual(report.availability["verdict"], "not_achieved")
+        # The rate-limiter defense only guards /api/status; ordinary access to the
+        # unrelated /api/catalog route is unaffected either way. Same real-timing
+        # caveat as the undefended test above applies to the exact outcome here.
+        self.assertIn(report.ordinary_access["verdict"], ("achieved", "not_achieved"))
+        self.assertTrue(report.ordinary_access["evidence_refs"])
 
     def test_a_vault_scenario_run_still_reports_an_empty_availability_score(self) -> None:
         report = PrototypeRunner(RunOptions(scenario_id="access_control", mode="deterministic_baseline")).run()
         self.assertEqual(report.availability["verdict"], "not_achieved")
+        # No load test ever runs for a vault scenario, so there is nothing to have an
+        # opinion on -- inconclusive, not a silently invented "achieved" or "not_achieved".
+        self.assertEqual(report.ordinary_access["verdict"], "inconclusive")
         # The vault verdict is unaffected by the (unused) availability score.
         self.assertIn(report.verdict, ("achieved", "not_achieved", "inconclusive"))
 

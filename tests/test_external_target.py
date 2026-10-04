@@ -32,8 +32,12 @@ def pinned_default_report(runner=PrototypeRunner) -> str:
 class ExternalTargetTests(unittest.TestCase):
     def test_default_report_bytes_match_pre_av05_runner(self):
         # Captured from HEAD's runner with the same pinned clocks/IDs and real HTTP.
+        # Updated once, deliberately, for the fixtures-only ordinary-access-during-load
+        # check: RunReport gained an always-populated `ordinary_access` field (same
+        # pattern as `availability`), which changes every report's bytes, including this
+        # one. Re-pin again only for another equally deliberate, reported shape change.
         self.assertEqual(hashlib.sha256(pinned_default_report().encode()).hexdigest(),
-                         "03f1df23c6e9e845f6ddefb42cfd408b179379ac1a577fec9b9f73c2eeac61e8")
+                         "c6acc0f9b61a5ff519fc17e7b53231d18c968611a0683db732a2fc1285f9e001")
         self.assertIsNone(make_parser().parse_args(["run"]).target_origin)
 
     def test_external_vault_run_uses_serving_state_and_keeps_server_open(self):

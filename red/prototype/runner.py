@@ -17,6 +17,7 @@ from ..evaluation.evaluator import (
     adaptation_label,
     evaluate_availability,
     evaluate_objective,
+    evaluate_ordinary_access_during_load,
     preflight_local_target,
 )
 from .actions import TARGET_ID, ActionExecutor, FixedTargetRegistry
@@ -164,6 +165,7 @@ class PrototypeRunner:
 
         vault_result = evaluate_objective(state, board.evidence())
         availability_result = evaluate_availability(state)
+        ordinary_access_result = evaluate_ordinary_access_during_load(state)
         # The configured scenario's own objective drives the top-level verdict; the other
         # objective is still computed and reported, but never substitutes for it.
         result = availability_result if self.options.scenario_id == "availability" else vault_result
@@ -199,6 +201,11 @@ class PrototypeRunner:
                 "verdict": availability_result.verdict,
                 "reason": availability_result.reason,
                 "evidence_refs": list(availability_result.evidence_refs),
+            },
+            ordinary_access={
+                "verdict": ordinary_access_result.verdict,
+                "reason": ordinary_access_result.reason,
+                "evidence_refs": list(ordinary_access_result.evidence_refs),
             },
         )
 

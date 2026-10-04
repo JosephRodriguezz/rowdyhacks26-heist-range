@@ -209,6 +209,10 @@ class RunReport:
     # Always populated, independently of `verdict`: an outage is never vault access,
     # so this score never feeds the vault verdict and vice versa.
     availability: dict[str, Any] = field(default_factory=dict)
+    # Always populated alongside `availability`, same independence: recovery from a
+    # bounded load is not "ordinary access held throughout it" -- this is checked and
+    # reported separately, per the DDoS-first interface's recovery-proof rule.
+    ordinary_access: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
