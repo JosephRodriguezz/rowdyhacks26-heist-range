@@ -180,6 +180,10 @@ test('approval requires scoped measured criteria and rejects nonfinite, excessiv
   assert.throws(() => validateApproval({...approval, profile: {...approval.profile, maxRequests: 61}}));
   assert.throws(() => validateApproval({...approval, profile: {...approval.profile, maxConcurrent: 13}}));
   const registry = createBankRegistry({approval});
+  const disposable = createBankRegistry({deployment: 'disposable-desktop', approval});
+  assert.equal(disposable.resolve('bank-lab', 'work').origin, 'http://127.0.0.1:3001');
+  assert.equal(disposable.describe().source_mode, 'live');
+  assert.throws(() => disposable.resolve('bank-local', 'work'), /Unknown registered target/);
   approval.profile.maxRequests = 10000;
   assert.equal(registry.resolve('bank-lab', 'work').approval.profile.maxRequests, 24);
 });

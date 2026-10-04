@@ -1,6 +1,6 @@
 # Bank availability adapter handoff
 
-**Status: bank interface and opt-in core connection verified on disposable fixtures; live-bank traffic remains gated.** The separate core slice calls Joseph's actual availability detector, maps Aaron's typed start/stop actions, and persists fixture assessments. It does not register a deployed bank session or pass a contest gate.
+**Status: bank interface and opt-in core connection verified on disposable fixtures; a separate full-bank Docker Desktop rehearsal is verified.** The core browser slice calls Joseph's actual availability detector, maps Aaron's typed start/stop actions, and persists fixture assessments. The [disposable full-bank runner](core/DISPOSABLE_BANK.md) separately uses fixed registration and the actual Next.js/PostgreSQL bank on loopback port 3001, calls Blue, and independently assesses recovery. It does not register the existing port-3000 bank with the core browser presenter or pass a contest gate.
 
 The slice measures occupied slots in a small training capacity pool inside the bank process. Load creates bounded asynchronous work; `degraded` means actual occupancy reached an approved threshold. No caller can set the health label. Ordinary bank authorization stays in place. This demonstrates application capacity and request shedding; it does not measure host CPU exhaustion, network packets, or a distributed attack.
 
@@ -25,7 +25,7 @@ The original dirty bank checkout and detached Mayo worktree are untouched. Curre
 - **AV-04 — Scoped evidence.** Bank run/version and exercise identity must match. Every mutating availability request carries `X-Bank-Exercise`; stale work and controls cannot affect a reset exercise.
 - **AV-05 — Independent result.** An action receipt is not a verdict. Recovery needs scoped probes, successful ordinary access, and validated continuing load evidence, assessed outside Red and Blue.
 
-The fixed deployment catalog contains `desktop` → `http://127.0.0.1:3000` and `docker` → `http://bank:3000`. These are code-defined origins, not a claim that either deployment is approved or running. The latter requires core to be on the bank's internal Docker network. Tailscale/public origins are not in this catalog. Do not replace the registry with an agent-supplied URL.
+The fixed deployment catalog contains `desktop` → `http://127.0.0.1:3000`, `disposable-desktop` → `http://127.0.0.1:3001`, and `docker` → `http://bank:3000`. These are code-defined origins, not a claim that any deployment is approved by default. The internal Docker origin requires core to be on the bank's internal network. Tailscale/public origins are not in this catalog. Do not replace the registry with an agent-supplied URL.
 
 Tests register `availability-fixture` from an owned, listening loopback HTTP server on a disposable port other than 3000. Those events stay `source_mode=fixture`; they cannot be relabeled as live bank results.
 

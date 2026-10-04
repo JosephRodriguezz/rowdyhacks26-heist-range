@@ -7,7 +7,8 @@ export const HARD_LIMITS = Object.freeze({
   responseBytes: 16_384,
   baselineMaxAgeMs: 10_000,
 });
-const ORIGINS = Object.freeze({desktop: 'http://127.0.0.1:3000', docker: 'http://bank:3000'});
+const ORIGINS = Object.freeze({desktop: 'http://127.0.0.1:3000',
+  'disposable-desktop': 'http://127.0.0.1:3001', docker: 'http://bank:3000'});
 const OPERATIONS = Object.freeze({
   health: ['GET', '/api/health'], ordinary: ['GET', '/api/accounts'],
   status: ['GET', '/api/availability/status'], work: ['POST', '/api/availability/work'],

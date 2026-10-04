@@ -2,11 +2,12 @@
 
 An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around a fictional bank and a protected vault.
 
-**Status:** Bank website, standalone Red prototype, local access-control core, and a runnable core availability slice using the bank libraries and Blue detector on a disposable fixture. The current demo priority is bounded availability and verified recovery, then defacement. The deployed bank, adaptive Red decisions, arena integration, and model performance remain unverified.
+**Status:** Bank website, standalone Red prototype, local access-control core, a browser availability demo on a disposable fixture, and a separately verified full-bank Docker Desktop rehearsal on loopback port 3001. The current demo priority is bounded availability and verified recovery, then defacement. The existing port-3000 bank, adaptive Red decisions, arena integration, and model performance remain unverified.
 
 ## Start here
 
 - [Run the browser demo](docs/core/DEMO.md) — one-command local presenter with live request metadata, Red load, Blue response, referee verdict, stop/reset, and retained history; Omar's arena is optional.
+- [Disposable full-bank rehearsal](docs/core/DISPOSABLE_BANK.md) — separate Docker Desktop bank on port 3001, measured limits, actual Blue observation, and an independent recovery check.
 - [Repository agent instructions](AGENTS.md) — project boundaries, safety rules, owners, and current checks.
 - [Ubuntu bank walkthrough](docs/UBUNTU_BANK_LAB.md) — install Docker, transfer the prototype, configure credentials, start/reset the bank, and open it through SSH.
 - [Local Docker Desktop walkthrough](docs/LOCAL_DOCKER_DESKTOP.md) — run an independent bank copy on Windows for isolated development.
@@ -97,7 +98,7 @@ These names identify current coordination contacts, not additional approval barr
 
 ## Bank website prototype
 
-`apps/bank-lab` provides a Next.js/TypeScript website and PostgreSQL-backed API. It includes synthetic customer accounts, server-side vault authorization, expiring sessions, health checks, private target events, and a separate operator reset. The default baseline preserves bank authorization. A local-only opt-in SQL injection training search is restricted to synthetic fixture records, and `/monitor` shows bounded, sanitized API request metadata. The availability variant adds measured training capacity, private load/probe/executor roles, target-side aggregates, and a temporary positive source rate. The core connection is verified on disposable HTTP/PGlite fixtures; deployed-bank calibration and arena routing remain pending.
+`apps/bank-lab` provides a Next.js/TypeScript website and PostgreSQL-backed API. It includes synthetic customer accounts, server-side vault authorization, expiring sessions, health checks, private target events, and a separate operator reset. The default baseline preserves bank authorization. A local-only opt-in SQL injection training search is restricted to synthetic fixture records, and `/monitor` shows bounded, sanitized API request metadata. The availability variant adds measured training capacity, private load/probe/executor roles, target-side aggregates, and a temporary positive source rate. The core browser connection is verified on disposable HTTP/PGlite fixtures. A separate local runner now exercises the full Docker bank with actual Blue observation and independent recovery evidence; the existing bank and arena remain unconnected.
 
 For a local Windows copy, follow [the Docker Desktop walkthrough](docs/LOCAL_DOCKER_DESKTOP.md). For Ubuntu setup, follow [the full walkthrough](docs/UBUNTU_BANK_LAB.md), including its Docker installation and private credential setup. From the project root, after creating `.env.bank-lab`:
 
