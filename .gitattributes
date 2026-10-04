@@ -1,0 +1,3 @@
+# These byte-pinned inputs must survive Windows autocrlf unchanged.
+integrations/mayo/** -text
+.agent-toolkit/bin/workspace_toolkit.py -text

@@ -2,11 +2,14 @@
 
 An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around a fictional bank and a protected vault.
 
-**Status:** Planning foundation, a standalone Red prototype, a runnable local access-control core slice, and opt-in Blue availability preparation. The current demo priority is a bounded DDoS/availability incident and verified recovery, then defacement. Diego's bank integration, the arena, and real-model performance remain unverified; the local core does not yet run the DDoS scenario against Diego's bank.
+**Status:** Bank website, standalone Red prototype, local access-control core, and a runnable core availability slice using the bank libraries and Blue detector on a disposable fixture. The current demo priority is bounded availability and verified recovery, then defacement. The deployed bank, adaptive Red decisions, arena integration, and model performance remain unverified.
 
 ## Start here
 
 - [Repository agent instructions](AGENTS.md) — project boundaries, safety rules, owners, and current checks.
+- [Ubuntu bank walkthrough](docs/UBUNTU_BANK_LAB.md) — install Docker, transfer the prototype, configure credentials, start/reset the bank, and open it through SSH.
+- [Local Docker Desktop walkthrough](docs/LOCAL_DOCKER_DESKTOP.md) — run an independent bank copy on Windows for isolated development.
+- [Bank availability handoff](docs/BANK_AVAILABILITY_HANDOFF.md) — fixed registration, opt-in capacity exercise, bounded core adapter, and independent fixture verification.
 - [Project brief](docs/PROJECT_BRIEF.md) — objective, first mission, scope, and non-goals.
 - [Architecture](docs/ARCHITECTURE.md) — system boundaries, control flow, and information separation.
 - [Team brief](docs/TEAM_BRIEF.md) — copy-ready project message for Discord.
@@ -15,6 +18,7 @@ An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around
 - [Red integration readiness](docs/red/INTEGRATION_READINESS.md) — what works locally and what Joseph, Diego, and Aaron need to connect.
 - [Integration contracts](docs/INTEGRATION_CONTRACTS.md) — draft task, handoff, event, target, and referee records.
 - [Runnable local core](docs/core/README.md) — shared-session Red/Blue integration, loopback controls/SSE, SQLite, and independent containment/retry checks.
+- [Core availability runbook](docs/core/AVAILABILITY.md) — run the connected disposable slice, private evidence, precise limits, and remaining live-bank gate.
 - [Blue availability preparation](backend/app/agents/blue/AVAILABILITY.md) — deterministic HTTP-flood detection, temporary source limiting, independent recovery checks, and actual-bank integration requirements.
 - [Hackathon plan](docs/HACKATHON_PLAN.md) — pre-event preparation and event build sequence.
 - [Evaluation plan](docs/EVALUATION_PLAN.md) — safe, evidence-based iteration criteria.
@@ -44,9 +48,9 @@ Model-mode candidates now retain supporting evidence, a prediction, and a status
 
 ## Verify Blue availability preparation
 
-This separate opt-in component preserves the access-control interface. It has been
-tested using bounded real HTTP against a loopback reference bank; Diego's bank and
-the existing core are not wired to it yet. See the [Blue handoff](backend/app/agents/blue/AVAILABILITY.md)
+This opt-in component preserves the access-control interface. Core now calls its
+actual detector in the disposable bank-library availability slice. The deployed
+Next.js bank remains unconnected. See the [Blue handoff](backend/app/agents/blue/AVAILABILITY.md)
 for trusted client registration, calibration, recovery checks and remaining demo work.
 Python standard library only; no API credentials are needed.
 
@@ -56,6 +60,12 @@ PYTHONPATH=backend python3 -m app.agents.blue.availability_replay
 ```
 
 The replay emits fixture-only proposals, not live traffic or a verified recovery.
+
+With Node.js and the locked dependencies installed in `apps/bank-lab`, run
+`python3 -m core.cli availability`. This starts and stops only an owned ephemeral
+loopback target, uses synthetic credentials, runs actual Blue detection and
+approved training-route limiting, and persists an independent fixture recovery
+assessment. See the [runbook](docs/core/AVAILABILITY.md) for commands and boundaries.
 
 ## Mission
 
@@ -75,8 +85,45 @@ The separate access-control/vault scenario must preserve legitimate bank access 
 ## Team ownership
 
 - **Joseph — Blue Team:** Monitoring, evidence-backed response, and integration of the existing Blue baseline.
+
 - **Aaron — Red Team:** Scout and Operator roles; exploration, evidence, and adaptive task handoff.
 - **Diego — Core and bank lab:** Control plane, registered target boundary, resettable fictional bank website/API, and independent referee.
 - **Omar — Arena:** Judge-facing event and agent view. A 3D bank with 2D agents is the starting visual direction; component layout and technology are proposals, not mandates.
 
 Integrate the bounded availability/recovery slice before defacement. Keep additional specialists and vulnerability families out of the demo path until the chosen scenario is repeatable.
+
+These names identify current coordination contacts, not additional approval barriers for authorized work. Start with two specialist agents per side.
+
+## Bank website prototype
+
+`apps/bank-lab` provides a Next.js/TypeScript website and PostgreSQL-backed API. It includes synthetic customer accounts, server-side vault authorization, expiring sessions, health checks, private target events, and a separate operator reset. The default baseline preserves bank authorization. A local-only opt-in SQL injection training search is restricted to synthetic fixture records, and `/monitor` shows bounded, sanitized API request metadata. The availability variant adds measured training capacity, private load/probe/executor roles, target-side aggregates, and a temporary positive source rate. The core connection is verified on disposable HTTP/PGlite fixtures; deployed-bank calibration and arena routing remain pending.
+
+For a local Windows copy, follow [the Docker Desktop walkthrough](docs/LOCAL_DOCKER_DESKTOP.md). For Ubuntu setup, follow [the full walkthrough](docs/UBUNTU_BANK_LAB.md), including its Docker installation and private credential setup. From the project root, after creating `.env.bank-lab`:
+
+```sh
+sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml up --build -d
+sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml run --rm operator node scripts/reset.mjs
+curl --fail --silent --show-error http://127.0.0.1:3000/api/health
+sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml run --rm operator node scripts/verify.mjs http://bank:3000
+```
+
+The Nginx proxy binds to `127.0.0.1:3000`; PostgreSQL and the bank app have no published ports. The bank and database remain on internal Docker networks with no general Internet route from the bank app. On Ubuntu, use the walkthrough's SSH tunnel to reach the local proxy. Reset invalidates existing sessions, restores synthetic balances, rotates the bank run ID and vault record, and clears raw events. Preserve any events needed for evaluation before resetting.
+
+An opt-in SQL injection training variant is available only in the local Docker Desktop walkthrough. Its intentionally unsafe search runs with a dedicated role that can read only synthetic training fixtures; it does not weaken login, account ownership, or vault authorization. Keep the scenario on the local loopback-bound copy.
+
+To demonstrate it, set `BANK_SCENARIO=sqli-training` and a unique `BANK_TRAINING_DB_PASSWORD` in the private `.env.bank-lab`, recreate the local stack and run the operator reset and baseline verification commands from the walkthrough. Then query `http://127.0.0.1:3000/api/training/search?term=identity` and compare it with a URL-encoded `term=' OR TRUE --`. Return to `BANK_SCENARIO=baseline` and recreate the stack to disable the route. Reset clears bank state/events and invalidates sessions; preserve needed evidence first.
+
+The separate local request monitor is available at `http://127.0.0.1:3000/monitor`. It shows sanitized API method, route, status, and latency from a bounded in-memory buffer. It does not capture packets or request contents; see the Docker Desktop walkthrough for a low-rate 20-request display exercise.
+
+Local source checks with Node.js 24 and pnpm 11.19.0:
+
+```sh
+cd apps/bank-lab
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm test
+pnpm build
+```
+
+Tests use embedded PostgreSQL (PGlite) to check authorization, sessions, reset, event sanitization, database permissions, origin validation, and bounded request parsing. The production Next.js build also checks TypeScript. These checks do not replace the live Docker/PostgreSQL verification command on Ubuntu or an independent contest referee.
+
+`pnpm test:availability` runs the availability module and disposable HTTP integration checks, including two repeated degradation/mitigation/recovery slices and ordinary authorized access during continuing bounded load. The fixture responder is explicit test code, not a live Blue agent. Real-bank traffic stays disabled until the exact registration, isolated scope, healthy calibration, limits, and verification criteria are approved; follow [the handoff](docs/BANK_AVAILABILITY_HANDOFF.md).

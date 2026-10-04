@@ -2,9 +2,9 @@
 
 ## Project state
 
-This repository includes the planning foundation, a standalone loopback Red prototype, and a local core preparation slice joining it to Mayo's unchanged Blue runtime. The core slice has CLI, authenticated loopback controls/SSE, SQLite, real local revocation, and independent regression checks; it does not connect Diego's event bank or Omar's arena and does not establish adaptive-model performance. Do not describe the finished event contest/demo as complete until built and verified.
+This repository includes the bank website, standalone Red prototype, local access-control core using Mayo's unchanged runtime, and an opt-in availability core using the actual bank libraries and new Blue detector on a disposable fixture. Core has CLI, authenticated loopback controls/SSE, SQLite, local revocation, and independent regression checks. The deployed event bank and arena are not connected; adaptive-model performance is unverified. Do not describe the finished contest/demo as complete.
 
-The product name, visual design, languages, frameworks, model provider, and deployment approach remain open unless the team records a decision in [the decision log](docs/DECISIONS.md).
+The product name, arena visual design, overall languages/frameworks, model provider, and final deployment approach remain open unless the team records a decision in [the decision log](docs/DECISIONS.md). The bank preparation prototype uses Next.js/TypeScript, PostgreSQL, and Docker Compose on Diego's Ubuntu server or a local Docker Desktop copy; that does not select the other owners' stacks.
 
 ## Read before implementation
 
@@ -25,12 +25,12 @@ The product name, visual design, languages, frameworks, model provider, and depl
 
 ## Ownership
 
-- **Joseph:** Blue monitoring, bounded recovery, and integration of the existing Blue baseline.
-- **Aaron:** Red exploration, evidence, and adaptive task handoff.
+- **Joseph:** Blue monitoring and bounded response.
+- **Aaron:** Red exploration, evidence, adaptive task handoff, and evaluation.
 - **Diego:** Core control plane, registered target/capability boundary, bank lab/API, event routing, and referee integration.
 - **Omar:** Judge-facing arena. A 3D bank with 2D agents is the starting vision; Omar may pitch alternatives before the team commits to a visual approach or stack.
 
-Keep the first demo integration focused on the bounded availability/recovery slice, then defacement. Expand specialists and lab scope only after that chosen scenario is repeatable.
+These are current coordination contacts. The user's instruction removes ownership as an approval barrier for this bank/core integration work. Keep existing dirty checkouts untouched, use a separate branch/worktree, and do not bypass the Blue workflow guard. Start with Red Scout/Operator and Blue Monitor/Defender responsibilities.
 
 ## Working and validation rules
 
@@ -51,6 +51,9 @@ Keep the first demo integration focused on the bounded availability/recovery sli
   PYTHONPATH=backend python3 -m unittest discover -s backend/tests/blue -p 'test_blue_availability*.py' -v
   PYTHONPATH=backend python3 -m app.agents.blue.availability_replay
   python3 -m core.cli run
+  # Node on PATH and locked bank dependencies required; owned fixture only:
+  python3 -m core.cli availability
+  python3 -m unittest discover -s tests -p 'test_core_availability.py' -v
   python3 -m compileall -q core red integrations/mayo/backend/app/agents/blue
   # From integrations/mayo/backend/:
   python3 -m unittest discover -s tests/blue -v
@@ -61,9 +64,35 @@ Keep the first demo integration focused on the bounded availability/recovery sli
 
   The core's fixture-provider tests exercise actual Scout/Operator workers, unchanged Blue code, live loopback HTTP, and real revocation. They prove local integration/control flow, not model performance or event-bank readiness. The Red standalone checks remain a separate regression baseline. See docs/core/README.md for the authenticated server and exact run commands.
 - Keep `integrations/mayo/` an unchanged commit-pinned source snapshot; verify its SOURCE.json provenance. Use core adapters rather than editing Blue algorithms, the legacy contract, or its draft patch. Do not use the older full incident builder to certify fixes; the core referee owns results.
-- The new `backend/app/agents/blue/` availability preparation is an opt-in component, not a replacement for core's pinned Blue import. Follow its AVAILABILITY.md handoff; register ordinary and load clients privately, calibrate on the actual bank, and obtain integration review before wiring new receipts/events. Reference HTTP tests do not establish actual-bank or network-layer DDoS protection.
+- The new `backend/app/agents/blue/` availability observer is connected only through the opt-in core availability runtime; it does not replace the access-control import. Follow docs/core/AVAILABILITY.md. No public controls or arbitrary target option is added. Reference HTTP tests and the training pool do not establish actual-bank or network-layer DDoS protection. Live-bank calibration, target approval, and review remain separate.
 - Preserve historical disclosure separately from containment/retry. Pause drains already-admitted work without extending deadlines; reset preserves history and rejects old handles. Private boards and referee records are never available through presenter HTTP views.
 - Hypothesis statuses are Red agent assessments, not independently verified findings or mission verdicts. Keep their comparison evidence and revision history intact. Reopening requires new observations and a fresh baseline/comparison before a new conclusion; ambiguous failures remain inconclusive.
+
+- Bank source checks (Node.js 24, pnpm 11.19.0):
+
+  ```sh
+  cd apps/bank-lab
+  pnpm install --frozen-lockfile --ignore-scripts
+  pnpm test
+  pnpm test:availability
+  pnpm build
+  ```
+
+  Tests use embedded PostgreSQL and disposable loopback HTTP fixtures, not the running bank/Compose stack. Production build includes TypeScript validation.
+- Bank setup and live verification (from the project root on Ubuntu, after Docker and private credentials are configured as in [the walkthrough](docs/UBUNTU_BANK_LAB.md)):
+
+  ```sh
+  sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml up --build -d
+  sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml run --rm operator node scripts/reset.mjs
+  curl --fail --silent --show-error http://127.0.0.1:3000/api/health
+  sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml run --rm operator node scripts/verify.mjs http://bank:3000
+  ```
+
+  Reset clears bank state/events and invalidates sessions. Preserve needed evidence and stop actions before reset. Do not expose operator commands, database credentials, or event storage to Red. The baseline has no deliberate vulnerabilities and no integrated referee.
+- Local Docker Desktop setup is documented in [the Windows walkthrough](docs/LOCAL_DOCKER_DESKTOP.md). The bank app and database stay on internal networks; only the fixed Nginx proxy publishes `127.0.0.1:3000`. Do not replace this with a public or general-egress app network for vulnerability experiments.
+- The opt-in SQL injection exercise is documented in the local Docker Desktop walkthrough. Set `BANK_SCENARIO=sqli-training`, provision its distinct `BANK_TRAINING_DB_PASSWORD` with the operator reset, then demonstrate only `GET /api/training/search?term=...` on `http://127.0.0.1:3000`. The demo role is read-only and limited to synthetic `bank.training_records`; run the baseline operator verification afterward. Turn it off with `BANK_SCENARIO=baseline` and recreate the local stack. Do not expose the scenario publicly.
+- The local `/monitor` page displays sanitized API request metadata from a 250-entry in-memory ring buffer. It is not packet capture, excludes its own polling requests, and omits bodies, cookies, query strings, and source addresses. For visible activity, use the walkthrough's local 20-request/one-per-second demonstration; do not use a distributed flood.
+- The opt-in availability interface is defined in [the bank handoff](docs/BANK_AVAILABILITY_HANDOFF.md). The canonical target is `bank-lab`; `bank-local` is not an alias. Both server and fixed registry default to disabled. Keep tokens private, pin run/version/exercise, and enforce bounded dispatch/stop outside models. Approval requires healthy calibration and explicit isolation/limits before any live-bank traffic. Unit/HTTP fixtures do not approve a live profile or prove the real core/Blue integration. Limits apply to one process and one adapter, not multiple replicas. Preserve the core-private durable ledger outside the bank across reset; the local monitor is not referee evidence.
 - Git changes are manual by default. Do not commit, create branches, push, merge, or stash unless Joseph explicitly asks.
 
 ## Workflow skills

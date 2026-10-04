@@ -22,6 +22,10 @@ def main(argv=None):
     serve.add_argument("--db", default=".core-state/core.sqlite3")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--allow-remote-model", action="store_true")
+    serve.add_argument("--availability-fixture", action="store_true", help="Register the disposable availability fixture; requires Node and bank dependencies")
+    availability = subcommands.add_parser("availability", help="Run core/Red/Blue against an owned disposable bank fixture only")
+    availability.add_argument("--db", default=":memory:")
+    availability.add_argument("--node", help="Trusted local Node executable; never a target destination")
     args = parser.parse_args(argv)
     if args.command == "run" and args.mode == "model" and not args.allow_remote_model:
         parser.error("model mode requires --allow-remote-model")
@@ -31,16 +35,22 @@ def main(argv=None):
     if args.command == "serve" and (not token or len(token) < 16):
         parser.error("set HEIST_CORE_TOKEN to a strong presenter credential of at least 16 characters; it is never printed")
     try:
-        with CoreService(args.db, allow_remote_model=args.allow_remote_model) as service:
-            if args.command == "run":
+        from .availability import AvailabilityBridge
+        factory = (lambda assessment_id: AvailabilityBridge(assessment_id, node=args.node)) if args.command == "availability" else None
+        with CoreService(args.db, allow_remote_model=getattr(args, "allow_remote_model", False),
+                         enable_availability_fixture=args.command == "availability" or getattr(args, "availability_fixture", False),
+                         availability_bridge_factory=factory) as service:
+            if args.command in ("run", "availability"):
                 request_prefix = "cli-" + uuid.uuid4().hex[:16]
-                snapshot = service.create(planner_mode=args.mode, action_id=request_prefix + "-create")
+                mode = getattr(args, "mode", "fixture")
+                snapshot = service.create(target_id="availability-fixture" if args.command == "availability" else "bank-local",
+                                          planner_mode=mode, action_id=request_prefix + "-create")
                 service.action(snapshot["id"], "start", action_id=request_prefix + "-start")
                 final = service.wait(snapshot["id"], timeout=service.limits.wall_seconds + 5)
                 print(json.dumps({"preparation_slice": True, "target_execution": "local_lab_http",
-                    "agent_decisions": "scripted_fixture" if args.mode == "fixture" else "model",
+                    "agent_decisions": "scripted_fixture" if mode == "fixture" else "model",
                     "model_performance_measured": False, "session": final}, indent=2))
-                return 0 if final["status"] == "completed" else 1
+                return 0 if final["status"] == "completed" and (args.command != "availability" or final["verdict"]["result"] == "achieved") else 1
             with CoreHTTPServer(service, token=token, port=args.port) as api:
                 print("Core presenter API: " + api.origin, flush=True)
                 print("Authenticated judge-safe views only; no remote model call without explicit opt-in.", flush=True)
