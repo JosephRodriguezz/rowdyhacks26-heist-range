@@ -135,3 +135,20 @@ I want Red availability integration to start now. Aaron/Red should coordinate di
 Start by aligning the repository/branch, bank contract and registered-target boundary, then wire and test the bounded Red load workflow with core controls/cancellation, Blue detection and recovery, ordinary-access checks during continuing load, and independent evaluation. Use fixtures or a disposable isolated lab while the actual bank integration is being prepared. Reconcile AV-01 and the root plan to this DDoS-first direction; documentation catch-up should not hold up safe integration work.
 
 This authorizes integration work, not traffic against Diego’s bank or public deployment. Before any bank traffic, Diego must confirm the exact target is registered in core, the environment is isolated and in scope, and the jointly calibrated hard limits and verification criteria are approved. Until then, do not send load to that target or claim live-bank integration.
+
+
+### 2026-10-04T04:54:05Z | joseph | integration sequence
+
+This is the concrete sequence for assembling the first DDoS/availability slice. It is a work plan, not a claim that integration is complete, a gate has passed, or live-bank traffic is approved.
+
+1. **Keep the workspaces safe.** Use the clean Mayo worktree as the verified baseline; leave Diego’s dirty bank-integration checkout untouched. Do not implement on detached Mayo or bypass the Blue workflow guard. Make changes only in the authorized owner workspaces. The older team-role table conflicts with the current direction, so reconcile ownership before shared-contract or root-infrastructure edits.
+
+2. **Agree on the seam.** Diego and Aaron identify their exact source branches/commits and confirm the bank’s canonical registered target ID, health/ordinary-request checks, and permitted lab interface. Recheck the previously reported `bank-lab` versus `bank-local` mismatch against the current core registry. Resolve targets through the fixed registry; Red must not send to an arbitrary URL.
+
+3. **Wire through core.** Aaron’s bounded Red load action must be dispatched by core with a fixed request/concurrency ceiling, deadline, and stop/cancel path. Joseph’s Blue side consumes sanitized telemetry and opaque registered-client references, proposes/applies the approved mitigation through the executor, and leaves outcome judgment to the independent referee. Coordinate any shared-contract or fixture change with the designated contract owner before callers depend on it.
+
+4. **Prove one repeatable slice on a disposable isolated target.** Record healthy baseline; start bounded load; verify measured degradation; let Blue detect and respond; keep load running while ordinary permitted requests are checked against jointly agreed latency/access criteria; have the referee independently assess both attack and legitimate access; stop and reset; repeat. Timeouts or ambiguous failures stay inconclusive.
+
+5. **Gate real-bank traffic separately.** Do not send traffic to Diego’s bank until Diego confirms the exact target is registered, the environment and scope are explicitly approved, and the team has calibrated and approved strict load and verification limits from the healthy baseline. This is not approval for public deployment or general Internet-scale DDoS testing.
+
+Immediate handoffs: Diego provides the target/interface and confirms the registration boundary; Aaron provides the Red branch ref and core-dispatch mapping; Joseph defines Blue’s evidence, mitigation, and referee checks. Keep animation/UI integration downstream of this verified backend slice.
