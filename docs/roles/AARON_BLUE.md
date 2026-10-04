@@ -1,8 +1,8 @@
-# Aaron — Blue Team
+# Blue Team role packet (originally assigned to Aaron)
 
 ## Mission
 
-Extend Aaron’s existing Blue implementation into a contest-time monitoring and response capability. Preserve its useful behavior and tests; inventory and verify what exists before changing its architecture. Blue should defend independently from Red’s private reasoning.
+Joseph, as the current Blue owner, extends Aaron’s existing Blue implementation into a contest-time monitoring and response capability. Preserve its useful behavior and tests; inventory and verify what exists before changing its architecture. Blue should defend independently from Red’s private reasoning.
 
 ## Blue responsibilities
 
@@ -43,6 +43,6 @@ The roles may share a process or be implemented differently. Keep the responsibi
 ## Dependencies and handoffs
 
 - Diego owns telemetry sanitation, event delivery, response policy enforcement, approvals, and independent retest orchestration.
-- Joseph owns Red behavior; Blue cannot use it as a signal source unless it is also present in permitted target telemetry.
+- Aaron owns Red behavior; Blue cannot use it as a signal source unless it is also present in permitted target telemetry.
 - Omar receives only the judge-safe Blue event fields defined by the shared contract.
 - Record preserved baseline behaviors and any intentional deviation in the decision log.

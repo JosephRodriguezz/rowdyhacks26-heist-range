@@ -82,3 +82,15 @@ Each team board contains that team’s tasks, owners, hypotheses, evidence refer
 3. Connect each team to the core through its permitted task/event view.
 4. Connect the arena to fixtures first, then the core’s live event stream.
 5. Verify the referee result independently and check that no team receives referee-only fields.
+
+## Local core preparation slice (2026-10-03)
+
+Joseph approved a runnable preparation core on `codex/core-orchestrator`. It uses the existing disposable Red bank and an unchanged, commit-pinned Mayo Blue runtime behind adapters. This is not agreement that Diego's event bank already implements these interfaces. The legacy Mayo v1 records remain adapter inputs; the core owns session identity, authorization, budgets, persistence, and ordering.
+
+The loopback presenter API reuses `/api/assessments`, `/actions`, `/events`, `/stream`, and scoped `/evidence` paths. Its control actions are `start`, `pause`, `resume`, `stop`, and `reset`; raw tool commands, patches, private audiences, and destinations are never accepted. JSON control requests include an idempotent `action_id`. Presenter API requests require a bearer credential, strict host/origin checks, and judge-safe projection. Team and referee contexts are internal adapters, not caller-selected API views.
+
+Session states are `created`, `running`, `pausing`, `paused`, `stopping`, `completed`, `cancelled`, and `failed`. Pause prevents new model/tool dispatch, drains bounded in-flight work, then becomes paused; the original deadline still applies. Stop cancels dispatch and rejects late proposal results. Reset requires ended execution, invalidates old handles, and creates a new session without deleting previous history. Process recovery never automatically resumes an interrupted contest.
+
+The canonical event envelope retains Mayo's `schema_version`, integer `id`, `assessment_id`, `timestamp`, `type`, `actor`, target/version, `data_source`, `evidence_refs`, and typed `data`, adding explicit `visibility`, `producer`, and `sequence`. Sequence/id order is session-scoped; filtered views can have gaps. SSE reconnects strictly after the cursor. HTTP evidence is `live` local-lab activity; fixture-provider decisions remain separately labeled `fixture`, and `planner_mode` distinguishes fixture from model execution. No fixture run establishes model performance.
+
+Blue receives windowed, lab-produced telemetry and the owner-only policy, never Red's board or referee ground truth. The core validates evidence-backed `revoke_session` proposals against its credential-reference registry before applying containment. Patches remain disabled. The referee records historical vault disclosure separately from revoked-session containment, legitimate-use regression, and a fresh-session retry. Timeouts and invalid fresh logins are inconclusive; containment is not remediation.

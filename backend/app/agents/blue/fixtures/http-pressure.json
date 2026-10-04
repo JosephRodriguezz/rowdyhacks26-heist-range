@@ -1,0 +1,20 @@
+{
+  "assessment_id": "availability-replay",
+  "target_id": "reference-bank-fixture",
+  "target_version": "reference-v1",
+  "data_source": "fixture",
+  "policy": {"baseline_rps": 5.0},
+  "budgets": {"max_steps": 5, "timeout_seconds": 10},
+  "active_source_refs": [],
+  "window": {
+    "window_id": "window-1", "seconds": 2.0,
+    "requests": 100, "backend_requests": 100, "server_errors": 40,
+    "denied_requests": 0, "inflight": 0, "latency_p95_ms": 800.0, "data_loss": false,
+    "sources": [
+      {"source_ref": "client-high-rate", "requests": 96, "backend_requests": 96,
+       "server_errors": 40, "denied_requests": 0, "inflight": 0},
+      {"source_ref": "client-ordinary", "requests": 4, "backend_requests": 4,
+       "server_errors": 0, "denied_requests": 0, "inflight": 0}
+    ]
+  }
+}

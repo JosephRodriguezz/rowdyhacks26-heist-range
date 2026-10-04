@@ -2,7 +2,7 @@
 
 ## Project state
 
-This repository is the planning foundation for the RowdyHacks 2026 submission. It includes a standalone, loopback-only Red prototype, but not the integrated control plane, Blue team, arena, or finished demo. Preparation, research, contracts, and isolated prototypes may happen before the event; do not describe the integrated contest or final demo as complete until it has been built and verified during the hackathon.
+This repository includes the planning foundation, a standalone loopback Red prototype, and a local core preparation slice joining it to Mayo's unchanged Blue runtime. The core slice has CLI, authenticated loopback controls/SSE, SQLite, real local revocation, and independent regression checks; it does not connect Diego's event bank or Omar's arena and does not establish adaptive-model performance. Do not describe the finished event contest/demo as complete until built and verified.
 
 The product name, visual design, languages, frameworks, model provider, and deployment approach remain open unless the team records a decision in [the decision log](docs/DECISIONS.md).
 
@@ -14,7 +14,7 @@ The product name, visual design, languages, frameworks, model provider, and depl
 
 ## Product and safety boundaries
 
-- Keep the first end-to-end mission focused on Red reaching protected vault data while legitimate bank access continues to work. Availability disruption is a separate later scenario and cannot count as vault access.
+- Current demo priority is a bounded availability/DDoS incident and verified recovery, followed by defacement. Run only against a registered, isolated lab; a site outage never counts as vault access. The local core's access-control/vault scenario remains a separate preparation path, not proof of the DDoS demo.
 - Red investigates and adapts from evidence during a run; do not replace that goal with a fixed attack sequence. Blue defends independently using permitted telemetry and must not receive Red's private task board or plans.
 - Only the referee/evaluation path may see seeded vulnerability ground truth. Keep Red, Blue, judge, and referee records separate and enforce visibility in the core.
 - Security tools may act only on registered, isolated lab targets with synthetic data. Resolve target IDs through a fixed registry, reject arbitrary destinations and cross-origin redirects, and enforce capabilities, budgets, timeouts, cancellation, and reset outside the models.
@@ -25,12 +25,12 @@ The product name, visual design, languages, frameworks, model provider, and depl
 
 ## Ownership
 
-- **Joseph:** Red exploration, evidence, adaptive task handoff, and evaluation.
-- **Aaron:** Blue monitoring and bounded response, extending and preserving his existing implementation after inventorying its actual behavior and tests.
+- **Joseph:** Blue monitoring, bounded recovery, and integration of the existing Blue baseline.
+- **Aaron:** Red exploration, evidence, and adaptive task handoff.
 - **Diego:** Core control plane, registered target/capability boundary, bank lab/API, event routing, and referee integration.
 - **Omar:** Judge-facing arena. A 3D bank with 2D agents is the starting vision; Omar may pitch alternatives before the team commits to a visual approach or stack.
 
-Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand the roster, vulnerability catalog, and lab network only after the vault mission works end to end.
+Keep the first demo integration focused on the bounded availability/recovery slice, then defacement. Expand specialists and lab scope only after that chosen scenario is repeatable.
 
 ## Working and validation rules
 
@@ -46,12 +46,23 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
   python3 -m compileall -q red
   python3 -m unittest discover -s tests -v
   python3 -m unittest discover -s tests -p 'test_hypoth*.py' -v
+  python3 -m unittest discover -s tests -p 'test_core*.py' -v
+  PYTHONPATH=backend python3 -m unittest discover -s backend/tests/blue -v
+  PYTHONPATH=backend python3 -m unittest discover -s backend/tests/blue -p 'test_blue_availability*.py' -v
+  PYTHONPATH=backend python3 -m app.agents.blue.availability_replay
+  python3 -m core.cli run
+  python3 -m compileall -q core red integrations/mayo/backend/app/agents/blue
+  # From integrations/mayo/backend/:
+  python3 -m unittest discover -s tests/blue -v
   python3 -m red.prototype.cli evaluate
   python3 -m red.prototype.cli run --scenario access_control --mode deterministic_baseline
   python3 -m red.prototype.cli replay --from artifacts/access.run.json
   ```
 
-  The Red tests exercise the disposable local mock only. The deterministic baseline is a labeled comparison, and the fixture-provider adaptation test is control-flow evidence rather than model performance. No remote model run or integrated contest has been verified.
+  The core's fixture-provider tests exercise actual Scout/Operator workers, unchanged Blue code, live loopback HTTP, and real revocation. They prove local integration/control flow, not model performance or event-bank readiness. The Red standalone checks remain a separate regression baseline. See docs/core/README.md for the authenticated server and exact run commands.
+- Keep `integrations/mayo/` an unchanged commit-pinned source snapshot; verify its SOURCE.json provenance. Use core adapters rather than editing Blue algorithms, the legacy contract, or its draft patch. Do not use the older full incident builder to certify fixes; the core referee owns results.
+- The new `backend/app/agents/blue/` availability preparation is an opt-in component, not a replacement for core's pinned Blue import. Follow its AVAILABILITY.md handoff; register ordinary and load clients privately, calibrate on the actual bank, and obtain integration review before wiring new receipts/events. Reference HTTP tests do not establish actual-bank or network-layer DDoS protection.
+- Preserve historical disclosure separately from containment/retry. Pause drains already-admitted work without extending deadlines; reset preserves history and rejects old handles. Private boards and referee records are never available through presenter HTTP views.
 - Hypothesis statuses are Red agent assessments, not independently verified findings or mission verdicts. Keep their comparison evidence and revision history intact. Reopening requires new observations and a fresh baseline/comparison before a new conclusion; ambiguous failures remain inconclusive.
 - Git changes are manual by default. Do not commit, create branches, push, merge, or stash unless Joseph explicitly asks.
 

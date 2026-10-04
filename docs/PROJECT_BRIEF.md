@@ -4,6 +4,8 @@
 
 Build an adaptive, heist-themed cyber range for a live Red Team vs. Blue Team contest. The target is a purpose-built, fictional bank website/API running in an isolated, resettable lab. The demo should let judges see how Red investigates, how Blue responds independently, and what the referee can verify.
 
+**Current demo direction (AV-01):** demonstrate bounded availability disruption and independently verified recovery first; site defacement follows. This supersedes the original vault-first demo order, not the separate access-control objective or its evidence requirements. An outage never counts as vault access, and the availability run must remain within a registered isolated lab.
+
 The GitHub repository name is a working identifier. The product name is not decided.
 
 ## Outcome for the first complete mission

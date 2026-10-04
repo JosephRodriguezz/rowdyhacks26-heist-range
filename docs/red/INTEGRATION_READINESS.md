@@ -1,6 +1,6 @@
 # Red integration readiness
 
-**Status:** Standalone preparation works locally. Core/bank/Blue integration and real-model performance remain unverified. **Owners:** Joseph, Diego, and Aaron.
+**Status:** Standalone preparation and the [local core slice](../core/README.md) connect Red to Mayo's unchanged Blue runtime against the disposable preparation bank. Diego's event bank, arena, and real-model performance remain unverified. **Owners:** Joseph, Diego, and Aaron.
 
 The Red branch supplies Scout/Operator orchestration, a private evidence/task board, typed proposals, enforced local actions and limits, lesson material, a disposable six-family lab, and independent local evaluation. Its fixture-provider test demonstrates concurrent handoff and response revision; it does not prove a real model can reliably discover or adapt.
 

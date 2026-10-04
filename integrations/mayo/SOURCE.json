@@ -1,0 +1,84 @@
+{
+  "repository": "https://github.com/JosephRodriguezz/rowdyhacks26-heist-range",
+  "ref": "Mayo",
+  "commit": "a5fa4a375628a799198398020d6bf5dbfb8e967a",
+  "kind": "unchanged_runtime_and_test_snapshot",
+  "files": [
+    {
+      "path": "backend/app/agents/blue/README.md",
+      "git_blob": "5a2adb10e9b58038a612a9abd7d08ae66a39a807"
+    },
+    {
+      "path": "backend/app/agents/blue/__init__.py",
+      "git_blob": "39ebdcdae14b517a092807834fae0f6941388de8"
+    },
+    {
+      "path": "backend/app/agents/blue/detection.py",
+      "git_blob": "cb947077ca6f791bf136bd9c559b2fa8294b9ff1"
+    },
+    {
+      "path": "backend/app/agents/blue/frameworks.py",
+      "git_blob": "36dae9f17344c575da83b492290f9494e82f15bf"
+    },
+    {
+      "path": "backend/app/agents/blue/incident.py",
+      "git_blob": "2f3521f64ee89f31a06b9c4726d9fb01cdeb1184"
+    },
+    {
+      "path": "backend/app/agents/blue/observe.py",
+      "git_blob": "d49f74d11cdf1f2cd1130acee705be732769a47d"
+    },
+    {
+      "path": "backend/app/agents/blue/patches.py",
+      "git_blob": "8604572e0b209889d901344c7a7d0d57b14365af"
+    },
+    {
+      "path": "backend/app/agents/blue/proposals.py",
+      "git_blob": "08f2db940c84ed6054d68be4706802f2861b5561"
+    },
+    {
+      "path": "backend/app/agents/blue/report.py",
+      "git_blob": "e93d08f6a13b061aec332af62347c5b45ce60df2"
+    },
+    {
+      "path": "backend/tests/blue/blue_test_helpers.py",
+      "git_blob": "6a6dc9c17ecadca2b73f47406c7f0f775d3aaaa7"
+    },
+    {
+      "path": "backend/tests/blue/test_blue_detection.py",
+      "git_blob": "5d52ed7531bce92d02098747f69e8388eb1000b4"
+    },
+    {
+      "path": "backend/tests/blue/test_blue_incident.py",
+      "git_blob": "a18a54d085ffb7516136a33d95facdadbfa2a312"
+    },
+    {
+      "path": "backend/tests/blue/test_blue_observe.py",
+      "git_blob": "3867df4a05f78a6bc1dcd3e8455b2fa23b7efa82"
+    },
+    {
+      "path": "backend/tests/blue/test_blue_patches.py",
+      "git_blob": "0b484720d225db0ceb2d5130bf44549ba32952cc"
+    },
+    {
+      "path": "backend/tests/blue/test_blue_proposals.py",
+      "git_blob": "4ccfd675ed50e8cf5fa2f3609c4a16518cb5ccbe"
+    },
+    {
+      "path": "defenses/patches/ownership-fix-001/manifest.json",
+      "git_blob": "715d4c8802bfd589d533c58f29facfb1c1f39564"
+    },
+    {
+      "path": "shared/contracts/README.md",
+      "git_blob": "48cd7cc32f78bcd16bbe0d986354df836b7566a9"
+    },
+    {
+      "path": "shared/contracts/v1.json",
+      "git_blob": "bde4d3f94044b31e999d729a34851c27f9aa4c7c"
+    },
+    {
+      "path": "shared/fixtures/demo-run.json",
+      "git_blob": "b9896ab4a84af29ab207ed149115e80fc1591952"
+    }
+  ]
+}

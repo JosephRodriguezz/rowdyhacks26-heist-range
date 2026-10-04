@@ -1,0 +1,53 @@
+DDoS-First Demo Integration — Synchronization
+
+GOAL
+
+Get one honest, repeatable demo working against our disposable bank. Animations are not a blocker; the bank site and monitor can show the incident until Omar’s work is ready.
+
+STARTING POINT
+
+Diego’s bank is on codex/bank-lab-integration at commit de063b3, one commit ahead of main. It has the website, reset and health checks, and a basic request monitor. It does not yet have Blue’s rate limiting or core/referee integration. The monitor records basic request metadata; it is not itself DDoS protection.
+
+DIEGO — BANK AND CORE
+
+- Confirm the supported branch and get the bank running in a disposable environment.
+- Run the documented build, reset, health, and baseline checks, and report the results.
+- Identify the safe place to collect bounded telemetry and enforce temporary limits.
+- The current bank is Next.js, so the existing Python WSGI Blue guard will need a compatible adapter or equivalent; it is not a direct plug-in.
+- Keep core controls private. If we show the bank on a second computer, expose only the bank interface on the isolated demo LAN.
+
+RED WORKSTREAM — AARON’S AGENTS
+
+- Provide the bounded, lab-only traffic used to exercise the availability scenario.
+- Keep it fixed to the registered disposable bank target, with strict request/concurrency/duration ceilings, cancellation, and an emergency stop. Do not accept arbitrary destinations.
+- Coordinate the traffic profile with Diego and Joseph; distinguish test traffic from ordinary-user and referee checks.
+
+BLUE WORKSTREAM — JOSEPH / BLUE TEAM
+
+- Connect Blue detection to sanitized telemetry from the bank and core.
+- Apply a narrow, temporary, expiring per-source limit when evidence supports it; do not rely on caller-supplied IP headers or block all users.
+- Include stop, expiry, and rollback behavior. Blue reports an action as applied, not as recovery verified.
+
+JOINT ACCEPTANCE RUN
+
+1. Verify normal bank access first.
+2. Apply strictly bounded lab-only traffic.
+3. Confirm Blue detects the measured degradation and applies its response.
+4. Keep the traffic running while an independent check verifies ordinary bank routes return the expected content within a latency limit set from measurements.
+5. Treat a timeout or failed login as inconclusive. Only the independent passing check may label recovery successful. Otherwise stop/recover safely and report inconclusive.
+6. Keep fixture or replay activity clearly labeled.
+
+Please reply with the branch and commit, commands and check results, proposed bank/Red/Blue/core interface, named owner, and any blocker. Do not send credentials in chat.
+
+Omar can connect the animations and judge feed afterward, driven by verified events; they are not prerequisites for this run.
+
+REFERENCE LINKS
+
+Diego’s bank branch:
+https://github.com/JosephRodriguezz/rowdyhacks26-heist-range/tree/codex/bank-lab-integration
+
+Bank README:
+https://github.com/JosephRodriguezz/rowdyhacks26-heist-range/blob/codex/bank-lab-integration/README.md
+
+Compose configuration:
+https://github.com/JosephRodriguezz/rowdyhacks26-heist-range/blob/codex/bank-lab-integration/compose.bank-lab.yaml

@@ -1,0 +1,209 @@
+{
+  "schema_version": "1.0",
+  "assessment_statuses": [
+    "created",
+    "running",
+    "waiting_for_input",
+    "completed",
+    "partial",
+    "failed",
+    "cancelled"
+  ],
+  "phases": [
+    "ready",
+    "recon",
+    "attack",
+    "verification",
+    "detection",
+    "containment",
+    "adaptation",
+    "remediation",
+    "retest",
+    "complete"
+  ],
+  "agent_statuses": [
+    "idle",
+    "investigating",
+    "executing",
+    "blocked",
+    "completed",
+    "failed"
+  ],
+  "actors": [
+    "system",
+    "red",
+    "blue",
+    "referee"
+  ],
+  "data_sources": [
+    "fixture",
+    "live",
+    "recorded"
+  ],
+  "actions": [
+    "start",
+    "advance",
+    "apply_defense",
+    "retest",
+    "stop",
+    "reset"
+  ],
+  "snapshot_required": [
+    "schema_version",
+    "id",
+    "target_id",
+    "target_version",
+    "mode",
+    "data_source",
+    "status",
+    "phase",
+    "last_event_id",
+    "allowed_actions",
+    "finding_ids",
+    "defense_ids"
+  ],
+  "event_required": [
+    "schema_version",
+    "id",
+    "assessment_id",
+    "timestamp",
+    "type",
+    "actor",
+    "target_id",
+    "target_version",
+    "data_source",
+    "evidence_refs",
+    "data"
+  ],
+  "event_types": {
+    "assessment.started": {
+      "actor": "system",
+      "required": [
+        "mode"
+      ]
+    },
+    "agent.status": {
+      "actor": null,
+      "required": [
+        "agent_id",
+        "status",
+        "summary"
+      ]
+    },
+    "endpoint.discovered": {
+      "actor": "red",
+      "required": [
+        "method",
+        "path",
+        "service_id"
+      ]
+    },
+    "finding.candidate": {
+      "actor": "red",
+      "required": [
+        "finding_id",
+        "category",
+        "endpoint",
+        "policy_id",
+        "actor_ref",
+        "resource_ref",
+        "repro"
+      ]
+    },
+    "alert.created": {
+      "actor": "blue",
+      "required": [
+        "alert_id",
+        "request_ids",
+        "summary"
+      ]
+    },
+    "finding.verified": {
+      "actor": "referee",
+      "required": [
+        "finding_id",
+        "verdict",
+        "summary"
+      ]
+    },
+    "finding.rejected": {
+      "actor": "referee",
+      "required": [
+        "finding_id",
+        "verdict",
+        "summary"
+      ]
+    },
+    "finding.inconclusive": {
+      "actor": "referee",
+      "required": [
+        "finding_id",
+        "verdict",
+        "summary"
+      ]
+    },
+    "defense.proposed": {
+      "actor": "blue",
+      "required": [
+        "defense_id",
+        "action_type",
+        "summary",
+        "reason",
+        "parameters"
+      ]
+    },
+    "defense.applied": {
+      "actor": "system",
+      "required": [
+        "defense_id",
+        "action_type",
+        "origin",
+        "original_version",
+        "resulting_version"
+      ]
+    },
+    "defense.failed": {
+      "actor": "system",
+      "required": [
+        "defense_id",
+        "reason"
+      ]
+    },
+    "attack.result": {
+      "actor": "red",
+      "required": [
+        "finding_id",
+        "outcome",
+        "summary"
+      ]
+    },
+    "retest.completed": {
+      "actor": "referee",
+      "required": [
+        "finding_id",
+        "defense_id",
+        "result",
+        "checks"
+      ]
+    },
+    "assessment.completed": {
+      "actor": "system",
+      "required": [
+        "status",
+        "summary"
+      ]
+    },
+    "assessment.cancelled": {
+      "actor": "system",
+      "required": [
+        "summary"
+      ]
+    },
+    "assessment.failed": {
+      "actor": "system",
+      "required": [
+        "reason"
+      ]
+    }
+  }
+}

@@ -9,7 +9,7 @@ Own the purpose-built bank website/API as a distinct component and milestone. It
 ## Before the hackathon
 
 - Review the project brief, architecture, integration contracts, and acceptance checks.
-- Inventory the current Aaron Blue source and its integration needs with Aaron; identify what the core must preserve or adapt.
+- Coordinate with Joseph, the current Blue owner, to inventory Aaron's existing Blue source and its integration needs; identify what the core must preserve or adapt.
 - Draft the target registry entry shape, allowed capability names, session lifecycle, reset/health behavior, and referee input/output.
 - Confirm the three initial vulnerability families can lead to the single vault objective while the answer key remains referee-only.
 - Identify the smallest event/task contract slice that Red, Blue, and Omar can all prepare against.
@@ -49,7 +49,7 @@ Planning, local isolated spikes, and contracts can happen before the event. The 
 
 ## Dependencies and handoffs
 
-- Joseph needs the registered target ID, observation format, allowed Red capabilities, and task/handoff contract.
-- Aaron needs the sanitized Blue telemetry, response policy, and retest path; coordinate preservation of his existing work early.
+- Aaron needs the registered target ID, observation format, allowed Red capabilities, and task/handoff contract.
+- Joseph needs the sanitized Blue telemetry, response policy, and retest path; coordinate preservation of Aaron's existing work early.
 - Omar needs stable session/event examples, a fixture source, and the live event subscription boundary.
 - The core owns canonical state and authorization. Do not move those checks into the arena or rely on model compliance.

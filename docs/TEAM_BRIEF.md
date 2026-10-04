@@ -2,6 +2,8 @@
 
 Copy-ready project update. The repository is currently private, so teammates will need Joseph to grant access before they can open it.
 
+**Status:** The role assignments and vault-first demo sequence in this original brief are superseded. Current direction is Joseph → Blue, Aaron → Red, DDoS/availability recovery first, then defacement, with no winning-team scoreboard. See [the decision log](DECISIONS.md) and [current DDoS handoff](DDOS_DEMO_HANDOFF.txt); do not forward the older text below as the current plan.
+
 ---
 
 ## RowdyHacks project: adaptive heist cyber range

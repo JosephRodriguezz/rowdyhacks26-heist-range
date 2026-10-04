@@ -1,4 +1,4 @@
-# Joseph — Red Team
+# Red Team role packet (originally assigned to Joseph)
 
 ## Mission
 
@@ -46,6 +46,6 @@ Preparation can include research, plans, and isolated prototypes. The integrated
 ## Dependencies and handoffs
 
 - Diego owns the target registry, tool capabilities, session identity, event order, and referee interface.
-- Aaron owns the Blue event view; Red does not depend on Blue exposing its private board.
+- Joseph owns the Blue event view; Red does not depend on Blue exposing its private board.
 - Omar consumes only arena-approved Red events and evidence summaries.
 - Changes to task or handoff fields are coordinated through the shared contract.

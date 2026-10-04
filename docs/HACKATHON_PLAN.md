@@ -2,6 +2,8 @@
 
 This plan separates work that can prepare the team from the integrated contest that will be built during the event. It is a sequence of dependency gates, not a promise that every stretch goal will fit.
 
+**Current priority override (AV-01):** the judge-facing demo is bounded DDoS/availability disruption and verified recovery first, followed by defacement; there is no winning-team scoreboard. Start the availability integration now rather than waiting for the older vault Gate 6 sequence below. Gate 6 remains unpassed and is a separate access-control rehearsal, not an availability prerequisite. Live recovery is claimed only after ordinary access passes independent checks during continuing bounded load; otherwise report inconclusive and use a clearly labeled replay.
+
 ## Before the event: prepare the team
 
 ### All owners
@@ -11,23 +13,23 @@ This plan separates work that can prepare the team from the integrated contest t
 - Keep open decisions visible in the decision log instead of allowing different assumptions to spread.
 - Use only synthetic, intentionally vulnerable local lab material for security experiments.
 
-### Joseph — Red
+### Joseph — Blue
 
-- Study the allowed vulnerability families using the curated references.
-- Define how Scout records observations and how Operator receives evidence and remaining budget.
-- Propose evaluation cases for exploration, changing target behavior, and inconclusive outcomes.
+- Own Blue monitoring and bounded response, preserving Aaron's existing implementation after inventorying its behavior and tests.
+- Define the sanitized telemetry and opaque registered-client evidence Blue needs for availability detection and recovery.
+- Keep action proposals distinct from applied responses; independent checks determine recovery.
 
-### Aaron — Blue
+### Aaron — Red
 
-- Inventory the existing Blue source, current behavior, tests, and run instructions.
-- Mark what has been verified, what should be preserved, and what is planned.
-- Map existing telemetry and response proposals to the shared contracts.
+- Own Red exploration and the bounded availability-load workflow through core-approved capabilities.
+- Keep the target fixed to the registered isolated bank, with enforced limits, deadline, cancellation, and emergency stop.
+- Report exact branch/commit, evidence, and current integration limitations.
 
 ### Diego — Core and lab
 
 - Define the lab registry, capability boundary, session lifecycle, event routing, reset, and referee interfaces.
 - Identify how the three initial vulnerability families can point at one vault objective.
-- Coordinate with Aaron on preserving his Blue integration and with both agent owners on safe telemetry.
+- Coordinate with Joseph on preserving the existing Blue baseline and with Aaron on the Red/bank integration boundary.
 
 ### Omar — Arena
 
@@ -75,13 +77,13 @@ Run repeated end-to-end trials covering a successful Red path, a blocked path, B
 
 **Pass when:** the first mission can be reset and replayed, legitimate access works, and scoring separates access, detection/response, and verified repair.
 
-### Stretch — Availability mission
+### Current demo — Availability and recovery (AV-01)
 
-Only after Gate 6, add a separate bounded availability scenario with clear health checks, recovery, and a separate score. Show the target becoming unavailable only inside the registered lab, then show restoration. It cannot substitute for the vault mission.
+Exercise only bounded traffic against the registered disposable bank. Measure the healthy baseline, observe real degradation, have Blue apply a narrow temporary response, and keep bounded load active while the independent referee checks ordinary bank access within jointly calibrated limits. Stop and reset safely; repeat. This scenario is first in the current demo order and does not substitute for or certify the separate vault-access mission. Defacement is the next scenario after this recovery sequence is repeatable.
 
 ## Demo fallback
 
 - Keep a known-good lab reset and a short verified run available.
 - If live agents fail, label any recorded or fixture run as such; do not present it as live.
 - Preserve a direct path from the arena to the registered live lab for the vault mission.
-- If the availability stretch is unstable, omit it rather than jeopardize the first mission.
+- If live availability recovery is unstable, do not claim success: stop safely, report inconclusive, and use only a clearly labeled replay.
