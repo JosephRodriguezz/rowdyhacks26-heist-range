@@ -9,7 +9,9 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from .domain import LoadProfile, RunLimits
+from .actions import TARGET_ID, ActionExecutor, ActionRejected, FixedTargetRegistry
+from .board import BudgetLedger, RedBoard
+from .domain import ActionProposal, LoadProfile, RunLimits
 from .lab import DEFENSE_MODES, SCENARIOS, LabState, LocalBankServer
 from .providers import OpenAIResponsesProvider, ProviderError
 from .replay import ReplayError, load_recorded_trace
@@ -117,6 +119,23 @@ def make_parser() -> argparse.ArgumentParser:
     replay_parser = subparsers.add_parser("replay", help="display a saved run record without contacting its target")
     replay_parser.add_argument("--from", dest="source_path", required=True, help="path to a JSON run report")
 
+    probe_parser = subparsers.add_parser(
+        "probe-target",
+        help="AV-05: register one additional real target and reach it with a single read-only action, "
+             "through the same registry and action boundary every scenario uses",
+    )
+    probe_parser.add_argument("--target-id", required=True,
+                               help=f"id to register for this target; must not be '{TARGET_ID}' (reserved)")
+    probe_parser.add_argument("--origin", required=True,
+                               help="the target's http origin on 127.0.0.1, e.g. http://127.0.0.1:3000")
+    probe_parser.add_argument("--path", default="/api/health")
+    probe_parser.add_argument("--method", choices=("GET", "POST"), default="GET")
+    probe_parser.add_argument("--capability", choices=("request_api", "read_page"), default="request_api",
+                               help="only these two capabilities are available on a non-bank-local target today")
+    probe_parser.add_argument("--request-timeout", type=float, default=2.0)
+    probe_parser.add_argument("--max-response-bytes", type=int, default=16_384)
+    probe_parser.add_argument("--report", help="optional path for a local JSON evidence record")
+
     subparsers.add_parser("scenarios", help="list local scenario labels")
     return parser
 
@@ -139,6 +158,41 @@ def _serve(args: argparse.Namespace) -> int:
     return 0
 
 
+def _probe_target(args: argparse.Namespace) -> dict[str, Any]:
+    """Reach one additional registered target through the real action boundary.
+
+    This is a read-only reachability check, not the availability scenario: the load
+    test and the bank-local login flow still only work against this prototype's own
+    lab (see AVAILABILITY_SCENARIO.md and DIEGO_AVAILABILITY_ASK.md for why). What
+    this proves is narrower and already true today: the runner resolves a registered
+    target id rather than taking an arbitrary URL, an unregistered id or a
+    non-127.0.0.1 origin is refused by the same registry every scenario uses, and a
+    `request_api`/`read_page` action against a real external process returns real
+    evidence through the same validated, budgeted, bounded dispatch path.
+    """
+    if args.target_id == TARGET_ID:
+        raise ValueError(f"'{TARGET_ID}' is the reserved bank-local id; choose another target id")
+    registry = FixedTargetRegistry(extra_targets={args.target_id: args.origin})
+    state = LabState("clean", seed=26)
+    board = RedBoard(session_id="probe-" + args.target_id)
+    limits = RunLimits(request_timeout_seconds=args.request_timeout, response_bytes=args.max_response_bytes)
+    budget = BudgetLedger(limits)
+    executor = ActionExecutor(
+        registry=registry, state=state, limits=limits, budget=budget, board=board,
+        max_response_bytes=args.max_response_bytes,
+    )
+    task = board.add_task("scout", f"Probe registered target {args.target_id}", status="queued")
+    board.claim_task(task.task_id, "probe-target")
+    proposal = ActionProposal(capability=args.capability, target_id=args.target_id, path=args.path, method=args.method)
+    try:
+        result = executor.execute(proposal, role="scout", task_id=task.task_id)
+        board.finish_task(task.task_id, "completed")
+    except ActionRejected as exc:
+        board.finish_task(task.task_id, "yielded")
+        return {"target_id": args.target_id, "origin": args.origin, "rejected": str(exc)}
+    return {"target_id": args.target_id, "origin": args.origin, "evidence": result.evidence.public_dict()}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = make_parser()
     args = parser.parse_args(argv)
@@ -155,6 +209,10 @@ def main(argv: list[str] | None = None) -> int:
             report = _run_once(args)
             _emit(report, args.report)
             return 0 if report["verdict"] != "inconclusive" else 2
+        if args.command == "probe-target":
+            result = _probe_target(args)
+            _emit(result, args.report)
+            return 0 if "rejected" not in result else 2
         if args.command == "evaluate":
             scenarios = sorted(SCENARIOS)
             reports = []

@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import quote, urlsplit
 
 from red.evaluation.evaluator import DefenseSchedule, InvalidTarget, adaptation_label, evaluate_objective, preflight_local_target
-from red.prototype.actions import BODY_FIELDS, ActionExecutor, ActionRejected, FixedTargetRegistry
+from red.prototype.actions import BODY_FIELDS, TARGET_ID, ActionExecutor, ActionRejected, FixedTargetRegistry
 from red.prototype.agents import AgentWorker, SYSTEM_PROMPT
 from red.prototype.board import BudgetExceeded, BudgetLedger, RedBoard, RunCancelled
 from red.prototype.domain import API_BODY_FIELDS, ActionProposal, AgentStep, Evidence, HypothesisUpdate, RunLimits
@@ -154,6 +154,101 @@ class TargetAndPolicyTests(LocalHarness):
         self.assertTrue(changed.dispatched)
         self.assertEqual(changed.evidence.status, 403)
         self.assertEqual(len(self.state.requests_seen), before + 1)
+
+
+class ExternalTargetRegistryTests(LocalHarness):
+    """AV-05: a second, differently-shaped registered target id is reachable only
+    through the two generic capabilities. The load test and the bank-local
+    login/logout/form flow stay scoped to bank-local, since they assume this lab's
+    own fixed API shape and in-process status log, which another target does not
+    share just by being registered. See docs/red/AVAILABILITY_SCENARIO.md and
+    docs/red/DIEGO_AVAILABILITY_ASK.md for why that gap is real, not an oversight."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.external_state = LabState("clean", seed=29)
+        self.external_server = LocalBankServer(self.external_state).start()
+        self.executor.close()
+        self.executor = ActionExecutor(
+            registry=FixedTargetRegistry(self.server.origin, extra_targets={"external-lab": self.external_server.origin}),
+            state=self.state, limits=self.limits, budget=self.budget, board=self.board,
+        )
+
+    def tearDown(self) -> None:
+        self.external_server.close()
+        super().tearDown()
+
+    def test_generic_capability_reaches_the_registered_external_target(self) -> None:
+        result = self.act("request_api", path="/api/catalog", target_id="external-lab")
+        self.assertEqual(result.evidence.status, 200)
+        self.assertEqual(self.external_state.requests_seen, ["/api/catalog"])
+        self.assertEqual(self.state.requests_seen, [])  # bank-local's own log is untouched
+
+    def test_read_page_also_reaches_the_registered_external_target(self) -> None:
+        result = self.act("read_page", path="/", target_id="external-lab")
+        self.assertEqual(result.evidence.status, 200)
+
+    def test_genuinely_unregistered_target_is_still_refused(self) -> None:
+        with self.assertRaises(ActionRejected):
+            self.act("request_api", path="/api/catalog", target_id="neither-registered-id")
+
+    def test_bank_local_login_flow_is_not_available_on_the_external_target(self) -> None:
+        with self.assertRaises(ActionRejected):
+            self.act("start_account_session", identity="account_a", target_id="external-lab")
+
+    def test_form_submission_is_not_available_on_the_external_target(self) -> None:
+        with self.assertRaises(ActionRejected):
+            self.act("submit_form", method="POST", path="/api/contact",
+                     body={"name": "a", "message": "b"}, target_id="external-lab")
+
+    def test_load_test_is_not_available_on_the_external_target(self) -> None:
+        with self.assertRaises(ActionRejected):
+            self.executor.execute(
+                ActionProposal(capability="start_load_test", target_id="external-lab"),
+                role="scout", task_id=self.task.task_id,
+            )
+
+    def test_bank_local_target_is_unaffected_by_the_extra_registration(self) -> None:
+        result = self.act("request_api", path="/api/catalog")
+        self.assertEqual(result.evidence.status, 200)
+
+    def test_extra_target_id_cannot_shadow_the_reserved_bank_local_id(self) -> None:
+        with self.assertRaises(ValueError):
+            FixedTargetRegistry(self.server.origin, extra_targets={TARGET_ID: self.external_server.origin})
+
+    def test_extra_target_must_also_be_loopback(self) -> None:
+        with self.assertRaises(ValueError):
+            FixedTargetRegistry(self.server.origin, extra_targets={"external-lab": "http://example.com:80"})
+
+    def test_registry_without_any_target_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            FixedTargetRegistry()
+
+    def test_target_ids_reports_every_registered_id(self) -> None:
+        registry = FixedTargetRegistry(self.server.origin, extra_targets={"external-lab": self.external_server.origin})
+        self.assertEqual(registry.target_ids(), frozenset({TARGET_ID, "external-lab"}))
+
+    def test_redirect_through_the_external_target_is_never_followed(self) -> None:
+        # Same unconditional check every target gets (actions.py never calls a second
+        # .request() toward a Location header); proven here for this target too, since
+        # a registered non-bank-local id is exactly where an unfollowed cross-origin
+        # redirect matters most.
+        result = self.act("request_api", path="/demo/redirect", target_id="external-lab")
+        self.assertEqual(result.evidence.status, 302)
+        self.assertEqual(result.evidence.failure_kind, "redirect_not_followed")
+        self.assertNotIn("example.invalid", result.evidence.body)
+
+    def test_model_facing_action_proposal_cannot_carry_or_choose_an_origin(self) -> None:
+        # The registry (and its extra_targets) is wired up only by trusted Python
+        # callers (this prototype's own CLI/tests), never by a model. This is the
+        # actual boundary AV-05 depends on: a model can ask for a registered target
+        # id, and nothing else, so it can never choose or influence what that id
+        # resolves to -- matching "the model can name a registered target; it never
+        # supplies an origin" in FixedTargetRegistry's own docstring.
+        self.assertNotIn("origin", {f for f in ActionProposal.__dataclass_fields__})
+        for bad_field in ("origin", "url", "host", "port"):
+            with self.assertRaises(ValueError):
+                ActionProposal.from_mapping({"capability": "request_api", "target_id": "external-lab", bad_field: "x"})
 
 
 class EvaluationCaseTests(LocalHarness):

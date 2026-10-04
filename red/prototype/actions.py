@@ -40,21 +40,44 @@ class ActionResult:
 
 
 class FixedTargetRegistry:
-    """The model can name one registered target; it never supplies an origin."""
+    """The model can name a registered target; it never supplies an origin.
 
-    def __init__(self, origin: str) -> None:
+    `origin` registers the one bank-local id every existing scenario and capability
+    uses, unchanged. `extra_targets` additionally registers other target ids (for
+    example, a real external lab) under the same loopback-only rule. Each entry is
+    validated identically; nothing here grants a wider capability set to an extra
+    target. That restriction (today: only `request_api`/`read_page`, never the load
+    test or the bank-local-shaped login flow) is enforced by `ActionExecutor`, not here.
+    """
+
+    def __init__(self, origin: str | None = None, *, extra_targets: dict[str, str] | None = None) -> None:
+        self._target: dict[str, tuple[str, int]] = {}
+        if origin is not None:
+            self._target[TARGET_ID] = self._parse_loopback_origin(origin)
+        for target_id, extra_origin in (extra_targets or {}).items():
+            if target_id == TARGET_ID:
+                raise ValueError("extra target id collides with the reserved bank-local id")
+            self._target[target_id] = self._parse_loopback_origin(extra_origin)
+        if not self._target:
+            raise ValueError("registry must register at least one target")
+
+    @staticmethod
+    def _parse_loopback_origin(origin: str) -> tuple[str, int]:
         parsed = urllib.parse.urlsplit(origin)
         if parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or parsed.path or parsed.query or parsed.fragment:
             raise ValueError("prototype targets must be an HTTP origin on 127.0.0.1")
         if parsed.port is None:
-            raise ValueError("loopback target origin must include its registered port")
-        self._target = {TARGET_ID: (parsed.hostname, parsed.port)}
+            raise ValueError("registered target origin must include its registered port")
+        return (parsed.hostname, parsed.port)
 
     def resolve(self, target_id: str) -> tuple[str, int]:
         try:
             return self._target[target_id]
         except KeyError as exc:
             raise ActionRejected("target is not registered") from exc
+
+    def target_ids(self) -> frozenset[str]:
+        return frozenset(self._target)
 
 
 class ActionExecutor:
@@ -151,12 +174,17 @@ class ActionExecutor:
         return urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, ""))
 
     def _validate(self, proposal: ActionProposal) -> tuple[str, str, dict[str, str], str | None]:
-        if proposal.target_id != TARGET_ID:
-            raise ActionRejected("target is not registered")
         host, port = self.registry.resolve(proposal.target_id)
         if host != "127.0.0.1" or port <= 0:
             raise ActionRejected("registered target is outside loopback scope")
         capability = proposal.capability
+        if proposal.target_id != TARGET_ID and capability not in ("request_api", "read_page"):
+            # A registered non-bank-local target (e.g. a real external lab) is reachable
+            # only for a generic, read-only-shaped passthrough request. The bank-local
+            # login/logout/form flow and the load test assume this lab's own fixed API
+            # shape and in-process status log; neither is safe to assume for another
+            # target without that target separately supplying the same guarantees.
+            raise ActionRejected("capability is not available for this registered target")
         if capability == "start_account_session":
             if proposal.identity_ref not in IDENTITY_REFS:
                 raise ActionRejected("identity reference is not supplied to Red")
