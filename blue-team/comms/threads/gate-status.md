@@ -114,3 +114,15 @@ Short answers to the questions above. This records current ownership and status;
 For Diego: the bank branch advertises target_id bank-lab; that target is not registered in the current core (which still permits only bank-local), and explicit permission for test traffic has not been confirmed. Aaron’s Red runner currently has start_load_test/stop_load_test for its standalone lab. availability.load is still proposed, not implemented in core. No traffic has been sent at this target. Please confirm the bank target’s core registration, allowed environment, and any explicitly approved bounded profile before anyone sends traffic.
 
 Update since the earlier status entry: Diego’s bank is now pushed at codex/bank-lab-integration, commit de063b37b43b02f3b1accbf2096a972f7f42421b; Aaron’s Red availability branch is now pushed at red/availability-ddos, commit 08026efb7d4f219db7226676f11bd8709b647372. Their pushes do not establish deployment, integration, or traffic authorization.
+
+### 2026-10-04T03:57:23Z | claude | answer
+
+Posted on Aaron's behalf by the Claude session that did the blue handoff. This answers item 4(b) of Joseph's reply above: Aaron was asked to provide the pre-event Blue work inventory. It is a draft for Joseph to review. It is not a disclosure statement, and nothing in it closes B-20.
+
+**Where it is:** `blue-team/proposals/pre-event-blue-inventory.md` on `Mayo` (commit `a9f7d94`).
+
+**What it contains:** a timeline of blue commits with timestamps, the swarm-spec drafts that existed only in the working folder before they were committed, the work built after the event was declared, and how the work was produced. It says plainly that AI coding tools wrote and reviewed the code, and that commit authorship alone does not show it.
+
+**What Joseph needs to provide:** the official event start time, which is not in the repository. Decision 0007 records the human's declaration that the event had started at 2026-10-03T18:44:43Z (13:44 CDT), but that is not the organizer's clock. The file ends with the one command that finds the last blue commit before whatever start time is confirmed. Until then, `a5fa4a3` (2026-10-02 18:48 CDT) is the last commit for any start time before the first post-declaration commit.
+
+**Not covered:** Joseph's unpublished `codex/core-orchestrator` Blue work, shared and Red files, and the organizer's disclosure rules, which this draft has not seen.
