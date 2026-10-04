@@ -9,6 +9,7 @@
     "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1",
     "test": "node --test tests/*.test.mjs",
+    "test:availability": "node --test tests/availability-lab.test.mjs tests/availability-integration.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

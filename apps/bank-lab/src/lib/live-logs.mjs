@@ -4,7 +4,8 @@ let sequence = 0;
 
 function normalizeRoute(route) {
   if (route === 'health' || route === 'login' || route === 'logout' || route === 'me' ||
-      route === 'accounts' || route === 'vault' || route === 'training/search') return `/api/${route}`;
+      route === 'accounts' || route === 'vault' || route === 'training/search' ||
+      route === 'availability/status' || route === 'availability/work' || route === 'availability/control') return `/api/${route}`;
   if (route.startsWith('accounts/')) return '/api/accounts/:accountId';
   return '/api/other';
 }

@@ -14,7 +14,7 @@ The product name, arena visual design, overall languages/frameworks, model provi
 
 ## Product and safety boundaries
 
-- Keep the first end-to-end mission focused on Red reaching protected vault data while legitimate bank access continues to work. Availability disruption is a separate later scenario and cannot count as vault access.
+- Current user direction begins the separate availability integration slice now. Keep vault access and availability objectives distinct; an outage does not count as vault access or pass a vault gate. Preserve ordinary authorized banking during defense verification.
 - Red investigates and adapts from evidence during a run; do not replace that goal with a fixed attack sequence. Blue defends independently using permitted telemetry and must not receive Red's private task board or plans.
 - Only the referee/evaluation path may see seeded vulnerability ground truth. Keep Red, Blue, judge, and referee records separate and enforce visibility in the core.
 - Security tools may act only on registered, isolated lab targets with synthetic data. Resolve target IDs through a fixed registry, reject arbitrary destinations and cross-origin redirects, and enforce capabilities, budgets, timeouts, cancellation, and reset outside the models.
@@ -25,12 +25,12 @@ The product name, arena visual design, overall languages/frameworks, model provi
 
 ## Ownership
 
-- **Joseph:** Red exploration, evidence, adaptive task handoff, and evaluation.
-- **Aaron:** Blue monitoring and bounded response, extending and preserving his existing implementation after inventorying its actual behavior and tests.
+- **Joseph:** Blue monitoring and bounded response.
+- **Aaron:** Red exploration, evidence, adaptive task handoff, and evaluation.
 - **Diego:** Core control plane, registered target/capability boundary, bank lab/API, event routing, and referee integration.
 - **Omar:** Judge-facing arena. A 3D bank with 2D agents is the starting vision; Omar may pitch alternatives before the team commits to a visual approach or stack.
 
-Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand the roster, vulnerability catalog, and lab network only after the vault mission works end to end.
+These are current coordination contacts. The user's instruction removes ownership as an approval barrier for this bank/core integration work. Keep existing dirty checkouts untouched, use a separate branch/worktree, and do not bypass the Blue workflow guard. Start with Red Scout/Operator and Blue Monitor/Defender responsibilities.
 
 ## Working and validation rules
 
@@ -52,10 +52,11 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
   cd apps/bank-lab
   pnpm install --frozen-lockfile --ignore-scripts
   pnpm test
+  pnpm test:availability
   pnpm build
   ```
 
-  Tests use embedded PostgreSQL, not a running Compose stack. Production build includes TypeScript validation.
+  Tests use embedded PostgreSQL and disposable loopback HTTP fixtures, not the running bank/Compose stack. Production build includes TypeScript validation.
 - Bank setup and live verification (from the project root on Ubuntu, after Docker and private credentials are configured as in [the walkthrough](docs/UBUNTU_BANK_LAB.md)):
 
   ```sh
@@ -69,6 +70,7 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
 - Local Docker Desktop setup is documented in [the Windows walkthrough](docs/LOCAL_DOCKER_DESKTOP.md). The bank app and database stay on internal networks; only the fixed Nginx proxy publishes `127.0.0.1:3000`. Do not replace this with a public or general-egress app network for vulnerability experiments.
 - The opt-in SQL injection exercise is documented in the local Docker Desktop walkthrough. Set `BANK_SCENARIO=sqli-training`, provision its distinct `BANK_TRAINING_DB_PASSWORD` with the operator reset, then demonstrate only `GET /api/training/search?term=...` on `http://127.0.0.1:3000`. The demo role is read-only and limited to synthetic `bank.training_records`; run the baseline operator verification afterward. Turn it off with `BANK_SCENARIO=baseline` and recreate the local stack. Do not expose the scenario publicly.
 - The local `/monitor` page displays sanitized API request metadata from a 250-entry in-memory ring buffer. It is not packet capture, excludes its own polling requests, and omits bodies, cookies, query strings, and source addresses. For visible activity, use the walkthrough's local 20-request/one-per-second demonstration; do not use a distributed flood.
+- The opt-in availability interface is defined in [the bank handoff](docs/BANK_AVAILABILITY_HANDOFF.md). The canonical target is `bank-lab`; `bank-local` is not an alias. Both server and fixed registry default to disabled. Keep tokens private, pin run/version/exercise, and enforce bounded dispatch/stop outside models. Approval requires healthy calibration and explicit isolation/limits before any live-bank traffic. Unit/HTTP fixtures do not approve a live profile or prove the real core/Blue integration. Limits apply to one process and one adapter, not multiple replicas. Preserve the core-private durable ledger outside the bank across reset; the local monitor is not referee evidence.
 - Git changes are manual by default. Do not commit, create branches, push, merge, or stash unless Joseph explicitly asks.
 
 ## Workflow skills
