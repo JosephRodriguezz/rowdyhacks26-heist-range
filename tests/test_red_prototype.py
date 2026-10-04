@@ -364,7 +364,13 @@ class ExpandedLabTests(LocalHarness):
         with tempfile.TemporaryDirectory() as tmp:
             marker = Path(tmp) / "marker.txt"
             marker.write_text("HOST FILE MUST STAY PRIVATE", encoding="utf-8")
-            selector = "../../" + str(marker).lstrip("/")
+            # as_posix(), not str(): the handler treats `name` as a POSIX-style virtual
+            # selector (posixpath.normpath) and rejects any backslash outright. On Windows,
+            # str(marker) is a native "C:\..." path, so that rejection fires as a 400 before
+            # the selector is ever resolved -- a safe outcome, but not the one this test
+            # means to exercise. as_posix() keeps the test platform-independent while still
+            # building a selector that, if it worked, would reach outside documents/.
+            selector = "../../" + marker.as_posix().lstrip("/")
             result = self.act("request_api", path="/api/documents/download?name=" + quote(selector, safe=""))
             self.assertEqual(result.evidence.status, 404)
             self.assertNotIn(marker.read_text(), result.evidence.body)

@@ -13,6 +13,7 @@ An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around
 - [Role packets](docs/roles/README.md) — responsibilities, preparation, event work, and acceptance checks.
 - [Red prototype preparation](docs/red/README.md) — standalone prototype boundaries, evaluation cases, and build sequence.
 - [Red integration readiness](docs/red/INTEGRATION_READINESS.md) — what works locally and what Joseph, Diego, and Aaron need to connect.
+- [Red deployment](docs/red/DEPLOYMENT.md) — running the Red prototype on a machine other than the one it was built on, with or without Docker.
 - [Integration contracts](docs/INTEGRATION_CONTRACTS.md) — draft task, handoff, event, target, and referee records.
 - [Hackathon plan](docs/HACKATHON_PLAN.md) — pre-event preparation and event build sequence.
 - [Evaluation plan](docs/EVALUATION_PLAN.md) — safe, evidence-based iteration criteria.
