@@ -1,0 +1,80 @@
+name: rowdy-bank-lab
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lab_admin
+      POSTGRES_DB: bank_lab
+      POSTGRES_PASSWORD: ${BANK_DB_PASSWORD:?Set BANK_DB_PASSWORD}
+    volumes:
+      - bank_data:/var/lib/postgresql/data
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U lab_admin -d bank_lab]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 512m
+  bank:
+    image: rowdy-bank-lab:local
+    build: ./apps/bank-lab
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://bank_app:${BANK_APP_DB_PASSWORD:?Set BANK_APP_DB_PASSWORD}@db:5432/bank_lab
+      TRAINING_DATABASE_URL: postgresql://bank_training:${BANK_TRAINING_DB_PASSWORD:?Set BANK_TRAINING_DB_PASSWORD}@db:5432/bank_lab
+      BANK_SCENARIO: ${BANK_SCENARIO:-baseline}
+      BANK_COOKIE_SECURE: "0"
+      BANK_TARGET_ID: bank-lab
+      BANK_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,http://bank:3000
+      NEXT_TELEMETRY_DISABLED: "1"
+    networks: [database, frontend]
+    depends_on:
+      db: {condition: service_healthy}
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+  proxy:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:8080"
+    volumes:
+      - ./apps/bank-lab/deploy/nginx-conf:/etc/nginx/conf.d:ro
+    networks: [frontend, host-access]
+    depends_on:
+      bank: {condition: service_started}
+    read_only: true
+    tmpfs: [/tmp, /var/run, /var/cache/nginx]
+    cap_add: [CHOWN, SETGID, SETUID]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+  operator:
+    image: rowdy-bank-lab:local
+    profiles: [tools]
+    environment:
+      DATABASE_ADMIN_URL: postgresql://lab_admin:${BANK_DB_PASSWORD:?Set BANK_DB_PASSWORD}@db:5432/bank_lab
+      BANK_APP_DB_PASSWORD: ${BANK_APP_DB_PASSWORD:?Set BANK_APP_DB_PASSWORD}
+      BANK_TRAINING_DB_PASSWORD: ${BANK_TRAINING_DB_PASSWORD:?Set BANK_TRAINING_DB_PASSWORD}
+      BANK_SCENARIO: ${BANK_SCENARIO:-baseline}
+      BANK_CUSTOMER_PASSWORD: ${BANK_CUSTOMER_PASSWORD:?Set BANK_CUSTOMER_PASSWORD}
+      BANK_VAULT_PASSWORD: ${BANK_VAULT_PASSWORD:?Set BANK_VAULT_PASSWORD}
+    command: [node, scripts/verify.mjs, http://bank:3000]
+    networks: [database, frontend]
+    depends_on:
+      db: {condition: service_healthy}
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+networks:
+  database:
+    internal: true
+  frontend:
+    internal: true
+  host-access: {}
+volumes:
+  bank_data:

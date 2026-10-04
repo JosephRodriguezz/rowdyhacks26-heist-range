@@ -2,9 +2,9 @@
 
 ## Project state
 
-This repository is the planning foundation for the RowdyHacks 2026 submission. It currently contains planning documents and agent workflow skills, not a working cyber range or finished demo. Preparation, research, contracts, and isolated prototypes may happen before the event; do not describe the integrated contest or final demo as complete until it has been built and verified during the hackathon.
+This repository is the planning foundation for the RowdyHacks 2026 submission. It contains planning documents, agent workflow skills, and the isolated bank website prototype in `apps/bank-lab`; it is not a working integrated cyber range or finished demo. Preparation, research, contracts, and isolated prototypes may happen before the event; do not describe the integrated contest or final demo as complete until it has been built and verified during the hackathon.
 
-The product name, visual design, languages, frameworks, model provider, and deployment approach remain open unless the team records a decision in [the decision log](docs/DECISIONS.md).
+The product name, arena visual design, overall languages/frameworks, model provider, and final deployment approach remain open unless the team records a decision in [the decision log](docs/DECISIONS.md). The bank preparation prototype uses Next.js/TypeScript, PostgreSQL, and Docker Compose on Diego's Ubuntu server or a local Docker Desktop copy; that does not select the other owners' stacks.
 
 ## Read before implementation
 
@@ -45,7 +45,30 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
   git diff --check
   ```
 
-  There is no live application test suite yet. Do not report the planning preview or fixture data as evidence of live security behavior.
+  These remain documentation/toolkit checks. Do not report the planning preview or fixture data as evidence of live security behavior.
+- Bank source checks (Node.js 24, pnpm 11.19.0):
+
+  ```sh
+  cd apps/bank-lab
+  pnpm install --frozen-lockfile --ignore-scripts
+  pnpm test
+  pnpm build
+  ```
+
+  Tests use embedded PostgreSQL, not a running Compose stack. Production build includes TypeScript validation.
+- Bank setup and live verification (from the project root on Ubuntu, after Docker and private credentials are configured as in [the walkthrough](docs/UBUNTU_BANK_LAB.md)):
+
+  ```sh
+  sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml up --build -d
+  sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml run --rm operator node scripts/reset.mjs
+  curl --fail --silent --show-error http://127.0.0.1:3000/api/health
+  sudo docker compose --env-file .env.bank-lab -f compose.bank-lab.yaml run --rm operator node scripts/verify.mjs http://bank:3000
+  ```
+
+  Reset clears bank state/events and invalidates sessions. Preserve needed evidence and stop actions before reset. Do not expose operator commands, database credentials, or event storage to Red. The baseline has no deliberate vulnerabilities and no integrated referee.
+- Local Docker Desktop setup is documented in [the Windows walkthrough](docs/LOCAL_DOCKER_DESKTOP.md). The bank app and database stay on internal networks; only the fixed Nginx proxy publishes `127.0.0.1:3000`. Do not replace this with a public or general-egress app network for vulnerability experiments.
+- The opt-in SQL injection exercise is documented in the local Docker Desktop walkthrough. Set `BANK_SCENARIO=sqli-training`, provision its distinct `BANK_TRAINING_DB_PASSWORD` with the operator reset, then demonstrate only `GET /api/training/search?term=...` on `http://127.0.0.1:3000`. The demo role is read-only and limited to synthetic `bank.training_records`; run the baseline operator verification afterward. Turn it off with `BANK_SCENARIO=baseline` and recreate the local stack. Do not expose the scenario publicly.
+- The local `/monitor` page displays sanitized API request metadata from a 250-entry in-memory ring buffer. It is not packet capture, excludes its own polling requests, and omits bodies, cookies, query strings, and source addresses. For visible activity, use the walkthrough's local 20-request/one-per-second demonstration; do not use a distributed flood.
 - Git changes are manual by default. Do not commit, create branches, push, merge, or stash unless Joseph explicitly asks.
 
 ## Workflow skills

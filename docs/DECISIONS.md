@@ -20,12 +20,13 @@ This file records decisions that shape the project. Update it when the team make
 | Preparation | Planning, references, contracts, and preparation may happen before the hackathon; the completed integrated contest/final demo is built during the event. |
 | Safety boundary | Security actions run only against registered isolated lab targets, with synthetic data, deterministic policy, budgets, timeouts, cancellation, and evidence. |
 | Repository agent setup | Tailor the portable-agent-toolkit guidance to this project's instructions and retain its six selected workflow skills. This supports team planning and later implementation without adding runtime product code. |
+| Bank preparation prototype | At Diego's request, prepare a Next.js/TypeScript bank with PostgreSQL and Docker Compose for his Oracle Ubuntu 24.04 x86-64 server. Start with an authorized baseline, private SSH browser access, synthetic data, and operator-only reset; this does not select the other owners' stacks or implement the integrated contest. |
 
 ## Open decisions
 
 - Product name and visual identity.
 - Arena framework, rendering engine, asset style, and interaction model.
-- Language, hosting/deployment arrangement, model provider, and agent framework.
+- Overall language, final hosting/deployment arrangement, model provider, and agent framework. The isolated bank preparation stack is recorded above.
 - Exact capability names, event enums, and transport for the draft contracts.
 - Exact hidden lab variations and scenario weights for the three initial families.
 - Which narrow Blue containment actions may run automatically; patches and broader changes remain review-gated.
@@ -38,3 +39,5 @@ This file records decisions that shape the project. Update it when the team make
 | Date | Decision/change | Rationale | Affected docs |
 |---|---|---|---|
 | 2026-10-02 | Created the planning foundation, role packets, shared contracts, and tailored agent workflow setup in the new submission repo. | Give each owner shared direction and safe preparation guidance without building the final integrated demo before the event. | README, AGENTS, project brief, architecture, contracts, role packets, hackathon plan, evaluation plan, agent skills |
+| 2026-10-03 | Added the isolated bank website baseline and an Ubuntu deployment walkthrough. | Give Diego a concrete, resettable target foundation for later core/agent integration. Controlled weaknesses and contest adapters remain future work. | README, AGENTS, Ubuntu walkthrough, prototype interface notes in contracts |
+| 2026-10-03 | Added an opt-in local SQL injection training fixture and sanitized live API request monitor to the bank preparation prototype. | Provide bounded training/evidence surfaces without changing baseline bank authorization or selecting the availability mission. Core and team adapters remain future work. | README, AGENTS, local Docker walkthrough, bank API and monitor contracts |

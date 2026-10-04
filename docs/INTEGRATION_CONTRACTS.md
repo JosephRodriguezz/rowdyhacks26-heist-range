@@ -82,3 +82,31 @@ Each team board contains that team’s tasks, owners, hypotheses, evidence refer
 3. Connect each team to the core through its permitted task/event view.
 4. Connect the arena to fixtures first, then the core’s live event stream.
 5. Verify the referee result independently and check that no team receives referee-only fields.
+
+## Bank preparation prototype interfaces
+
+The isolated prototype in `apps/bank-lab` implements the following target interfaces. These are available building blocks, not a completed implementation of the canonical contracts above. See [the Ubuntu walkthrough](UBUNTU_BANK_LAB.md) or [the local Docker Desktop walkthrough](LOCAL_DOCKER_DESKTOP.md) for startup and verification.
+
+| Interface | Current behavior |
+|---|---|
+| `GET /api/health` | 200 with `status`, `target_id`, `run_id`, and `scenario_version` when initialized/reachable; 503 when unavailable |
+| `POST /api/login` | JSON `username`/`password`; returns an HttpOnly, SameSite=Strict session cookie on success |
+| `POST /api/logout` | Revokes the current session and clears its cookie |
+| `GET /api/me` | Current identity and bank run ID, or 401 |
+| `GET /api/accounts` | Authenticated owner's synthetic accounts and run ID |
+| `GET /api/accounts/:account_id` | Four-digit identifier; owner check; cross-owner access denied |
+| `GET /api/vault` | Authenticated vault role only; synthetic protected records and run ID |
+| `GET /api/training/search?term=...` | Opt-in `sqli-training` scenario only; intentionally unsafe search over synthetic training rows via a separate read-only database role. It cannot access bank users, accounts, vault, sessions, or events. |
+| `GET /api/monitor/logs?after=...` | Returns a bounded cursor page of sanitized in-process HTTP API request metadata for the local monitor page. It excludes itself and never returns bodies, cookies, query strings, or source addresses. |
+| `node scripts/reset.mjs` in the operator service | Initializes/restores baseline, invalidates sessions, rotates run ID/record, and clears events; no public HTTP reset route |
+| `node scripts/verify.mjs http://bank:3000` in the operator service | Checks target readiness, authorized accounts/vault, unauthorized denial, and logout |
+
+State-changing HTTP calls require an `Origin` header from the explicit `BANK_ALLOWED_ORIGINS` list. The default Compose configuration permits the localhost browser origin and the internal operator origin. A fixed Nginx proxy publishes only `127.0.0.1:3000` and forwards to the bank over the internal frontend network; the proxy cannot reach the database. The bank and database networks are internal, leaving the bank app without general Internet egress. HTTP cookies are permitted only for this private browser path (`BANK_COOKIE_SECURE=0`); configure HTTPS and secure cookies before providing a different browser access path.
+
+The web service uses a restricted `bank_app` database role. Its credentials are not an agent capability. The operator alone receives administrator credentials. No HTTP route exposes reset or event export.
+
+Raw `bank.events` rows contain `event_id`, bank-local `sequence`, `run_id`, `occurred_at`, `target_id`, `event_type`, `actor_id`, `visibility`, `summary`, `producer=lab`, and `source_mode=live`. Events classify real target requests; they exclude passwords, cookie values, request/response bodies, and vault contents. Visibility is initially `blue_private`. The database permissions restrict reads to an operator; the core routing adapter is not implemented.
+
+The future core adapter must map bank `run_id` to canonical `session_id`, allocate session-wide event order, add team/status and evidence references where appropriate, enforce visibility, and emit separate sanitized `judge_safe` events for Omar. Bank-local sequence values restart on reset and are not canonical contest order. An authenticated vault event alone is not proof of unauthorized Red success; the referee still needs independent objective evidence and legitimate-use regression checks. Export required evidence before reset, because raw bank events are cleared.
+
+Target registration, redirect validation, capability enforcement, budgets, cancellation, Blue actions, event export/retention, additional controlled vulnerability families, and referee evaluation remain integration work. The opt-in SQL injection training endpoint and local request monitor are preparation features, not canonical core or referee integrations.
