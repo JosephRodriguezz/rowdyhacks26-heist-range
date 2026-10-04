@@ -9,6 +9,7 @@ An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around
 - [Repository agent instructions](AGENTS.md) — project boundaries, safety rules, owners, and current checks.
 - [Ubuntu bank walkthrough](docs/UBUNTU_BANK_LAB.md) — install Docker, transfer the prototype, configure credentials, start/reset the bank, and open it through SSH.
 - [Local Docker Desktop walkthrough](docs/LOCAL_DOCKER_DESKTOP.md) — run an independent bank copy on Windows for isolated development.
+- [Bank availability handoff](docs/BANK_AVAILABILITY_HANDOFF.md) — fixed registration, opt-in capacity exercise, bounded core adapter, and independent fixture verification.
 - [Project brief](docs/PROJECT_BRIEF.md) — objective, first mission, scope, and non-goals.
 - [Architecture](docs/ARCHITECTURE.md) — system boundaries, control flow, and information separation.
 - [Team brief](docs/TEAM_BRIEF.md) — copy-ready project message for Discord.
@@ -23,7 +24,7 @@ An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around
 
 Red explores a registered bank lab, gathers evidence, and chooses an approach during the run. Blue independently monitors permitted telemetry and responds while the contest is active. An independent referee determines whether Red reached the protected vault data.
 
-The first mission must preserve legitimate bank access and distinguish attempted attacks, verified vulnerabilities, applied responses, and fixes that pass a retest. A bounded availability-disruption scenario may follow as a separate mission; an outage does not count as vault access.
+Missions must preserve legitimate bank access and distinguish attempted attacks, verified vulnerabilities, applied responses, and fixes that pass a retest. The current direction begins the separate availability integration slice now; this does not pass a vault gate or make an outage count as vault access.
 
 ## Safety boundaries
 
@@ -36,16 +37,16 @@ The first mission must preserve legitimate bank access and distinguish attempted
 
 ## Team ownership
 
-- **Joseph — Red Team:** Scout and Operator roles; exploration, evidence, and adaptive task handoff.
-- **Aaron — Blue Team:** Extend the existing Blue implementation into monitoring and bounded response, preserving tested behavior.
+- **Joseph — Blue Team:** Monitoring, permitted evidence, and bounded mitigation.
+- **Aaron — Red Team:** Scout and Operator roles; exploration, evidence, and adaptive task handoff.
 - **Diego — Core and bank lab:** Control plane, registered target boundary, resettable fictional bank website/API, and independent referee.
 - **Omar — Arena:** Judge-facing event and agent view. A 3D bank with 2D agents is the starting visual direction; component layout and technology are proposals, not mandates.
 
-Start with two specialist agents per side. Expand the roster and vulnerability catalog only after the vault mission works end to end.
+These names identify current coordination contacts, not additional approval barriers for authorized work. Start with two specialist agents per side.
 
 ## Bank website prototype
 
-`apps/bank-lab` provides a Next.js/TypeScript website and PostgreSQL-backed API. It includes synthetic customer accounts, server-side vault authorization, expiring sessions, health checks, private target events, and a separate operator reset. The default baseline preserves bank authorization. A local-only opt-in SQL injection training search is restricted to synthetic fixture records, and `/monitor` shows bounded, sanitized API request metadata. Core adapters, Red/Blue agents, and referee/arena integration are not implemented.
+`apps/bank-lab` provides a Next.js/TypeScript website and PostgreSQL-backed API. It includes synthetic customer accounts, server-side vault authorization, expiring sessions, health checks, private target events, and a separate operator reset. The default baseline preserves bank authorization. A local-only opt-in SQL injection training search is restricted to synthetic fixture records, and `/monitor` shows bounded, sanitized API request metadata. The separate availability variant adds measured training capacity, private load/probe/executor roles, and an embeddable core adapter with evidence checks. Connecting that adapter to the real core, Red/Blue agents, and arena remains pending.
 
 For a local Windows copy, follow [the Docker Desktop walkthrough](docs/LOCAL_DOCKER_DESKTOP.md). For Ubuntu setup, follow [the full walkthrough](docs/UBUNTU_BANK_LAB.md), including its Docker installation and private credential setup. From the project root, after creating `.env.bank-lab`:
 
@@ -74,3 +75,5 @@ pnpm build
 ```
 
 Tests use embedded PostgreSQL (PGlite) to check authorization, sessions, reset, event sanitization, database permissions, origin validation, and bounded request parsing. The production Next.js build also checks TypeScript. These checks do not replace the live Docker/PostgreSQL verification command on Ubuntu or an independent contest referee.
+
+`pnpm test:availability` runs the availability module and disposable HTTP integration checks, including two repeated degradation/mitigation/recovery slices and ordinary authorized access during continuing bounded load. The fixture responder is explicit test code, not a live Blue agent. Real-bank traffic stays disabled until the exact registration, isolated scope, healthy calibration, limits, and verification criteria are approved; follow [the handoff](docs/BANK_AVAILABILITY_HANDOFF.md).
