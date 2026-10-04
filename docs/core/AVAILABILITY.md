@@ -1,5 +1,6 @@
 # Connected disposable availability slice
 
+For the runnable browser presentation without Omar's arena, use `python -m core.cli demo` and follow [the demo walkthrough](DEMO.md). It uses the exact disposable slice described here and does not activate the deployed bank.
 Core now runs the bank's actual account and capacity libraries with the actual Blue availability detector against an owned HTTP/PGlite fixture. It proves the backend seam before deployed-bank calibration: healthy ordinary access, bounded Red load, measured training occupancy, evidence-backed temporary limiting, independent recovery under continuing load, and teardown.
 
 All records and decisions are labeled `fixture`. Red start/stop decisions are scripted typed proposals, not an adaptive Red model run. The target is an ephemeral loopback server created by core's child process, never the running website on port 3000. This is a training capacity exercise; it does not measure whole-bank overload, packets, network saturation, or general DDoS protection. The UI/arena and live arrest remain downstream.

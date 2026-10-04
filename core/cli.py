@@ -3,9 +3,12 @@
 import argparse
 import json
 import os
+import secrets
+import shutil
 from pathlib import Path
 import threading
 import uuid
+import webbrowser
 
 from .api import CoreHTTPServer
 from .service import CoreService
@@ -26,6 +29,11 @@ def main(argv=None):
     availability = subcommands.add_parser("availability", help="Run core/Red/Blue against an owned disposable bank fixture only")
     availability.add_argument("--db", default=":memory:")
     availability.add_argument("--node", help="Trusted local Node executable; never a target destination")
+    demo = subcommands.add_parser("demo", help="Open the local availability demo; no Omar arena or deployed bank required")
+    demo.add_argument("--db", default=".core-state/demo.sqlite3")
+    demo.add_argument("--port", type=int, default=8765)
+    demo.add_argument("--node", help="Trusted local Node executable")
+    demo.add_argument("--no-browser", action="store_true", help="Use private HEIST_CORE_TOKEN and open the displayed URL manually")
     args = parser.parse_args(argv)
     if args.command == "run" and args.mode == "model" and not args.allow_remote_model:
         parser.error("model mode requires --allow-remote-model")
@@ -34,11 +42,19 @@ def main(argv=None):
     token = os.environ.get("HEIST_CORE_TOKEN") if args.command == "serve" else None
     if args.command == "serve" and (not token or len(token) < 16):
         parser.error("set HEIST_CORE_TOKEN to a strong presenter credential of at least 16 characters; it is never printed")
+    if args.command == "demo":
+        token = os.environ.get("HEIST_CORE_TOKEN") or secrets.token_urlsafe(32)
+        if args.no_browser and not os.environ.get("HEIST_CORE_TOKEN"):
+            parser.error("--no-browser requires private HEIST_CORE_TOKEN (32-128 URL-safe characters)")
+        if not (args.node or shutil.which("node")):
+            parser.error("Node is required; install Node or pass --node")
+        if not (Path(__file__).resolve().parents[1] / "apps/bank-lab/node_modules/@electric-sql/pglite").exists():
+            parser.error("Install the locked bank dependencies first: cd apps/bank-lab; pnpm install --frozen-lockfile --ignore-scripts")
     try:
         from .availability import AvailabilityBridge
-        factory = (lambda assessment_id: AvailabilityBridge(assessment_id, node=args.node)) if args.command == "availability" else None
+        factory = (lambda assessment_id: AvailabilityBridge(assessment_id, node=args.node)) if args.command in ("availability", "demo") else None
         with CoreService(args.db, allow_remote_model=getattr(args, "allow_remote_model", False),
-                         enable_availability_fixture=args.command == "availability" or getattr(args, "availability_fixture", False),
+                         enable_availability_fixture=args.command in ("availability", "demo") or getattr(args, "availability_fixture", False),
                          availability_bridge_factory=factory) as service:
             if args.command in ("run", "availability"):
                 request_prefix = "cli-" + uuid.uuid4().hex[:16]
@@ -51,9 +67,16 @@ def main(argv=None):
                     "agent_decisions": "scripted_fixture" if mode == "fixture" else "model",
                     "model_performance_measured": False, "session": final}, indent=2))
                 return 0 if final["status"] == "completed" and (args.command != "availability" or final["verdict"]["result"] == "achieved") else 1
-            with CoreHTTPServer(service, token=token, port=args.port) as api:
+            with CoreHTTPServer(service, token=token, port=args.port, demo=args.command == "demo") as api:
                 print("Core presenter API: " + api.origin, flush=True)
                 print("Authenticated judge-safe views only; no remote model call without explicit opt-in.", flush=True)
+                if args.command == "demo":
+                    print("Rowdy Bank disposable demo: " + api.origin + "/demo", flush=True)
+                    print("Press Ctrl+C to stop core and clean up any active target. Evidence is retained.", flush=True)
+                    if not args.no_browser:
+                        # Fragment never reaches HTTP logs. The page erases it
+                        # and retains it in origin/tab-scoped sessionStorage.
+                        webbrowser.open(api.origin + "/demo#presenter=" + token)
                 threading.Event().wait()
     except KeyboardInterrupt:
         return 0

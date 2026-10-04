@@ -1,0 +1,37 @@
+name: rowdy-availability-demo
+services:
+  core:
+    build:
+      context: .
+      dockerfile: deploy/demo/Dockerfile
+    environment:
+      HEIST_CORE_TOKEN: ${HEIST_CORE_TOKEN:?Set a private 32-128 character URL-safe presenter token}
+    ports:
+      - "127.0.0.1:8765:8080"
+    volumes:
+      - demo_evidence:/demo/.core-state
+    networks: [isolated_demo]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 1536m
+    pids_limit: 128
+    stop_grace_period: 25s
+  presenter:
+    image: nginx:stable-alpine
+    network_mode: service:core
+    depends_on: [core]
+    volumes:
+      - ./deploy/demo/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    read_only: true
+    tmpfs: [/tmp, /var/run, /var/cache/nginx]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+networks:
+  isolated_demo:
+    internal: true
+volumes:
+  demo_evidence:

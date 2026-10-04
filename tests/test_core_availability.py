@@ -133,8 +133,11 @@ class CoreAvailabilityTests(unittest.TestCase):
             before = work_count(); time.sleep(.15)
             runtime._call("poll")  # trusted evidence flush only; no target traffic
             self.assertEqual(work_count(), before)
-            self.assertEqual(core.action(sid, "resume", action_id="resume")["status"], "running")
-            core.action(sid, "stop", action_id="stop")
+            # Admit stop before the resumed worker can finish the short round;
+            # otherwise this test races a valid terminal-state conflict.
+            with core.lock, runtime.gate.condition:
+                self.assertEqual(core.action(sid, "resume", action_id="resume")["status"], "running")
+                core.action(sid, "stop", action_id="stop")
             final = core.wait(sid, 8)
             self.assertEqual(final["status"], "cancelled")
             self.assertEqual(final["verdict"]["result"], "inconclusive")

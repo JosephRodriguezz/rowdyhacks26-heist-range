@@ -6,6 +6,7 @@ An adaptive Red Team vs. Blue Team cyber range for RowdyHacks 2026, built around
 
 ## Start here
 
+- [Run the browser demo](docs/core/DEMO.md) — one-command local presenter with live request metadata, Red load, Blue response, referee verdict, stop/reset, and retained history; Omar's arena is optional.
 - [Repository agent instructions](AGENTS.md) — project boundaries, safety rules, owners, and current checks.
 - [Ubuntu bank walkthrough](docs/UBUNTU_BANK_LAB.md) — install Docker, transfer the prototype, configure credentials, start/reset the bank, and open it through SSH.
 - [Local Docker Desktop walkthrough](docs/LOCAL_DOCKER_DESKTOP.md) — run an independent bank copy on Windows for isolated development.

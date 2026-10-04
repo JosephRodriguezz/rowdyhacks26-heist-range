@@ -412,7 +412,8 @@ class CoreService:
                             raise Conflict("execution must finish before reset")
                         if snapshot["status"] == "created":
                             self.store.apply(session_id, updates={"status": "cancelled", "allowed_actions": ["reset"], "phase": "ended"},
-                                events=[_event("session.cancelled", "core", {"reason_code": "reset_before_start"})])
+                                events=[_event("session.cancelled", "core", {"reason_code": "reset_before_start"},
+                                               data_source=snapshot["data_source"])])
                         result = self._create(snapshot["target_id"], snapshot["planner_mode"])
                         return self._remember(session_id, action_id, fingerprint, result)
                     result = self._remember(session_id, action_id, fingerprint, self.status(session_id))

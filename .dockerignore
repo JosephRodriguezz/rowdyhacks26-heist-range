@@ -1,0 +1,12 @@
+.git
+**/.git
+**/node_modules
+**/.next
+**/.pnpm-store
+**/__pycache__
+**/.env*
+.core-state
+artifacts
+**/*.sqlite3*
+**/*.run.json
+**/*.evaluation.json

@@ -34,6 +34,7 @@ These are current coordination contacts. The user's instruction removes ownershi
 
 ## Working and validation rules
 
+- The optional local browser demo starts with `python -m core.cli demo` or `./scripts/Start-Demo.ps1`. See [the demo runbook](docs/core/DEMO.md). It uses only the existing disposable bank-library fixture; no deployed-bank traffic is approved by launching it. Validate with `python -m unittest discover -s tests -p 'test_core*.py' -v` and `node --check core/web/demo.js`. Both default `serve` and demo mode remain bearer-only; demo mode adds static assets and stores the browser credential in origin/tab-scoped sessionStorage, never a cross-port localhost cookie. The Docker fixture package is separate and has not been runtime-verified in this workspace.
 - Make the smallest change that advances the agreed plan. Resolve factual questions from repository sources; consult the team on choices that change product scope, ownership, trust boundaries, or a consequential open decision.
 - Keep plans, current work, verified behavior, and future options clearly distinguished. Update linked docs when a shared decision or interface changes.
 - When live services or code are added, document their exact setup and verification commands in this file and the README, and add meaningful checks for policy, state transitions, and regressions.

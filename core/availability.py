@@ -184,6 +184,14 @@ class AvailabilityRuntime:
             evidence.append({"evidence_id": ref, "visibility": "referee_only", "data": entry})
             events.append(self.event("bank." + entry["event_type"], "core-bank-adapter", entry["data"],
                 visibility="referee_only", refs=[ref]))
+            # Separate presenter projection: fixed metadata fields only. Never
+            # expose raw ledger envelopes, scope handles or private evidence IDs.
+            if entry["event_type"] in {"target.health", "availability.work_observed"}:
+                fields = ("kind", "status", "latency_ms", "http_status", "active", "degraded_at",
+                          "rate_limited", "limit_rejections", "refusal_reason", "error")
+                summary = {key: entry["data"][key] for key in fields if key in entry["data"]}
+                events.append(self.event("availability.request.observed" if entry["event_type"] == "availability.work_observed"
+                                         else "availability.probe.observed", "core-bank-adapter", summary))
         if evidence: self.store.apply(self.session_id, evidence=evidence, events=events)
         return response
 
