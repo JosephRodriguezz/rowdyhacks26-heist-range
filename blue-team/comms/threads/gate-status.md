@@ -92,3 +92,25 @@ Posted on Aaron's behalf by the Claude session that did the blue handoff. These 
 6. **Who decides the registered client identities for Blue's rate limiter?** Your adapter's source limits depend on privately registered identities, especially for the second browser. Diego needs to review that boundary. Who owns the decision and the bootstrap?
 
 **For Diego (please relay or tag him):** which target ID is registered for the bank, and has he approved any requests to it? Aaron has network access to Diego's site, but no traffic will be sent there from this session or from Red's runner until Diego confirms the target is registered and says it is allowed. The `availability.load` capability does not exist yet.
+
+
+### 2026-10-04T03:46:17Z | joseph | answer
+
+Short answers to the questions above. This records current ownership and status; it does not close tasks, certify a gate, accept an interface, or authorize traffic.
+
+1. Joseph and Codex in the current Joseph session own Blue. Aaron and his agents own Red. Please do not duplicate Blue implementation in Aaron’s Red lane.
+
+2. Mayo remains the published baseline for the existing Blue observe() contract and implementation. Joseph’s codex/core-orchestrator worktree is the provisional source for the new availability Blue adapter and related fixes, but it is still local/uncommitted and has no stable commit SHA to reconcile yet. The previous note reported 353 Blue tests passing; they were not rerun for this reply. The local code/tests appear to address B-26 and B-27 and the two specific B-29 incident regressions. B-29’s broader acceptance-check/contract reconciliation is still open. Mayo’s B-26, B-27, and B-29 rows remain todo; please do not close them or duplicate the fixes until I publish an exact commit and we review the remaining scope.
+
+3. Yes. DDoS/availability is first; defacement follows. The demo is an attack/recovery story, not a scored contest. AV-01 is not yet written into the repository. Joseph will record the order and live-demo cut line with Diego before implementation. Gate 6 remains unpassed; this change in priority does not certify it.
+
+4. (a) B-12’s broad v1.1 access-control request packet is not needed wholesale for this DDoS-first slice and is not canceled globally. Use the narrower Red availability ask for the current interface review; revisit B-12 where the access-control integration actually needs it.
+   (b) Joseph owns the submission disclosure. Aaron should provide the pre-event Blue work inventory/history. The official exact event-start time is not in the checked record; once confirmed, Codex can identify the last Mayo commit before it and Joseph can record both.
+
+5. No approval yet for 60 requests / 12 concurrent / 10 seconds against Diego’s bank. Those are Red’s standalone hard ceilings, not a calibrated bank profile. Diego and Joseph/Blue will agree a safe, resource-isolated profile and latency/probe criteria from the bank’s measured healthy baseline; Aaron’s Red runner must enforce the agreed hard cap. No defaults should be invented.
+
+6. Joseph/Blue and Diego decide jointly. Diego owns the trusted registration/bootstrap boundary; Blue specifies the minimum opaque telemetry references it needs. Register separate approved load, ordinary-browser (including the second computer), and referee/probe clients; Blue receives opaque references only, not raw addresses, forwarded headers, or cookies.
+
+For Diego: the bank branch advertises target_id bank-lab; that target is not registered in the current core (which still permits only bank-local), and explicit permission for test traffic has not been confirmed. Aaron’s Red runner currently has start_load_test/stop_load_test for its standalone lab. availability.load is still proposed, not implemented in core. No traffic has been sent at this target. Please confirm the bank target’s core registration, allowed environment, and any explicitly approved bounded profile before anyone sends traffic.
+
+Update since the earlier status entry: Diego’s bank is now pushed at codex/bank-lab-integration, commit de063b37b43b02f3b1accbf2096a972f7f42421b; Aaron’s Red availability branch is now pushed at red/availability-ddos, commit 08026efb7d4f219db7226676f11bd8709b647372. Their pushes do not establish deployment, integration, or traffic authorization.
