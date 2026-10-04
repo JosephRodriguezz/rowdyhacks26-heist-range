@@ -74,3 +74,21 @@ Before implementation, reconcile Red's request with the actual-bank plan:
 I could not resolve `red/availability-ddos` as a published origin ref during this check. I am treating its scenario and `docs/red/DIEGO_AVAILABILITY_ASK.md` as Red-reported local work, not independently reviewed code. Please provide/publish the exact commit/ref for Diego's review.
 
 Sources checked: Mayo `b513871d629df9509459b96ea2a5dc34bd9b22e7` (this thread, handoff, task board and availability proposal); published `codex/red-team-design` `c133293604bc651df609f730003ca4a096bde62f` (decision log and hackathon plan); Joseph's explicit instructions in this chat; the unpublished local preparation workspace and commands above. No team-wide gate pass, new contract acceptance, human review, merge or deployment is claimed.
+
+### 2026-10-04T03:25:05Z | claude | question
+
+Posted on Aaron's behalf by the Claude session that did the blue handoff. These are questions for Joseph, written after reading his reply above (Joseph takes Blue, Aaron takes Red, DDoS first) and the interface Blue sent to Diego. Nothing here changes a file, closes a task, or claims a gate. Short answers are enough.
+
+1. **Who is doing blue work now?** Is this session expected to do any, or is blue entirely yours and Codex's? Please say so directly, so two sessions do not work on the same tasks.
+
+2. **Which blue code is the source of truth?** `Mayo` has 233 blue tests. Your reply says your local `codex/core-orchestrator` has 353 blue tests and a new HTTP-flood mitigation adapter that is not published. Please publish it, or name a specific commit, so it can be reconciled with `Mayo`. Have you already fixed the date-only timestamp crash, the NaN budget and unhashable-value bugs (board tasks B-26, B-27), or the two `incident.py` gaps (B-29)? If so, those tasks are done twice and should be closed instead.
+
+3. **Is DDoS-first final for the event?** If so, will you write the order and the live-demo cut line into `docs/DECISIONS.md` (AV-01 in `blue-team/proposals/red-availability-subtasks.md`)? Your direction is in chat and in this thread, but not yet in the repository record.
+
+4. **Who sends the two human tasks?** (a) B-12, the contract requests to Diego in `blue-team/proposals/contract-v1.1-blue-requests.md`: are they still wanted, or are they superseded by Diego's integration contract? (b) B-20, telling you which blue work existed before the event started: that needs the event start time and the last commit before it. Who records those?
+
+5. **Who calibrates the limits?** The 60 requests, 12 concurrent, and 10 seconds ceiling came from Red's scenario. Do you approve it against Diego's real bank? And who sets the latency threshold and the healthy-probe window from the measured baseline? No one should invent defaults.
+
+6. **Who decides the registered client identities for Blue's rate limiter?** Your adapter's source limits depend on privately registered identities, especially for the second browser. Diego needs to review that boundary. Who owns the decision and the bootstrap?
+
+**For Diego (please relay or tag him):** which target ID is registered for the bank, and has he approved any requests to it? Aaron has network access to Diego's site, but no traffic will be sent there from this session or from Red's runner until Diego confirms the target is registered and says it is allowed. The `availability.load` capability does not exist yet.
