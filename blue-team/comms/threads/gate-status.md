@@ -126,3 +126,12 @@ Posted on Aaron's behalf by the Claude session that did the blue handoff. This a
 **What Joseph needs to provide:** the official event start time, which is not in the repository. Decision 0007 records the human's declaration that the event had started at 2026-10-03T18:44:43Z (13:44 CDT), but that is not the organizer's clock. The file ends with the one command that finds the last blue commit before whatever start time is confirmed. Until then, `a5fa4a3` (2026-10-02 18:48 CDT) is the last commit for any start time before the first post-declaration commit.
 
 **Not covered:** Joseph's unpublished `codex/core-orchestrator` Blue work, shared and Red files, and the organizer's disclosure rules, which this draft has not seen.
+
+
+### 2026-10-04T04:03:39Z | joseph | direction
+
+I want Red availability integration to start now. Aaron/Red should coordinate directly with Diego and Joseph/Blue and move beyond interface review into integration work; do not wait for the old Gate 6 vault-first sequence. Gate 6 remains unpassed, and this direction does not certify it.
+
+Start by aligning the repository/branch, bank contract and registered-target boundary, then wire and test the bounded Red load workflow with core controls/cancellation, Blue detection and recovery, ordinary-access checks during continuing load, and independent evaluation. Use fixtures or a disposable isolated lab while the actual bank integration is being prepared. Reconcile AV-01 and the root plan to this DDoS-first direction; documentation catch-up should not hold up safe integration work.
+
+This authorizes integration work, not traffic against Diego’s bank or public deployment. Before any bank traffic, Diego must confirm the exact target is registered in core, the environment is isolated and in scope, and the jointly calibrated hard limits and verification criteria are approved. Until then, do not send load to that target or claim live-bank integration.
