@@ -1,5 +1,7 @@
 # Runnable local core preparation slice
 
+The separate opt-in [availability runbook](AVAILABILITY.md) now connects the bank libraries and actual Blue availability detector on an owned disposable HTTP fixture. The commands below still describe the original access-control/vault runtime; the deployed bank and arena remain unconnected.
+
 This is a shared-session integration of the existing disposable Red bank, actual Scout/Operator workers, and Mayo's unchanged Blue `observe()` runtime. The default provider is a **scripted integration fixture**, not adaptive AI. Its decisions drive real local HTTP and real session revocations. Diego's event bank and Omar's arena are not connected; model performance has not been measured. Patches are disabled.
 
 ## Run and verify
@@ -14,7 +16,11 @@ python3 -m compileall -q core red integrations/mayo/backend/app/agents/blue
 git diff --check
 ```
 
-The persistent CLI run creates a new contest each time and preserves previous sessions. The unchanged Blue suite runs from its original relative backend layout:
+The persistent CLI run creates a new contest each time and preserves previous sessions.
+
+POSIX creation-mode checks cover private SQLite files on POSIX hosts. Windows tests validate persistence and visibility but do not certify NTFS access-control lists. Store private run databases in the operator's private workspace; do not treat a POSIX mode assertion as a Windows ACL check.
+
+The unchanged Blue suite runs from its original relative backend layout:
 
 ```sh
 cd integrations/mayo/backend

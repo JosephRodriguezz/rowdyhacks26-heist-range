@@ -1,8 +1,10 @@
 # Blue HTTP-flood defense: integration handoff
 
-This is a runnable **preparation component for the controlled HTTP-flood lab**, not a claim that Diego's bank is protected. The actual bank is not built or connected. No Internet-wide or network-layer DDoS protection is provided. Defacement remains deferred.
+Integration update: core now invokes this actual observer in the opt-in disposable bank-library slice. See [the core runbook](../../../../docs/core/AVAILABILITY.md). That fixture uses Next.js's bank libraries with a narrow JS training-source limiter; it does not install this WSGI guard in the deployed bank. All integration outcomes remain fixture-labeled, with no live arrest.
 
-Joseph requested the availability scenario first. The existing access-control `observe(context, tools)` interface and v1 test fixtures remain separate and compatible. This opt-in interface needs the integration owner's review before wiring into core or UI. No shared contract, root infrastructure, website, coding-workflow orchestrator, or immutable `integrations/mayo/` snapshot was changed by this slice; root README/AGENTS gained only the runbook link and exact checks. The earlier core still imports that older snapshot; it does **not** automatically use these new modules.
+This is a runnable **preparation component for the controlled HTTP-flood lab**, not a claim that Diego's deployed bank is protected. The website exists and the disposable bank-library core connection is verified; the deployed bank is not connected. No Internet-wide or network-layer DDoS protection is provided. Defacement remains deferred.
+
+Joseph requested availability first. The existing access-control `observe(context, tools)` interface and v1 fixtures remain separate and compatible. The original Blue component did not change shared contracts, the website, or the immutable Mayo snapshot. The new disposable connection is documented in the core runbook and integration contracts; deployed-bank activation still needs calibrated approval. The default access-control core continues importing the older snapshot. Only the explicit availability fixture runtime uses this new observer.
 
 ## What works now
 

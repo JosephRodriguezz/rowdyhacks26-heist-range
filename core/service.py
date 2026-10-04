@@ -287,7 +287,7 @@ class ContestRuntime:
 
 class CoreService:
     def __init__(self, db_path=":memory:", *, limits=None, allow_remote_model=False, provider_factory=None, fixture_provider_factory=None,
-                 scenario_id="access_control", seed=26):
+                 scenario_id="access_control", seed=26, enable_availability_fixture=False, availability_bridge_factory=None):
         if scenario_id not in ("access_control", "clean"):
             raise ValueError("only the initial access-control slice is registered")
         self.ownership = RuntimeOwnership(db_path)
@@ -300,17 +300,29 @@ class CoreService:
         self.provider_factory = provider_factory or OpenAIResponsesProvider
         self.fixture_provider_factory = fixture_provider_factory or IntegrationFixtureProvider
         self.scenario_id, self.seed = scenario_id, seed
+        if type(enable_availability_fixture) is not bool:
+            self.store.close(); self.ownership.close()
+            raise ValueError("availability opt-in must be explicit")
+        from .availability import AvailabilityBridge
+        self.enable_availability_fixture = enable_availability_fixture
+        self.availability_bridge_factory = availability_bridge_factory or AvailabilityBridge
         self.lock, self.runtimes = threading.RLock(), {}
-        self.closed = False
+        self.closed, self.teardown_pending = False, False
         for snapshot in self.store.list_sessions():
             if snapshot["status"] not in TERMINAL | {"created"}:
                 self.store.apply(snapshot["id"], updates={"status": "failed", "phase": "ended", "allowed_actions": ["reset"],
-                    "verdict": {"result": "achieved" if (snapshot.get("verdict") or {}).get("result") == "achieved" else "inconclusive", "scope": "historical_vault_disclosure"},
+                    "verdict": {"result": "achieved" if snapshot["target_id"] == "bank-local" and (snapshot.get("verdict") or {}).get("result") == "achieved" else "inconclusive",
+                                "scope": "availability-recovery" if snapshot["target_id"] == "availability-fixture" else "historical_vault_disclosure"},
                     "limitation": "process_interrupted_no_automatic_resume"},
-                    events=[_event("session.interrupted", "core", {"reason_code": "process_restart", "resumed": False})])
+                    events=[_event("session.interrupted", "core", {"reason_code": "process_restart", "resumed": False},
+                                   data_source=snapshot["data_source"])])
 
     def targets(self):
-        return {"targets": [{"id": "bank-local", "name": "Disposable preparation bank", "version": BankLabAdapter.version}]}
+        targets = [{"id": "bank-local", "name": "Disposable preparation bank", "version": BankLabAdapter.version}]
+        if self.enable_availability_fixture:
+            from .availability import TARGET, VERSION
+            targets.append({"id": TARGET, "name": "Disposable availability fixture", "version": VERSION, "data_source": "fixture"})
+        return {"targets": targets}
 
     def _request(self, action_id, fingerprint):
         if not isinstance(action_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,79}", action_id):
@@ -334,8 +346,11 @@ class CoreService:
         return response
 
     def _create(self, target_id, planner_mode):
-        if target_id != "bank-local":
+        availability = target_id == "availability-fixture" and self.enable_availability_fixture
+        if target_id != "bank-local" and not availability:
             raise ValueError("unknown registered target")
+        if availability and planner_mode != "fixture":
+            raise ValueError("availability preparation requires fixture mode")
         if planner_mode not in ("fixture", "model") or (planner_mode == "model" and not self.allow_remote_model):
             raise ValueError("model execution requires explicit server/CLI opt-in")
         if self.closed:
@@ -344,10 +359,13 @@ class CoreService:
             raise Conflict("registered target already has an unfinished contest")
         session_id = "contest-" + uuid.uuid4().hex[:16]
         self.store.create({"schema_version": "1.0", "id": session_id, "target_id": target_id,
-            "target_version": BankLabAdapter.version, "mode": "autonomous", "data_source": "live", "planner_mode": planner_mode,
+            "target_version": "baseline-v1" if availability else BankLabAdapter.version, "mode": "autonomous",
+            "data_source": "fixture" if availability else "live", "planner_mode": planner_mode,
             "status": "created", "phase": "ready", "last_event_id": 0, "allowed_actions": ["start", "reset"],
-            "finding_ids": [], "defense_ids": [], "budget": {}, "verdict": {"result": "inconclusive", "scope": "historical_vault_disclosure"}, "control_requests": []})
-        self.store.apply(session_id, events=[_event("session.created", "core", {"planner_mode": planner_mode, "target_kind": "local_mock"})])
+            "finding_ids": [], "defense_ids": [], "budget": {}, "verdict": {"result": "inconclusive",
+                "scope": "availability-recovery" if availability else "historical_vault_disclosure"}, "control_requests": []})
+        self.store.apply(session_id, events=[_event("session.created", "core", {"planner_mode": planner_mode,
+            "target_kind": "disposable_training_fixture" if availability else "local_mock"}, data_source="fixture" if availability else "live")])
         return self.status(session_id)
 
     def create(self, target_id="bank-local", planner_mode="fixture", *, action_id):
@@ -377,7 +395,11 @@ class CoreService:
                     if kind not in ALLOWED_ACTIONS.get(snapshot["status"], []):
                         raise Conflict("control is not allowed in this state")
                     if kind == "start":
-                        runtime = ContestRuntime(self, session_id, snapshot["planner_mode"])
+                        if snapshot["target_id"] == "availability-fixture":
+                            from .availability import AvailabilityRuntime
+                            runtime = AvailabilityRuntime(self, session_id, snapshot["planner_mode"])
+                        else:
+                            runtime = ContestRuntime(self, session_id, snapshot["planner_mode"])
                         runtime.changed("running")
                         start_runtime = runtime
                     elif kind in ("pause", "resume", "stop"):
@@ -390,7 +412,8 @@ class CoreService:
                             raise Conflict("execution must finish before reset")
                         if snapshot["status"] == "created":
                             self.store.apply(session_id, updates={"status": "cancelled", "allowed_actions": ["reset"], "phase": "ended"},
-                                events=[_event("session.cancelled", "core", {"reason_code": "reset_before_start"})])
+                                events=[_event("session.cancelled", "core", {"reason_code": "reset_before_start"},
+                                               data_source=snapshot["data_source"])])
                         result = self._create(snapshot["target_id"], snapshot["planner_mode"])
                         return self._remember(session_id, action_id, fingerprint, result)
                     result = self._remember(session_id, action_id, fingerprint, self.status(session_id))
@@ -423,7 +446,7 @@ class CoreService:
 
     def close(self):
         with self.lock:
-            if self.closed:
+            if self.closed and not self.teardown_pending:
                 return
             self.closed = True
             runtimes = list(self.runtimes.values())
@@ -431,7 +454,13 @@ class CoreService:
             if runtime.thread.is_alive():
                 runtime.gate.stop()
         for runtime in runtimes:
-            runtime.thread.join(timeout=self.limits.request_timeout_seconds + 4)
+            runtime.thread.join(timeout=getattr(runtime, "close_timeout", self.limits.request_timeout_seconds + 4))
+        if any(runtime.thread.is_alive() for runtime in runtimes):
+            # Never revoke persistence/ownership while a worker can still write.
+            # Keep admission closed; a subsequent close() may finish teardown.
+            self.teardown_pending = True
+            raise ValueError("Core teardown incomplete; persistence retained")
+        self.teardown_pending = False
         self.store.close()
         self.ownership.close()
 

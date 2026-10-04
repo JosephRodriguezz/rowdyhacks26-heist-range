@@ -12,6 +12,7 @@ import hmac
 import ipaddress
 import json
 import math
+from pathlib import Path
 import re
 import socket
 import sys
@@ -98,9 +99,11 @@ class CoreHTTPServer:
     """
 
     def __init__(self, service: CoreService, *, token: str, host: str = "127.0.0.1",
-                 port: int = 0, stream_seconds: float = 20.0) -> None:
+                 port: int = 0, stream_seconds: float = 20.0, demo: bool = False) -> None:
         if not isinstance(token, str) or len(token) < 16 or any(ord(c) < 33 or ord(c) > 126 for c in token):
             raise ValueError("An ASCII bearer token of at least 16 characters is required.")
+        if demo and not re.fullmatch(r"[A-Za-z0-9_-]{32,128}", token):
+            raise ValueError("Demo credentials must be 32-128 URL-safe characters.")
         if not isinstance(host, str):
             raise ValueError("A literal loopback address is required.")
         try:
@@ -116,6 +119,7 @@ class CoreHTTPServer:
         if not math.isfinite(stream_seconds) or stream_seconds <= 0:
             raise ValueError("Invalid stream duration.")
         self.service = service
+        self.demo = demo
         self.stream_seconds = float(stream_seconds)
         self._token = token.encode("ascii")
         self._stopping = threading.Event()
@@ -291,7 +295,10 @@ class _RequestHandler(BaseHTTPRequestHandler):
                 raise _RequestError(400, "invalid_request", "Unknown query fields are not allowed.")
             if self.command not in {"GET", "POST"}:
                 raise _RequestError(405, "method_not_allowed", "Method not allowed.")
-            if path == "/health":
+            if self.api.demo and path in {"/", "/demo", "/monitor", "/demo.js", "/demo.css"}:
+                self._require_method("GET")
+                self._asset(path)
+            elif path == "/health":
                 self._require_method("GET")
                 self._json(200, {"status": "ok"})
             elif path == "/api/targets":
@@ -343,6 +350,22 @@ class _RequestHandler(BaseHTTPRequestHandler):
             return method(*args, **kwargs)
         except Exception as exc:
             raise _service_error(exc) from None
+
+    def _asset(self, path: str) -> None:
+        name, content_type = {"/demo.js": ("demo.js", "text/javascript"),
+                              "/demo.css": ("demo.css", "text/css")}.get(path, ("index.html", "text/html"))
+        raw = (Path(__file__).parent / "web" / name).read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", content_type + "; charset=utf-8")
+        self.send_header("Content-Length", str(len(raw)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.close_connection = True
+        self.wfile.write(raw)
 
     def _json(self, status: int, value: Any) -> None:
         raw = _json_bytes(value)

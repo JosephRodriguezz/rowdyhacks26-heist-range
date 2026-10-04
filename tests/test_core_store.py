@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import sqlite3
 import stat
@@ -457,12 +458,15 @@ class FileStoreTests(unittest.TestCase):
         self.assertEqual(reloaded.events("run-1", after=2)["events"][0]["id"], 3)
 
     def test_new_database_is_owner_only_and_uses_wal_and_foreign_keys(self):
-        self.assertEqual(stat.S_IMODE(self.path.stat().st_mode), 0o600)
+        # Windows ignores POSIX permission bits; this assertion is about POSIX
+        # creation mode, not a Windows ACL audit. Persistence checks run on both.
+        if os.name != "nt":
+            self.assertEqual(stat.S_IMODE(self.path.stat().st_mode), 0o600)
         self.store.create(session())
         self.store.apply("run-1", evidence=[evidence()], events=[event(refs=["ev-1"])])
         for suffix in ("-wal", "-shm"):
             sidecar = Path(str(self.path) + suffix)
-            if sidecar.exists():
+            if sidecar.exists() and os.name != "nt":
                 self.assertEqual(stat.S_IMODE(sidecar.stat().st_mode) & 0o077, 0)
         with closing(sqlite3.connect(self.path)) as inspection:
             self.assertEqual(inspection.execute("PRAGMA journal_mode").fetchone()[0], "wal")

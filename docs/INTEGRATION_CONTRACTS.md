@@ -94,3 +94,52 @@ Session states are `created`, `running`, `pausing`, `paused`, `stopping`, `compl
 The canonical event envelope retains Mayo's `schema_version`, integer `id`, `assessment_id`, `timestamp`, `type`, `actor`, target/version, `data_source`, `evidence_refs`, and typed `data`, adding explicit `visibility`, `producer`, and `sequence`. Sequence/id order is session-scoped; filtered views can have gaps. SSE reconnects strictly after the cursor. HTTP evidence is `live` local-lab activity; fixture-provider decisions remain separately labeled `fixture`, and `planner_mode` distinguishes fixture from model execution. No fixture run establishes model performance.
 
 Blue receives windowed, lab-produced telemetry and the owner-only policy, never Red's board or referee ground truth. The core validates evidence-backed `revoke_session` proposals against its credential-reference registry before applying containment. Patches remain disabled. The referee records historical vault disclosure separately from revoked-session containment, legitimate-use regression, and a fresh-session retry. Timeouts and invalid fresh logins are inconclusive; containment is not remediation.
+
+## Bank preparation prototype interfaces
+
+The isolated prototype in `apps/bank-lab` implements the following target interfaces. These are available building blocks, not a completed implementation of the canonical contracts above. See [the Ubuntu walkthrough](UBUNTU_BANK_LAB.md) or [the local Docker Desktop walkthrough](LOCAL_DOCKER_DESKTOP.md) for startup and verification.
+
+| Interface | Current behavior |
+|---|---|
+| `GET /api/health` | 200 with `status`, `target_id`, `run_id`, and `scenario_version` when initialized/reachable; 503 when unavailable |
+| `POST /api/login` | JSON `username`/`password`; returns an HttpOnly, SameSite=Strict session cookie on success |
+| `POST /api/logout` | Revokes the current session and clears its cookie |
+| `GET /api/me` | Current identity and bank run ID, or 401 |
+| `GET /api/accounts` | Authenticated owner's synthetic accounts and run ID |
+| `GET /api/accounts/:account_id` | Four-digit identifier; owner check; cross-owner access denied |
+| `GET /api/vault` | Authenticated vault role only; synthetic protected records and run ID |
+| `GET /api/training/search?term=...` | Opt-in `sqli-training` scenario only; intentionally unsafe search over synthetic training rows via a separate read-only database role. It cannot access bank users, accounts, vault, sessions, or events. |
+| `GET /api/monitor/logs?after=...` | Returns a bounded cursor page of sanitized in-process HTTP API request metadata for the local monitor page. It excludes itself and never returns bodies, cookies, query strings, or source addresses. |
+| `GET /api/availability/status` | Opt-in availability variant; private probe credential; measured training occupancy and current exercise/history |
+| `POST /api/availability/work` | Private load credential; exact empty JSON body, approved Origin and exercise pin; bounded fixed-cost work with no queue |
+| `POST /api/availability/control` | Private executor credential; exact approved mitigation/restore/stop/idle-reset actions scoped to the current exercise |
+| `node scripts/reset.mjs` in the operator service | Initializes/restores baseline, invalidates sessions, rotates run ID/record, and clears events; no public HTTP reset route |
+| `node scripts/verify.mjs http://bank:3000` in the operator service | Checks target readiness, authorized accounts/vault, unauthorized denial, and logout |
+
+State-changing HTTP calls require an `Origin` header from the explicit `BANK_ALLOWED_ORIGINS` list. The default Compose configuration permits the localhost browser origin and the internal operator origin. A fixed Nginx proxy publishes only `127.0.0.1:3000` and forwards to the bank over the internal frontend network; the proxy cannot reach the database. The bank and database networks are internal, leaving the bank app without general Internet egress. HTTP cookies are permitted only for this private browser path (`BANK_COOKIE_SECURE=0`); configure HTTPS and secure cookies before providing a different browser access path.
+
+The web service uses a restricted `bank_app` database role. Its credentials are not an agent capability. The operator alone receives administrator credentials. No HTTP route exposes reset or event export.
+
+Raw `bank.events` rows contain `event_id`, bank-local `sequence`, `run_id`, `occurred_at`, `target_id`, `event_type`, `actor_id`, `visibility`, `summary`, `producer=lab`, and `source_mode=live`. Events classify real target requests; they exclude passwords, cookie values, request/response bodies, and vault contents. Visibility is initially `blue_private`. The database permissions restrict reads to an operator; the core routing adapter is not implemented.
+
+The future core adapter must map bank `run_id` to canonical `session_id`, allocate session-wide event order, add team/status and evidence references where appropriate, enforce visibility, and emit separate sanitized `judge_safe` events for Omar. Bank-local sequence values restart on reset and are not canonical contest order. An authenticated vault event alone is not proof of unauthorized Red success; the referee still needs independent objective evidence and legitimate-use regression checks. Export required evidence before reset, because raw bank events are cleared.
+
+An embeddable availability adapter now supplies fixed target registration, redirect rejection, separate credentials, bounded HTTP dispatch, cancellation, sanitized durable evidence, and a pure recovery assessment for this slice. The [availability handoff](BANK_AVAILABILITY_HANDOFF.md) is the normative bank-side interface: target `bank-lab`, opaque clients `load-demo`/`referee-probe`/`core-executor`/`ordinary-demo`, pinned run/version/exercise, and explicit calibrated approval. Red's `start_load_test`/`stop_load_test` proposals map to fixed work/control operations; models cannot supply origins, limits, credentials, or payload overrides.
+
+This library's sequence/history is local. The opt-in core availability runtime now provides session lifecycle, canonical SQLite order, private credential injection, Blue observation and approved defense dispatch, and independent fixture assessment. Arena routing and deployed-bank bootstrap remain pending. Recovery needs independent scoped status/readiness/ordinary probes during continuing validated load, post-stop status, and a complete trusted journal; timeouts or incomplete evidence stay inconclusive. See the handoff and [core runbook](core/AVAILABILITY.md) for the exact boundaries.
+
+## Opt-in availability core adapter (2026-10-04)
+
+`availability-fixture` is registered only by an explicit trusted opt-in, owns an ephemeral loopback server, and remains `data_source=fixture`. It maps Red's existing typed `start_load_test`/`stop_load_test` proposals to the fixed JS bank adapter. It does not alias the separate `bank-local` vault fixture or activate the deployed `bank-lab`. Fixture planning cannot use remote model mode or supply destinations, routes, limits, identities or payloads.
+
+Core consumes target-produced `range.blue.availability/v1` windows. It retains canonical aggregates privately, invokes the actual Blue observer, and validates the exact proposal against the same recent window and configured positive source rate/burst/TTL before execution. This adapter implements a training-route token bucket; Python WSGI middleware is not in Next.js's path.
+
+Source adapter records use private local order; core persists them with its own globally ordered assessment envelope and referee-only visibility. Blue aggregates and proposals are blue-private. Judge events are separately constructed fixture-labeled summaries: `availability.load.dispatched`, `availability.observed`, `availability.defense.applied`, and `availability.referee.assessed`. Their action receipts do not imply recovery. Only the terminal referee projection after successful teardown may report fixture recovery, and it always sets `arrest_permitted=false` and `fix_status=not_assessed`.
+
+Recovery additionally requires the same policy revision to remain active, exact approved positive parameters, and target-issued policy refusals above the fixture suspicion rate in each successful verification interval. Quota/capacity 429s do not count. Pause reaches the background admission loop, drains bounded requests, and preserves deadlines; stop aborts and invokes reserved cleanup; reset retains history after teardown. Lost bridges, cancelled rounds, removed/expired policies and denied ordinary access stay inconclusive. The runbook fixes the request, concurrency, time, probe, control and message ceilings. Real-bank calibration and approved activation are separate changes.
+
+## Local demo presentation (2026-10-04)
+
+The opt-in `core.cli demo` presenter adds static pages at `/demo` and `/monitor`, consuming only the existing judge projection. Additive `availability.probe.observed` and `availability.request.observed` events project fixed metadata fields: `kind`, `status`, `latency_ms`, `http_status`, `active`, `degraded_at`, `rate_limited`, `limit_rejections`, `refusal_reason`, and `error`, when present. Raw ledger records and their private evidence references remain internal. This is HTTP metadata, not packets. Source remains `fixture`.
+
+Both demo mode and normal `serve` remain bearer-only with strict Host/Origin checks. The browser stores its presenter credential in tab/origin-scoped sessionStorage and attaches it only to core requests; no presenter cookie crosses localhost ports. The UI shows verified recovery only when terminal core state and terminal referee event both report `achieved`; applied mitigation alone is insufficient. Omar can later consume the same events. See [the runnable demo](core/DEMO.md) for startup and the remaining deployed-bank boundary.

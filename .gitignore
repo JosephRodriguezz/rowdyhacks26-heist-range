@@ -5,4 +5,12 @@ __pycache__/
 *.run.json
 *.evaluation.json
 .core-state/
+
+**/node_modules/
+**/.next/
+**/.pnpm-store/
+**/*.tsbuildinfo
+.env*
+!.env.bank-lab.example
+**/.env*.local
 artifacts/

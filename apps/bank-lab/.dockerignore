@@ -1,0 +1,6 @@
+node_modules
+.next
+.pnpm-store
+.env*
+tests
+*.tsbuildinfo

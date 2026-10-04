@@ -366,7 +366,9 @@ class ExpandedLabTests(LocalHarness):
             marker.write_text("HOST FILE MUST STAY PRIVATE", encoding="utf-8")
             selector = "../../" + str(marker).lstrip("/")
             result = self.act("request_api", path="/api/documents/download?name=" + quote(selector, safe=""))
-            self.assertEqual(result.evidence.status, 404)
+            # Windows drive/backslash syntax may fail path validation before
+            # the virtual lookup; either denial must preserve the host file.
+            self.assertIn(result.evidence.status, (400, 404))
             self.assertNotIn(marker.read_text(), result.evidence.body)
             absolute = self.act("request_api", path="/api/documents/download?name=" + quote(str(marker), safe=""))
             self.assertEqual(absolute.evidence.status, 400)
