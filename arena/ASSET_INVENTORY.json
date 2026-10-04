@@ -1,0 +1,915 @@
+{
+  "version": "0.2.0",
+  "branch": "omar/arena-v2-baseline",
+  "scope": [
+    "arena/",
+    "Heist_Blender_Designs/"
+  ],
+  "files": [
+    {
+      "path": "arena/archive/pre-v0/arena.js",
+      "bytes": 8681,
+      "sha256": "1f42e58c7850d6dc1acbd6428f99ad502a6f99ac10b8421e31e434db9e41d5b1"
+    },
+    {
+      "path": "arena/archive/pre-v0/index.html",
+      "bytes": 4833,
+      "sha256": "18539d85ef3303a797032811c73f8eb2a989c2e512f17967128b538e95e4a989"
+    },
+    {
+      "path": "arena/archive/pre-v0/session.json",
+      "bytes": 6023,
+      "sha256": "409089639869d8dc5a07ac9acf12f888fe4c8fd5cb23e2e38c49bcba62d35224"
+    },
+    {
+      "path": "arena/archive/pre-v0/styles.css",
+      "bytes": 13104,
+      "sha256": "539a593279c226cb6f9ad05afb677e8b24becf550c16e5470b5d5ddcbd2266fb"
+    },
+    {
+      "path": "arena/arena.js",
+      "bytes": 12483,
+      "sha256": "4d79b5ccd44853b7ef474a35af753a7a3f4ae74366c9fdabc9db40be4fb72db3"
+    },
+    {
+      "path": "arena/assets/agents/arena-agent-lineup.png",
+      "bytes": 81859,
+      "sha256": "a2931473a89fb8701eae140f0a9e3175f729e63eba83cd696c7f7868e3780b0c"
+    },
+    {
+      "path": "arena/assets/agents/blue-defender.png",
+      "bytes": 21893,
+      "sha256": "0c27b645181ae0ec616340a290491cdc75ffc50e4080f48d0d58bfc4d8293c5a"
+    },
+    {
+      "path": "arena/assets/agents/blue-monitor.png",
+      "bytes": 21829,
+      "sha256": "e4d95f4dfdf568082896846976c4da57643b252e275ef9937cb5c8e9b7496c0e"
+    },
+    {
+      "path": "arena/assets/agents/README.md",
+      "bytes": 2541,
+      "sha256": "ca18473cbfe9331bb945ff8a14766b540450dca5f6c3f8b27862c65bb63e2b30"
+    },
+    {
+      "path": "arena/assets/agents/red-operator.png",
+      "bytes": 22662,
+      "sha256": "5db885910f1ad29b6b39345c8c9b16b4e730406949531679d670fd07d13423fe"
+    },
+    {
+      "path": "arena/assets/agents/red-scout.png",
+      "bytes": 18127,
+      "sha256": "82ab56bd7af0094a506c8be9296b6c82895a11007687bedf197399dc0136c95b"
+    },
+    {
+      "path": "arena/concept-scenes/01_driver_start.png",
+      "bytes": 1518904,
+      "sha256": "e553421b92a819f738af838dcb37ad29f242f4d7e41b2852518ac72b67e6092b"
+    },
+    {
+      "path": "arena/concept-scenes/02_bank_arrival.png",
+      "bytes": 1872726,
+      "sha256": "d6609c11394eb9cc4feb556bafe797fd9d0c26db1d0d7f1fd42f62a414758463"
+    },
+    {
+      "path": "arena/concept-scenes/03_blue_dispatch.png",
+      "bytes": 1850989,
+      "sha256": "9da036ad29a046ee22ae27151483bdb59dfb790f206cde11eba356e0ba81228c"
+    },
+    {
+      "path": "arena/concept-scenes/04_vault_keypad.png",
+      "bytes": 1916002,
+      "sha256": "b38fffc10a07905a2bc13c6469dce90931688311f5eba073af00b2428a307df5"
+    },
+    {
+      "path": "arena/concept-scenes/05_blue_pursuit.png",
+      "bytes": 1706667,
+      "sha256": "840def57121b3931ac4f4987e5c2f2c0b868e3b48cfc77df17aa29e42a1be8f1"
+    },
+    {
+      "path": "arena/concept-scenes/06_auditor_arrest_result.png",
+      "bytes": 1560807,
+      "sha256": "8a1455ba7be95e5c40333c5703ef3220dedcd8d02e9698bebfc1872236f37397"
+    },
+    {
+      "path": "arena/DEMO_V0.md",
+      "bytes": 4548,
+      "sha256": "7a2193761b325302b0d393547267951915d1f428c24ca20f045ec546a08052c1"
+    },
+    {
+      "path": "arena/demo-core.js",
+      "bytes": 4059,
+      "sha256": "869682c6c70771e579b5a51e1ea4e2b6e7721ac28e299c9309b0fe156d0641c9"
+    },
+    {
+      "path": "arena/fixtures/session.js",
+      "bytes": 25595,
+      "sha256": "fad6ccce2bf0e7e58eb0066e37bfdde427c4ce192c66d9f6c6a5a80aa8bce627"
+    },
+    {
+      "path": "arena/fixtures/session.json",
+      "bytes": 25485,
+      "sha256": "fd4deddc1d512a454c973f0ad95bc4b951b9dfdaad3da93f033b887aa22e0ab5"
+    },
+    {
+      "path": "arena/index.html",
+      "bytes": 7198,
+      "sha256": "1c1188604124e85107eb3c205b0d5853384257aa8a27193720478b45a9e4dc31"
+    },
+    {
+      "path": "arena/motion-proof/BUILD_STATUS.md",
+      "bytes": 4328,
+      "sha256": "4b08406d568cf469dc5c64179e7735d0ed9941a9d413aec0093e7704ee6f53af"
+    },
+    {
+      "path": "arena/motion-proof/ENGINE_API.md",
+      "bytes": 9925,
+      "sha256": "edf70e1b95c571ded9498d9b7a218828439f1eb60ffd888ab489fd129cdd6d8a"
+    },
+    {
+      "path": "arena/motion-proof/engine.js",
+      "bytes": 11506,
+      "sha256": "f2ca1cc2dfc69e124da9d8500688c7a5a079238c1e9fb40caa1fc2e0efa9a83e"
+    },
+    {
+      "path": "arena/motion-proof/index.html",
+      "bytes": 13909,
+      "sha256": "a07d5ab9efbd46a5ea77475e4426fceb158c74042b72de046790cb2fe8a95f1f"
+    },
+    {
+      "path": "arena/motion-proof/lib.js",
+      "bytes": 28510,
+      "sha256": "fb7c07cf072ca8d7fd00e03c4ea9d17df11a6df25ae729911dfd789fa5cf10a3"
+    },
+    {
+      "path": "arena/motion-proof/MOTION_PROOF.md",
+      "bytes": 3800,
+      "sha256": "c77a4c6785dfd0c395ca0313780add14f0b196861dd6864994ce3f39eeac08bc"
+    },
+    {
+      "path": "arena/motion-proof/SCENE_BRIEFS.md",
+      "bytes": 13162,
+      "sha256": "5e14dbf0bb0f0bef5a89dfcd605250e1ca4fb9940e37d6bd1b3fd47237f9528f"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s01_driver.js",
+      "bytes": 1414,
+      "sha256": "64376214c26bc2c0c1fc4e71062f049a0b75f424b143f61240d8da4ecf2be488"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s02_crash.js",
+      "bytes": 3138,
+      "sha256": "ebf4e5ce2b5eb9047e8379f7aad21cd5a80907b17ab3ddcc9713101678835d9a"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s03_entry.js",
+      "bytes": 2071,
+      "sha256": "b35cadc7e5b8a03ee9aaa472926a9d853d98b65e469368b9fbf82342e6bf733a"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s04_vault.js",
+      "bytes": 5260,
+      "sha256": "fca77b7739620363c040e904bc50e65e4b53efcce74e593ab13d01eccdfe3389"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s05_alarm.js",
+      "bytes": 10575,
+      "sha256": "24ef5fae8cce62b6129094e274553a3a65d3b2928f8d9bb3a2873baf6ff899cd"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s06_dispatch.js",
+      "bytes": 5761,
+      "sha256": "56b995f5376018e37dd48415f84f6fe47f9fe701469da377024ecf632727ee6b"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s07_money.js",
+      "bytes": 7503,
+      "sha256": "7f0a12d8e425f1a573fb49121ac7f4b90871b862b5dcdb9ebbe0c7304df14040"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s08_exit.js",
+      "bytes": 6996,
+      "sha256": "41a52d057627445b091476b50bd161a6d76b22eae5d8d9cda2a2682fc4e40bc0"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s09_rush.js",
+      "bytes": 7918,
+      "sha256": "4aa1e9b53ba9573179fc8259f59b5e69bd8cc3ade292ff05a0224685c7d3a163"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s10_mirror.js",
+      "bytes": 7795,
+      "sha256": "3accd52c1bad4fe2aee52b823da7558194ff9d7805e5218778f9df391296d069"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s11_pursuit.js",
+      "bytes": 11173,
+      "sha256": "9e3444424c0bdd279d9820d2f6d36d1f61ef4aa7bd3176acd45be1ecc43b8219"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s12_recovered.js",
+      "bytes": 1275,
+      "sha256": "9bda560f845fa312357f2cc0f4e18bbd5aaf05238cf99a55e7b5b384d4378b24"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s13_hydroplane.js",
+      "bytes": 2049,
+      "sha256": "4eb2ae03a3d20c7081045c01d77b54ce72778fb8be64341b37cb0e2aa4479b2f"
+    },
+    {
+      "path": "arena/motion-proof/scenes/s14_arrest.js",
+      "bytes": 1731,
+      "sha256": "c61bd2860bcddf0377fb26d44aa494ab927aab93539df5289720084e46103e64"
+    },
+    {
+      "path": "arena/motion-proof/story.js",
+      "bytes": 23348,
+      "sha256": "a623115ceb9bec1c1c62dd2fa5d4f91fb05b617effd795640403297859c613fc"
+    },
+    {
+      "path": "arena/motion-proof/tests/motion.test.cjs",
+      "bytes": 9796,
+      "sha256": "002459fdc16a42dbe2f683f1c82e422145a05305c5dd247be0c3da8b2b8db13d"
+    },
+    {
+      "path": "arena/motion-proof/tools/contact.ps1",
+      "bytes": 2387,
+      "sha256": "bc2cb0134bd1ddbb3dea6d7054c9aba658345d371a65fa0d0e1c5be796b86396"
+    },
+    {
+      "path": "arena/motion-proof/tools/corners.ps1",
+      "bytes": 4423,
+      "sha256": "947536d9e178b01be0f8a1b688fb2102680e2f4ce7caf49b032ac526c447f63c"
+    },
+    {
+      "path": "arena/motion-proof/tools/crop.ps1",
+      "bytes": 1245,
+      "sha256": "5f0bad138bb9d429d2e833294fbb947484a0056390b1640d6752700d8c26fb45"
+    },
+    {
+      "path": "arena/motion-proof/tools/imgdiff.ps1",
+      "bytes": 1495,
+      "sha256": "0492d64f5abf235f42228b52b1cf133bdfc2b63a9b02340144892f415c805578"
+    },
+    {
+      "path": "arena/motion-proof/tools/make-story.ps1",
+      "bytes": 2371,
+      "sha256": "a60505392f5914d80f0a7da3ab439ef3290457faf371f82f7b5dd17bd4889de1"
+    },
+    {
+      "path": "arena/motion-proof/tools/measure.ps1",
+      "bytes": 5441,
+      "sha256": "ae64b74f97100b075a713c53eb0d1bfbfc320a4a6edad466fa966af9ef3cfc8e"
+    },
+    {
+      "path": "arena/motion-proof/tools/quadpreview.ps1",
+      "bytes": 1981,
+      "sha256": "c16d226d3230dd2e1280924a9108b2bbc71dfce087532934a6faba284a640878"
+    },
+    {
+      "path": "arena/motion-proof/tools/realtime.ps1",
+      "bytes": 8268,
+      "sha256": "b0cca009eb937b8d173a14793e20b0e58b97c615deae10cdd0db10de38a77439"
+    },
+    {
+      "path": "arena/motion-proof/tools/snapshot.ps1",
+      "bytes": 5494,
+      "sha256": "8725c44a71023497f122bf665ecd88bc167444f473d52561d2ab9337c46ceb8d"
+    },
+    {
+      "path": "arena/package.json",
+      "bytes": 314,
+      "sha256": "4c0f14d5eb98d0d707fc82eae4c3b2efe45d3c98f5ea1ef8215ad42ee9e8c1d9"
+    },
+    {
+      "path": "arena/README.md",
+      "bytes": 4558,
+      "sha256": "80148f735c45adf0dd090b494325f2c3df8ed37615f453d9f9568ccc2ec6d974"
+    },
+    {
+      "path": "arena/references/historical-initial-request.txt",
+      "bytes": 6386,
+      "sha256": "80c0291b77d43b8dfef5c6e094956492c28e6ddbd2e70fcbe524824284b7c4ea"
+    },
+    {
+      "path": "arena/references/README.md",
+      "bytes": 966,
+      "sha256": "66992e8452ba324d7a16cfc6e406b402c6e449eb9812908370fdf88a2b62cdad"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-1b10db3a-00c0-498f-9de2-a6735c250459.png",
+      "bytes": 210729,
+      "sha256": "a861a3a29cde1919f7723e04091b894851e4d158d15f077ad119603959b4117b"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-2abae2ed-91ef-43c4-93a8-8783c372366f.png",
+      "bytes": 66538,
+      "sha256": "e4b7243ae8dfd91fe807ef89bf93f462c2d0b0fe816f8a8ac204292292936cf5"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-5075019c-7a67-4a71-8fcc-2a7efe6d0a9b.png",
+      "bytes": 580367,
+      "sha256": "a357a44ced9559e5224533fc6112e5e2d78750c724841d8eb473c20a549df286"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-8ae38f04-d4af-4e15-a9ea-5e2bdbe23459.png",
+      "bytes": 160021,
+      "sha256": "cfffd3348201541912c5f56568df91e139ae7a6ca4c8c5514c807f706a885da2"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-acb2d417-b648-42df-99e2-c62e17ef6a33.png",
+      "bytes": 274255,
+      "sha256": "8aeb0160ac4b3f49d2ada140e13fd8f56756bd38620a5e2ba88d5f9fc75449ba"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-bd885dea-b018-4131-9154-2429f5ee4ac5.png",
+      "bytes": 147448,
+      "sha256": "2bf586bc6920cdefc967e2c9e3589bb8491a2b3e36da7fe79a4cb2f269e0c791"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-e86d7517-786a-4e34-8c02-890ef4364f46.png",
+      "bytes": 173993,
+      "sha256": "6b15f192a23f0fa2144245adf428a0759b36d4d420d0af769ee35f13d91c7ad8"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-f79a2788-2fdf-4e24-96b2-f4ae7ae0b75b.png",
+      "bytes": 316355,
+      "sha256": "27ca1e043583021daf358c604f5d7512739fff602f9310e5639d9aa40aeb2029"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-f940bc52-4c3d-4897-a96f-c6eb553cd610.png",
+      "bytes": 63936,
+      "sha256": "94b9e5b10e5f638ef40dd88f42574db2bc63ed6b04621739d116ad951e91c79c"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-fa835a49-ef20-436a-bd5b-5c8a0f1d6d54.png",
+      "bytes": 568751,
+      "sha256": "67e545adcd6aa04ba48923321582d9750e287d28ec20ef260715a84a85594628"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-fcd59b2b-b172-40d3-8b6d-31a482e71c1e.png",
+      "bytes": 1420481,
+      "sha256": "6f935d6f4a74cfd595af4ed6015d176facfd18ff98ccef8d0d3ba009f30db5d2"
+    },
+    {
+      "path": "arena/references/user-feedback/codex-clipboard-fd92d87e-7d4d-4542-a311-be74135e6109.png",
+      "bytes": 24661,
+      "sha256": "4f56052d01e06a185917f33e0cbf50a9aa3b4fb7943d4b7731c5c8e227be8b8f"
+    },
+    {
+      "path": "arena/SCENE_REVIEW.md",
+      "bytes": 8268,
+      "sha256": "82b908fd386b4dd3b6acb6108245b5a17739e180e0764ef398c7f2ff1e84add8"
+    },
+    {
+      "path": "arena/scene-review.html",
+      "bytes": 20689,
+      "sha256": "3179d33034948d9e88bf56b3e8a8b59f0291763bf98fb5bea10f5b6383ce6bb1"
+    },
+    {
+      "path": "arena/scenes-v2/01_driver_start.png",
+      "bytes": 1518904,
+      "sha256": "e553421b92a819f738af838dcb37ad29f242f4d7e41b2852518ac72b67e6092b"
+    },
+    {
+      "path": "arena/scenes-v2/02_bank_crash.png",
+      "bytes": 2073159,
+      "sha256": "cf3c8a1f1e1ce6a650bea8ac4bfce0ce1c931a441dd1a3c5aeedca382ec1dda4"
+    },
+    {
+      "path": "arena/scenes-v2/03_bank_entry-r2.png",
+      "bytes": 2191513,
+      "sha256": "a9e142d4cc0f9fc03812efc837fdec3c47328d5f7ee61cb3c843aa7fe8ed0977"
+    },
+    {
+      "path": "arena/scenes-v2/03_bank_entry.png",
+      "bytes": 2236083,
+      "sha256": "9faec3c953a607c23b914674ed8d1dbd39cbd0fe4750453f49ec0916fa3018fa"
+    },
+    {
+      "path": "arena/scenes-v2/04_large_straight_website-r4.png",
+      "bytes": 1909165,
+      "sha256": "08dfdc0b7cdebaf4d2645795619ccc17c580a3ab82886919e74ce737cd85fb6e"
+    },
+    {
+      "path": "arena/scenes-v2/04_vault_screens-r2.png",
+      "bytes": 1850223,
+      "sha256": "4ad090427fe5490f7e338366b70e698b4e60948d60f087a683c2a15946c16c56"
+    },
+    {
+      "path": "arena/scenes-v2/04_vault_screens.png",
+      "bytes": 1834782,
+      "sha256": "1a2d27cb7f154438e3d400eb8e6f1d63629fb30840afb952ff26932e18d3dca1"
+    },
+    {
+      "path": "arena/scenes-v2/04_vault_separated-r3.png",
+      "bytes": 1924909,
+      "sha256": "c623868f96d6dae2d581dc347cd7604a6bab507773eeb787f2c7c10cef38a6e4"
+    },
+    {
+      "path": "arena/scenes-v2/05_alarm_matched-r2.png",
+      "bytes": 1872195,
+      "sha256": "66b051159c39b20116fcf635f45c20e9744a8db0a7db98bb0b7880ea7559ce0e"
+    },
+    {
+      "path": "arena/scenes-v2/05_alarm_shutdown.png",
+      "bytes": 1809720,
+      "sha256": "419a402e1124782d931bc9bb2a2e276bf681a128a5bbea03c5628c6dd0d99d83"
+    },
+    {
+      "path": "arena/scenes-v2/05_open_vault_matched-r3.png",
+      "bytes": 1866604,
+      "sha256": "c046231706ad413b169d1b6f91c171d5d0c6cc2c0cbeed24099c08b09224c100"
+    },
+    {
+      "path": "arena/scenes-v2/06_bank_side_alert-r2.png",
+      "bytes": 1955777,
+      "sha256": "4b1b748dd48ab1d346df446fee9c8520fd3aec7f010d7774db4c1404e3a0c10b"
+    },
+    {
+      "path": "arena/scenes-v2/06_bank_side_alert-r3.png",
+      "bytes": 1938198,
+      "sha256": "0f316dd2ae681390eaf079772fbc694058189fb561a540f064c72f8b1d50fbcb"
+    },
+    {
+      "path": "arena/scenes-v2/06_car_orientation-r9.png",
+      "bytes": 2089152,
+      "sha256": "75175b26fe68219ee82e78e450090cd06f10c081ab09df8732265585e0e4aa89"
+    },
+    {
+      "path": "arena/scenes-v2/06_distant_cop_pov-r4.png",
+      "bytes": 2050484,
+      "sha256": "8e63e541790b10547833681bfa5de671ba02041f6c3711191409fa80a545708f"
+    },
+    {
+      "path": "arena/scenes-v2/06_distant_cop_pov-r5.png",
+      "bytes": 2029474,
+      "sha256": "799f297f77c224423be9dd7243e6e53f221749eae8a39ffcb47481e85e471410"
+    },
+    {
+      "path": "arena/scenes-v2/06_far_down_street-r6.png",
+      "bytes": 2068358,
+      "sha256": "86b238258526dbd01fefc83070d66384301b848efd286a6cb96f3dc970f58176"
+    },
+    {
+      "path": "arena/scenes-v2/06_marked_area_cop-r8.png",
+      "bytes": 2136822,
+      "sha256": "c467e2c6f36354a52b87323da716fd124a4abee792c492d30a8c4403d54004df"
+    },
+    {
+      "path": "arena/scenes-v2/06_police_dispatch.png",
+      "bytes": 1869452,
+      "sha256": "5ae547bd54bfbc111562a409cbd9361733d8b06c2e3fdc51c541393666146fc4"
+    },
+    {
+      "path": "arena/scenes-v2/06_reverse_bank_view-r7.png",
+      "bytes": 2090526,
+      "sha256": "229afcf2c6d0c9c3e410598190e687bfdec451f3f0a399dc757d97d58f5bdd30"
+    },
+    {
+      "path": "arena/scenes-v2/07_inside_vault_money-r2.png",
+      "bytes": 2149526,
+      "sha256": "4c9aee97f2793afdb8b343c17f1f705a3ef68ffa7434d450db79743fdaa3a7a7"
+    },
+    {
+      "path": "arena/scenes-v2/07_robber_money.png",
+      "bytes": 2009634,
+      "sha256": "87b479882c0d47e34c66920462fb094bd3e1b44d65c24ce1bce00a46ce358fc0"
+    },
+    {
+      "path": "arena/scenes-v2/08_bank_exit.png",
+      "bytes": 2252127,
+      "sha256": "5ccc4f0980c9f1b000430de98f589cfbf6551804435c03455d77214deeff26b1"
+    },
+    {
+      "path": "arena/scenes-v2/09_rush_same_parking-r2.png",
+      "bytes": 2219239,
+      "sha256": "256719551c3c3c23c72a32f37fc1a2ad1c04eb81136c3640512a3ef2aa1f2f9a"
+    },
+    {
+      "path": "arena/scenes-v2/09_rush_to_car.png",
+      "bytes": 2097030,
+      "sha256": "80fd1e7a30c867b62f4fe351153817c1c025226f75edcc5c21540a17dc6dc939"
+    },
+    {
+      "path": "arena/scenes-v2/10_rear_view.png",
+      "bytes": 1843201,
+      "sha256": "65bbb2cb8ea5b66d4dde892d23c9cf774affa67743dc316c1decc70266111b9c"
+    },
+    {
+      "path": "arena/scenes-v2/11_blue_pursuit.png",
+      "bytes": 1847566,
+      "sha256": "9bd8c8ce36c534ae2fb807eff13cc2ea1bf5728eaa88e1e24c8c9d9d5c81c592"
+    },
+    {
+      "path": "arena/scenes-v2/12_blue_recovery_complete.png",
+      "bytes": 1888070,
+      "sha256": "1c8678a99d3166aada53f1296ba33188625ee5d4be7aa49003602bc237480802"
+    },
+    {
+      "path": "arena/scenes-v2/13_hydroplane_check-r2.png",
+      "bytes": 1912820,
+      "sha256": "e40316657dbb64daf7557114ee610cb6d023fd2c9760963a4745cc8e915f6690"
+    },
+    {
+      "path": "arena/scenes-v2/13_hydroplane_crash.png",
+      "bytes": 1933738,
+      "sha256": "1425540dbe75febb4a338022cc312be211982def2aba14b0aa8d44f6eb72a4d8"
+    },
+    {
+      "path": "arena/scenes-v2/14_street_arrest.png",
+      "bytes": 2536438,
+      "sha256": "917bf3ff0d92880e31eeba71e7d8278510589c1b3b24c3d02b42d823ec6dbac6"
+    },
+    {
+      "path": "arena/scenes-v2/fixture-draft.json",
+      "bytes": 19723,
+      "sha256": "0db869a6c1968d633dbc76f64d7c1e8fce12729ae3062c0a791cc522071b5050"
+    },
+    {
+      "path": "arena/scenes-v2/manifest.json",
+      "bytes": 7168,
+      "sha256": "09edd1cbbf72a293214fb33a5f3c47f0c23034f44841a21c3b16e77fac3c16ed"
+    },
+    {
+      "path": "arena/scenes-v2/previous-review.md",
+      "bytes": 15310,
+      "sha256": "56cf1b0b0a03f74dffde6d130f1c322da043696608eca892b46bf4c2fe675d65"
+    },
+    {
+      "path": "arena/scenes-v2/prompts.md",
+      "bytes": 43234,
+      "sha256": "1b1f6eea00457ae096aa49aea8b0edbbc40bc8a16d0f01fec31a1ae951837ebd"
+    },
+    {
+      "path": "arena/styles.css",
+      "bytes": 12804,
+      "sha256": "2de901d4fb05fc7dab4296d93e5e6cd71e93a53f0c46a10b4b22acfb1781d35d"
+    },
+    {
+      "path": "arena/tests/core.test.cjs",
+      "bytes": 3906,
+      "sha256": "ac6ad2d417a03f0af7d8efd128a2f3fdada6bb98f3f52a756f8c379115ed5ce3"
+    },
+    {
+      "path": "arena/tests/ui.test.cjs",
+      "bytes": 5770,
+      "sha256": "6feeaf9ee43725a98c99376875889879c93c14f833a5fda6a7ed185f08e465d7"
+    },
+    {
+      "path": "arena/verify-assets.cjs",
+      "bytes": 1259,
+      "sha256": "25a065a949f5173bffb4c4c30d038d39858d0b27b39cae7bdac428a84acc6388"
+    },
+    {
+      "path": "arena/visual-workflow.html",
+      "bytes": 18949,
+      "sha256": "c5ef66a00921ebc579a6daff1ad1b281f5ac85db9f77b888ad90591a4f5809d7"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews_v0_2/01_exterior_start.png",
+      "bytes": 2436046,
+      "sha256": "0dac14b30e6726a72281e6b39a8551fcde9bb626b0c57cbaabdf12b7f9c8c2ac"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews_v0_2/02_battle.png",
+      "bytes": 2872631,
+      "sha256": "5efa08a9fd772b34afaebee30d5f15f95fbb7cadd04304fac7e1838d7011c91e"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews_v0_2/03_red_vault.png",
+      "bytes": 2407270,
+      "sha256": "be9875573a18bd2f8d47b6cb240755ed2a4f5c62b82af0d2aaec45d2e3b68f0c"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews_v0_2/04_blue_arrest.png",
+      "bytes": 2858728,
+      "sha256": "aa2ac3264d00e86f7a9f0f0b015a9669af523a92c1c0607912a9e08589f7e32d"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews_v0_3/02_battle.png",
+      "bytes": 2881056,
+      "sha256": "95b0c24bff3495e09cc05e345a9971264d907ce844f9661d3c5c7ab150cf7ada"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews_v0_3/04_blue_arrest.png",
+      "bytes": 2866748,
+      "sha256": "8790d144cbd9beca3eb5c907e6d373c4adb6ac55aef65f0ff35c85e6ada6fadd"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews/01_exterior_start.png",
+      "bytes": 662646,
+      "sha256": "c337140c8d0306e59cd76465d8c39aa17aac7e22c7e90edd55c780161da4ab5e"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews/02_battle.png",
+      "bytes": 704033,
+      "sha256": "9b40dee8e687df32668ab77aec1c0a4ecfc388a4567cd7ab08cc527631823e15"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews/03_red_vault.png",
+      "bytes": 738682,
+      "sha256": "7132181f4869de24dfd195dec3d073b0863de31513b66ff91d87c6977cb3bba2"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_previews/04_blue_arrest.png",
+      "bytes": 700231,
+      "sha256": "a080e5db7d17d5c0655634c48686ea976dac7c336220a039567fe132ecdb9a7d"
+    },
+    {
+      "path": "Heist_Blender_Designs/arena_workflow_builder.py",
+      "bytes": 32531,
+      "sha256": "71f2bc02cb88cc52789de463ca7909c9a4a41ac099fd10017b4cebff50a65b6b"
+    },
+    {
+      "path": "Heist_Blender_Designs/ARENA_WORKFLOW.md",
+      "bytes": 2733,
+      "sha256": "46a0ebee73f07c2f534b00e0d6dc85a20748be36feb24c9bdf9875b81865b2a2"
+    },
+    {
+      "path": "Heist_Blender_Designs/ASSET_SOURCES.md",
+      "bytes": 1650,
+      "sha256": "3cfd03aad0bb700eb8d06fe3e42f462c8c24f73b7cc4ca748f98f6da568e72b5"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/addons/blenderkit.zip",
+      "bytes": 30927025,
+      "sha256": "74a01bf8405becdd22130c66575bfdd7c7295b23e944b966020571a40386497a"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/blue_metal_plate_diff_2k.jpg",
+      "bytes": 1518621,
+      "sha256": "82855f6297ad07ea7ea4d1c501e6b56ed4c9c758653ca126bda9fd0ebba63c59"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/blue_metal_plate_nor_gl_2k.jpg",
+      "bytes": 948237,
+      "sha256": "4cd3069a918cf891295b369b26f47c0a0631c634d0fd1006b6b7412a8f2b3550"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/blue_metal_plate_rough_2k.jpg",
+      "bytes": 1588770,
+      "sha256": "dd1726d8217fe4f6c3947cb20700d51774a0773e9abaeb4120769c8f6fce1d69"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/concrete_wall_004_diff_2k.jpg",
+      "bytes": 2014170,
+      "sha256": "f0d2060e3ef503a6458ed94c92d059d794be38b56b3a3965e113922a5947ee39"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/concrete_wall_004_nor_gl_2k.jpg",
+      "bytes": 4317287,
+      "sha256": "c8df927b4923dabd7ea243f0bd497713ceefd43b8820ee0c2da05b8951e4ca80"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/concrete_wall_004_rough_2k.jpg",
+      "bytes": 934210,
+      "sha256": "491ee32fb2a941f627dfd9dc3c5f46da2c3b941a3ba1ac698aa2ea0b0bdec3b6"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/floor_tiles_04_diff_2k.jpg",
+      "bytes": 1252211,
+      "sha256": "600591dc78b9afdf72f0970f8fd451a84da54f9846cf808dd3c992db7f1e5986"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/floor_tiles_04_nor_gl_2k.jpg",
+      "bytes": 600247,
+      "sha256": "3ddf10a1b828ee854777ceefcb071f10e4c15182d10ae521d618e7c7a01be789"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/floor_tiles_04_rough_2k.jpg",
+      "bytes": 260462,
+      "sha256": "72f03a32d1e36dc26ead18236ff1b7cf30d4454a7953cd8b02547a88a9fb4693"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/industrial_caged_sconce/industrial_caged_sconce_1k.blend",
+      "bytes": 526594,
+      "sha256": "eb4c9c84520ab4c747a880d49c8390573ee86e5d6faf42b9a436fb0989b82ff5"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/industrial_caged_sconce/textures/industrial_caged_sconce_diff_1k.jpg",
+      "bytes": 621431,
+      "sha256": "3f6e0006d15a49e144a98b679d4ba1d0af52bb578f01c5ecd4b663837a4ac08c"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/industrial_caged_sconce/textures/industrial_caged_sconce_emissive_1k.png",
+      "bytes": 115060,
+      "sha256": "cc66aed5fbc00a24b4a001f6acca08fa3e78fef8bb053c2f95e23e58e20c278e"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/industrial_caged_sconce/textures/industrial_caged_sconce_metal_1k.exr",
+      "bytes": 287609,
+      "sha256": "8af22290542c758748155680db88b60e6e1ecc2ae10f3fb23f68a7d273e946e1"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/industrial_caged_sconce/textures/industrial_caged_sconce_nor_gl_1k.exr",
+      "bytes": 1581962,
+      "sha256": "81656c524ba131bded0e9e14ec181477c732105930441d48769faa73a09aa093"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/industrial_caged_sconce/textures/industrial_caged_sconce_rough_1k.exr",
+      "bytes": 727375,
+      "sha256": "52b80d2af1efcc761f1b18b263ecb2f9eb57c1aa18e459dc984d5414a6fa3c9d"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/security_camera_02/security_camera_02_1k.blend",
+      "bytes": 603214,
+      "sha256": "0ca1c59445c0b08bc91a88453703bd22e7877813d6481d2e53fefd5a879b3ab2"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/security_camera_02/textures/security_camera_02_diff_1k.jpg",
+      "bytes": 394762,
+      "sha256": "619756fa57b0972248d0f0100e99ca62d7cd95daa80c7439bb49ff8254eb7d12"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/security_camera_02/textures/security_camera_02_metal_1k.exr",
+      "bytes": 17048,
+      "sha256": "4e5b7bb6722e5177f95a1249db0c48db95cb4995bf3d4fb427168dd81eae5da2"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/security_camera_02/textures/security_camera_02_nor_gl_1k.exr",
+      "bytes": 746474,
+      "sha256": "af084999659874615e1e68db5c0c2372aa09aafe44855c8bae33cd54268a280b"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/security_camera_02/textures/security_camera_02_opacity_1k.png",
+      "bytes": 11098,
+      "sha256": "57d177802df3361cf077e07aae7eb874473ef4114f90cc17c1e1d7dfb644c290"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/models/security_camera_02/textures/security_camera_02_rough_1k.exr",
+      "bytes": 853807,
+      "sha256": "97d5a5c17e96ff926fa1b09de6597f84ea1024aac74a5d2e705b7af679187da7"
+    },
+    {
+      "path": "Heist_Blender_Designs/assets/polyhaven/studio_small_05_2k.exr",
+      "bytes": 5937770,
+      "sha256": "01a675c88209f9a20b3db3c98a6e2ec085fd92292cea309e135a31ba75a4d6ab"
+    },
+    {
+      "path": "Heist_Blender_Designs/auditor.blend",
+      "bytes": 148038,
+      "sha256": "6c815513df78212e9bf0a7643a09b5185a018e9d16ce5d74983a05ff83a0bdb9"
+    },
+    {
+      "path": "Heist_Blender_Designs/build_heist.py",
+      "bytes": 17253,
+      "sha256": "9e2227d7d389e6a3017327f3df37e6cd187aa6ff695c513f7d96cdefe9a0d1f7"
+    },
+    {
+      "path": "Heist_Blender_Designs/characters.blend",
+      "bytes": 180635,
+      "sha256": "42b0c7ea2cc01923079ffaaec0eea6e1ad958be45d00d1128aca16fbc3e06b49"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_before_arena_2026-10-03.blend",
+      "bytes": 323547,
+      "sha256": "8a9d812eb8d45c3913405844c58675cd09bf5a6711bec72645b87c1731ededd6"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_builder_test_v2.blend",
+      "bytes": 2532901,
+      "sha256": "10c61826e06214de3ffd0cc4b01c783ae501bb90602ca4973b207030ba3ffb3f"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_builder_test_v2.blend1",
+      "bytes": 315547,
+      "sha256": "83cc560d691fbb0649d7015e8d71429afe8cbd5228faff593a330fb78bfd5827"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_builder_test_v3.blend",
+      "bytes": 2533145,
+      "sha256": "280c51153a79af7d74ecec1951bf1659cba6cf46a0a72e7cb5824106dda1c135"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_builder_test_v3.blend1",
+      "bytes": 323537,
+      "sha256": "85ed302250d262f45f925f8333155362bd6b56c662f8729ecc89270b40964e5b"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_builder_test_v4.blend",
+      "bytes": 2533726,
+      "sha256": "8994a699efa52e826ab9124ea6fc3907c4f9afd54035718f3397208496938c4f"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_builder_test_v4.blend1",
+      "bytes": 323547,
+      "sha256": "8a9d812eb8d45c3913405844c58675cd09bf5a6711bec72645b87c1731ededd6"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_builder_test.blend",
+      "bytes": 2531214,
+      "sha256": "13943b898d81bb9a801049ffdbd00a48cf71a1a373fdc584b69940a200096ccf"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_builder_test.blend1",
+      "bytes": 315535,
+      "sha256": "18eed293575b534840ea0da6a715c4a7ea35b3dd982361fe8d34a30411d562e8"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_v0_2.blend",
+      "bytes": 21887196,
+      "sha256": "319c89865d7e85998da1fadcbf35e37dcee4a0454b19b9f80655fb5625770ca6"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_v0_3.blend",
+      "bytes": 27941906,
+      "sha256": "5c064ce65f3b0fb6bd85d7b2b39756a7e11333346887d9f589934634252b76f2"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district_v0_3.blend1",
+      "bytes": 27941292,
+      "sha256": "ebeb14db0caabed76b123e56dc89dfd1bd3b4246ed3fa61d912268310dbfe5f1"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district.blend",
+      "bytes": 2516811,
+      "sha256": "7472291e00822980c6616e4b0d48f37955f39623d0a9e4aaec90d46d864db7d5"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district.blend1",
+      "bytes": 306722,
+      "sha256": "ad63f8c7a623abed2ad660f3ba57da596148988163b0a893f088bf75064519f6"
+    },
+    {
+      "path": "Heist_Blender_Designs/heist_district.png",
+      "bytes": 2387733,
+      "sha256": "25ec6658a796dbf3f0c265b6cdf3bce559651092a88c7e32868fad5cd3900e38"
+    },
+    {
+      "path": "Heist_Blender_Designs/inspect_arena_test.py",
+      "bytes": 1104,
+      "sha256": "fefcb86e2e570ffc73b2f927a8eac9bcb555a2002b67c6797e1c5e59495c2347"
+    },
+    {
+      "path": "Heist_Blender_Designs/inspect_battle_geometry.py",
+      "bytes": 460,
+      "sha256": "2a10d247d83d9ad493abbffbd7ed4892f9a8de0f816fbaf9eafa7c5653728a14"
+    },
+    {
+      "path": "Heist_Blender_Designs/inspect_polyhaven_props.py",
+      "bytes": 742,
+      "sha256": "c197aa31012a5dc77f6279e1de4c17c543157020ddb44860e6741279b643e3bb"
+    },
+    {
+      "path": "Heist_Blender_Designs/officer.blend",
+      "bytes": 146921,
+      "sha256": "a41a736a88386bad2c1e8d38e5ccf1714d266f57f6bab27f27136f134086894a"
+    },
+    {
+      "path": "Heist_Blender_Designs/package_handoff.py",
+      "bytes": 3061,
+      "sha256": "a93b2d21cb5b331efce2fce4f07ae939aa6660d31d1be747f1b82921413a9eb5"
+    },
+    {
+      "path": "Heist_Blender_Designs/references/rowdyhacks-brand.png",
+      "bytes": 1946055,
+      "sha256": "12c12de1d42bcfe65d9276c873372e26fbf0ef0a3b9f90364b96b5eacc3e0920"
+    },
+    {
+      "path": "Heist_Blender_Designs/refine_v0_3_props.py",
+      "bytes": 2481,
+      "sha256": "500a7826c5ed5d7c070b52b67fdd60ef2fa3ea4b63e416b1d09940557655803b"
+    },
+    {
+      "path": "Heist_Blender_Designs/render_arena_previews.py",
+      "bytes": 905,
+      "sha256": "5c4a76f2b547a77e7522b767145015b25475b5b675ee610d70405ebd64f7db1c"
+    },
+    {
+      "path": "Heist_Blender_Designs/render_v02_previews.py",
+      "bytes": 934,
+      "sha256": "d5ee247487a2bfe38410258760a83b1cedb08064883aa6f2a20f8f5e8aff67a6"
+    },
+    {
+      "path": "Heist_Blender_Designs/render_v03_previews.py",
+      "bytes": 803,
+      "sha256": "319803f1748366111322ac8adf6b946551957c4bccccc28e8562ea712b415497"
+    },
+    {
+      "path": "Heist_Blender_Designs/robber.blend",
+      "bytes": 148686,
+      "sha256": "6dee9c9875478b1ac6e4a1c94aa6b1d351b408b9868f0e8d3bda3db078ab6639"
+    },
+    {
+      "path": "Heist_Blender_Designs/setting.blend",
+      "bytes": 262114,
+      "sha256": "19bd528ef965b21e30c471ec5d89dee08c838373e75d5a5bf7cadeaa2b796cc0"
+    },
+    {
+      "path": "Heist_Blender_Designs/START_HERE.md",
+      "bytes": 1543,
+      "sha256": "ab3bd7967eeb21b76c2539679f6982487c7ff695c599d8f67d8eaf7b1bb6f58a"
+    },
+    {
+      "path": "Heist_Blender_Designs/v0_2_refinement.py",
+      "bytes": 13686,
+      "sha256": "5a3a27bf7fd439fed1ef7a8b8538c58957b6724d2f08a89052e6f11cd566590a"
+    },
+    {
+      "path": "Heist_Blender_Designs/verification.json",
+      "bytes": 486,
+      "sha256": "c3b11b73852a4bc2a983e8a2f284eb1b2904719b68a312a493df6e4a5715035e"
+    }
+  ]
+}

@@ -1,0 +1,836 @@
+// Generated local-file bundle of session.json; both carry the same FIXTURE data.
+globalThis.ARENA_FIXTURE = {
+  "source_mode": "FIXTURE",
+  "session_id": "rowdyhacks26-demo-v0",
+  "session_name": "Night shift / Demo v0",
+  "scenario": "Service availability interruption and recovery",
+  "scenario_summary": "One heist. Two teams. A race to restore Bank Lab.",
+  "scene": {
+    "id": "driver",
+    "backdrop": "scenes-v2/01_driver_start.png",
+    "label": "01 / Choose the route",
+    "alt": "Your original driver viewpoint, route map and Start graphic are preserved.",
+    "screen": null
+  },
+  "visual_scenes": {
+    "driver": {
+      "id": "driver",
+      "backdrop": "scenes-v2/01_driver_start.png",
+      "label": "01 / Choose the route",
+      "alt": "Your original driver viewpoint, route map and Start graphic are preserved.",
+      "screen": null
+    },
+    "crash": {
+      "id": "crash",
+      "backdrop": "scenes-v2/02_bank_crash.png",
+      "label": "02 / Through the front doors",
+      "alt": "The same red hatchback breaks through the closed double doors of the bank at night.",
+      "screen": null
+    },
+    "entry": {
+      "id": "entry",
+      "backdrop": "scenes-v2/03_bank_entry-r2.png",
+      "label": "03 / The vault in the distance",
+      "alt": "Red stands inside the damaged entrance and looks down the long lobby toward the distant closed vault. The red car has been removed from the doorway view.",
+      "screen": null
+    },
+    "vault": {
+      "id": "vault",
+      "backdrop": "scenes-v2/04_large_straight_website-r4.png",
+      "label": "04 / At the keypad",
+      "alt": "Red uses the keypad beside the closed vault. The enlarged website screen dominates the wall; the separate Red code screen below it is much smaller. The displayed website is straight and level.",
+      "screen": "vault",
+      "display_surfaces": {
+        "website": {
+          "left": 49,
+          "top": 14,
+          "width": 45.7,
+          "height": 33.3,
+          "transform": "none"
+        },
+        "red_activity": {
+          "left": 78,
+          "top": 56.2,
+          "width": 14.8,
+          "height": 13.6,
+          "transform": "none"
+        }
+      },
+      "vault_door": "closed"
+    },
+    "alarm": {
+      "id": "alarm",
+      "backdrop": "scenes-v2/05_open_vault_matched-r3.png",
+      "label": "05 / Alarm · Bank Lab goes dark",
+      "alt": "The vault is now open. The larger website display goes black, the small Red screen shows a green completion check, and the alarm glows red.",
+      "screen": "vault",
+      "display_surfaces": {
+        "website": {
+          "left": 49,
+          "top": 14,
+          "width": 45.7,
+          "height": 33.3,
+          "transform": "none"
+        },
+        "red_activity": {
+          "left": 78,
+          "top": 56.2,
+          "width": 14.8,
+          "height": 13.6,
+          "transform": "none"
+        }
+      },
+      "vault_door": "open"
+    },
+    "dispatch": {
+      "id": "dispatch",
+      "backdrop": "scenes-v2/06_car_orientation-r9.png",
+      "label": "06 / Alert from marked street area",
+      "alt": "Blue receives the alarm from inside the cop car at the marked end of the street, facing back down the road toward the bank ahead on the left.",
+      "screen": "car",
+      "vehicle_orientation": "Matches scene 08 world direction; front visible from opposite cop POV"
+    },
+    "money": {
+      "id": "money",
+      "backdrop": "scenes-v2/07_inside_vault_money-r2.png",
+      "label": "07 / Fill the bag",
+      "alt": "The robber fills the cloth money bag fully inside the vault chamber, surrounded by storage shelves. No vault door, doorway or corridor is visible.",
+      "screen": null
+    },
+    "exit": {
+      "id": "exit",
+      "backdrop": "scenes-v2/08_bank_exit.png",
+      "label": "08 / Blue arrives in the distance",
+      "alt": "Red emerges from the damaged bank entrance and notices a distant approaching police car.",
+      "screen": null
+    },
+    "rush": {
+      "id": "rush",
+      "backdrop": "scenes-v2/09_rush_same_parking-r2.png",
+      "label": "09 / Back to the hatchback",
+      "alt": "Red rushes from the bank steps to the open driver door of the red hatchback, preserving scene 08's parking spot beside the bank and its street viewpoint.",
+      "screen": null
+    },
+    "mirror": {
+      "id": "mirror",
+      "backdrop": "scenes-v2/10_rear_view.png",
+      "label": "10 / Blue in the rear-view mirror",
+      "alt": "Red is back at the wheel, and the police car is visible behind him in the rear-view mirror.",
+      "screen": null
+    },
+    "pursuit": {
+      "id": "pursuit",
+      "backdrop": "scenes-v2/11_blue_pursuit.png",
+      "label": "11 / Pursuit · recovery in progress",
+      "alt": "Blue's car viewpoint follows the red hatchback along the city street, away from the bank. More cabin and a much larger dashboard display are visible.",
+      "screen": "car"
+    },
+    "recovered": {
+      "id": "recovered",
+      "backdrop": "scenes-v2/12_blue_recovery_complete.png",
+      "label": "12 / Blue's scripted recovery completes",
+      "alt": "The same pursuit viewpoint is retained; the enlarged Blue display switches to a green completion check.",
+      "screen": "car"
+    },
+    "hydroplane": {
+      "id": "hydroplane",
+      "backdrop": "scenes-v2/13_hydroplane_check-r2.png",
+      "label": "13 / Rain · loss of traction",
+      "alt": "The red hatchback hydroplanes into the light pole in the same Blue car viewpoint. The dashboard completion check matches scene 12's larger size.",
+      "screen": "car"
+    },
+    "arrest": {
+      "id": "arrest",
+      "backdrop": "scenes-v2/14_street_arrest.png",
+      "label": "14 / The street arrest",
+      "alt": "Blue arrests the uninjured Red robber on the same street beside the stopped cars.",
+      "screen": null
+    }
+  },
+  "agents": [
+    {
+      "id": "red-scout",
+      "team": "red",
+      "name": "Red Scout",
+      "role": "Observation",
+      "task": "Observe Bank Lab and hand the public demo brief to Red Operator."
+    },
+    {
+      "id": "red-operator",
+      "team": "red",
+      "name": "Red Operator",
+      "role": "Scenario action",
+      "task": "Run the simulated availability interruption."
+    },
+    {
+      "id": "blue-monitor",
+      "team": "blue",
+      "name": "Blue Monitor",
+      "role": "Detection",
+      "task": "Detect the outage and hand the incident to Blue Defender."
+    },
+    {
+      "id": "blue-defender",
+      "team": "blue",
+      "name": "Blue Defender",
+      "role": "Recovery",
+      "task": "Restore the service in the scripted recovery sequence."
+    }
+  ],
+  "timeline": [
+    {
+      "sequence": 1,
+      "time": "00:00",
+      "actor": "Session",
+      "summary": "Choose the route and begin the nighttime heist.",
+      "visual": {
+        "scene": "driver",
+        "title": "The getaway begins",
+        "phase": "Ready",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Ready",
+        "blue_status": "Standby",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "state = \"ready\";"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-01",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:00.000Z",
+      "duration_ms": 3000,
+      "title": "The getaway begins",
+      "team": "red",
+      "event_type": "story.scene",
+      "actor_id": "session",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 2,
+      "time": "00:03",
+      "actor": "Red Operator",
+      "summary": "The red hatchback breaks through the bank’s closed entrance.",
+      "visual": {
+        "scene": "crash",
+        "title": "Through the front doors",
+        "phase": "Entry",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [
+          "red-operator"
+        ],
+        "red_status": "Entering",
+        "blue_status": "Standby",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "state = \"ready\";"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-02",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:03.000Z",
+      "duration_ms": 4500,
+      "title": "Through the front doors",
+      "team": "red",
+      "event_type": "story.scene",
+      "actor_id": "red-operator",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 3,
+      "time": "00:07",
+      "actor": "Red Scout",
+      "summary": "Inside the lobby, the robber heads toward the vault.",
+      "visual": {
+        "scene": "entry",
+        "title": "The vault ahead",
+        "phase": "Inside the bank",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [
+          "red-scout"
+        ],
+        "red_status": "Approaching vault",
+        "blue_status": "Standby",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "state = \"ready\";"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-03",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:07.500Z",
+      "duration_ms": 5000,
+      "title": "The vault ahead",
+      "team": "red",
+      "event_type": "story.scene",
+      "actor_id": "red-scout",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 4,
+      "time": "00:12",
+      "actor": "Red Operator",
+      "summary": "The bank website is available while Red’s simulated action runs.",
+      "visual": {
+        "scene": "vault",
+        "title": "Red takes the website down",
+        "phase": "Red activity",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [
+          "red-operator"
+        ],
+        "red_status": "Attempt in progress",
+        "blue_status": "Standby",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false,
+        "vault_door": "closed"
+      },
+      "public_activity": {
+        "red": [
+          "// RED · DEMO ACTIVITY",
+          "target = \"bank-lab-demo\";",
+          "attempt.status = \"running\";",
+          "traffic.state = \"simulated\";",
+          "availability = \"degrading\";",
+          "// waiting for scene result"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-04",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:12.500Z",
+      "duration_ms": 12000,
+      "title": "Red takes the website down",
+      "team": "red",
+      "event_type": "action.started",
+      "actor_id": "red-operator",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 5,
+      "time": "00:24",
+      "actor": "Bank Lab",
+      "summary": "The website goes dark, the vault opens, and Red’s scripted action completes.",
+      "visual": {
+        "scene": "alarm",
+        "title": "Website offline · vault open",
+        "phase": "Simulated interruption",
+        "bank": "OFFLINE",
+        "alarm": true,
+        "active_agents": [],
+        "red_status": "Scripted action complete",
+        "blue_status": "Alert pending",
+        "red_check": true,
+        "blue_check": false,
+        "blue_code_active": false,
+        "vault_door": "open"
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-05",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:24.500Z",
+      "duration_ms": 6500,
+      "title": "Website offline · vault open",
+      "team": "shared",
+      "event_type": "target.health",
+      "actor_id": "bank-lab",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 6,
+      "time": "00:31",
+      "actor": "Blue Monitor",
+      "summary": "Blue receives the bank alarm from the approaching patrol car.",
+      "visual": {
+        "scene": "dispatch",
+        "title": "Blue receives the alert",
+        "phase": "Blue alert",
+        "bank": "OFFLINE",
+        "alarm": true,
+        "active_agents": [
+          "blue-monitor"
+        ],
+        "red_status": "Inside bank",
+        "blue_status": "Alert received",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-06",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:31.000Z",
+      "duration_ms": 6500,
+      "title": "Blue receives the alert",
+      "team": "blue",
+      "event_type": "story.scene",
+      "actor_id": "blue-monitor",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 7,
+      "time": "00:37",
+      "actor": "Story",
+      "summary": "Inside the vault, the robber fills a bag with money.",
+      "visual": {
+        "scene": "money",
+        "title": "Into the vault",
+        "phase": "Heist illustration",
+        "bank": "OFFLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Story: collecting money",
+        "blue_status": "Responding",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-07",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:37.500Z",
+      "duration_ms": 4500,
+      "title": "Into the vault",
+      "team": "red",
+      "event_type": "story.scene",
+      "actor_id": "story",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 8,
+      "time": "00:42",
+      "actor": "Story",
+      "summary": "The robber leaves the bank and spots the approaching patrol car.",
+      "visual": {
+        "scene": "exit",
+        "title": "Spotted at the entrance",
+        "phase": "Exit",
+        "bank": "OFFLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Leaving",
+        "blue_status": "Approaching",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-08",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:42.000Z",
+      "duration_ms": 4500,
+      "title": "Spotted at the entrance",
+      "team": "red",
+      "event_type": "story.scene",
+      "actor_id": "story",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 9,
+      "time": "00:46",
+      "actor": "Story",
+      "summary": "The robber rushes to the red hatchback beside the bank.",
+      "visual": {
+        "scene": "rush",
+        "title": "Back to the car",
+        "phase": "Escape",
+        "bank": "OFFLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Returning to car",
+        "blue_status": "Arriving",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-09",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:46.500Z",
+      "duration_ms": 4000,
+      "title": "Back to the car",
+      "team": "red",
+      "event_type": "story.scene",
+      "actor_id": "story",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 10,
+      "time": "00:50",
+      "actor": "Story",
+      "summary": "The police car appears in the getaway car’s rear-view mirror.",
+      "visual": {
+        "scene": "mirror",
+        "title": "Blue in the mirror",
+        "phase": "Pursuit starts",
+        "bank": "OFFLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Driving",
+        "blue_status": "Following",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-10",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:50.500Z",
+      "duration_ms": 4500,
+      "title": "Blue in the mirror",
+      "team": "red",
+      "event_type": "story.scene",
+      "actor_id": "story",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 11,
+      "time": "00:55",
+      "actor": "Blue Defender",
+      "summary": "Blue works on recovery as the pursuit heads along the city street.",
+      "visual": {
+        "scene": "pursuit",
+        "title": "The chase · Blue rebuilds",
+        "phase": "Blue recovery",
+        "bank": "RECOVERING",
+        "alarm": false,
+        "active_agents": [
+          "blue-defender"
+        ],
+        "red_status": "Driving",
+        "blue_status": "Recovery action applied",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": true
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": [
+          "// BLUE · DEMO RECOVERY",
+          "incident.status = \"accepted\";",
+          "service.config = \"restored\";",
+          "recovery.status = \"applied\";",
+          "health.check = \"pending\";",
+          "// awaiting demo health event"
+        ]
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-11",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:00:55.000Z",
+      "duration_ms": 13000,
+      "title": "The chase · Blue rebuilds",
+      "team": "blue",
+      "event_type": "recovery.started",
+      "actor_id": "blue-defender",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 12,
+      "time": "01:08",
+      "actor": "Blue Defender",
+      "summary": "The demo reports restored website availability and Blue’s completion screen.",
+      "visual": {
+        "scene": "recovered",
+        "title": "Website restored",
+        "phase": "Recovery reported",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Driving",
+        "blue_status": "Scripted action complete",
+        "red_check": false,
+        "blue_check": true,
+        "blue_code_active": true
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": [
+          "// public fixture feed",
+          "recovery.status = \"scripted_complete\";",
+          "bank.observed = \"online\";"
+        ]
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-12",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:01:08.000Z",
+      "duration_ms": 6500,
+      "title": "Website restored",
+      "team": "blue",
+      "event_type": "target.health",
+      "actor_id": "blue-defender",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 13,
+      "time": "01:14",
+      "actor": "Story",
+      "summary": "The red hatchback hydroplanes into a light pole on the wet street.",
+      "visual": {
+        "scene": "hydroplane",
+        "title": "Rain changes the chase",
+        "phase": "Street crash",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Story: vehicle stopped",
+        "blue_status": "Stopping",
+        "red_check": false,
+        "blue_check": true,
+        "blue_code_active": true
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": [
+          "// public fixture feed",
+          "recovery.status = \"scripted_complete\";",
+          "bank.observed = \"online\";"
+        ]
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-13",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:01:14.500Z",
+      "duration_ms": 4500,
+      "title": "Rain changes the chase",
+      "team": "shared",
+      "event_type": "story.scene",
+      "actor_id": "story",
+      "evidence_refs": []
+    },
+    {
+      "sequence": 14,
+      "time": "01:19",
+      "actor": "Story",
+      "summary": "Blue arrests the robber beside the stopped cars. The demo story is complete.",
+      "visual": {
+        "scene": "arrest",
+        "title": "End of the road",
+        "phase": "Story complete",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Story complete",
+        "blue_status": "Story complete",
+        "red_check": false,
+        "blue_check": true,
+        "blue_code_active": true
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": [
+          "// public fixture feed",
+          "recovery.status = \"scripted_complete\";",
+          "bank.observed = \"online\";"
+        ]
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      },
+      "event_id": "demo-14",
+      "session_id": "rowdyhacks26-demo-v0",
+      "producer": "fixture",
+      "visibility": "judge_safe",
+      "source_mode": "FIXTURE",
+      "target_id": "bank-lab-demo",
+      "occurred_at": "2026-10-03T00:01:19.000Z",
+      "duration_ms": 6500,
+      "title": "End of the road",
+      "team": "shared",
+      "event_type": "story.scene",
+      "actor_id": "story",
+      "evidence_refs": []
+    }
+  ],
+  "version": "0.1.0",
+  "target": {
+    "id": "bank-lab-demo",
+    "name": "Bank Lab",
+    "kind": "synthetic_fixture",
+    "connected": false
+  }
+};

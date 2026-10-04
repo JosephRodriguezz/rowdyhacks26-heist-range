@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101319">
+    <title>RowdyHacks26 | Arena</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="arena.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#main" aria-label="RowdyHacks arena home">
+          <span class="brand-mark" aria-hidden="true">RH</span>
+          <span><strong>ROWDYHACKS</strong><small>CYBER RANGE · 2026</small></span>
+        </a>
+        <div class="session-meta" aria-label="Session information">
+          <span id="session-name">Loading session…</span>
+          <span class="status-pill"><i aria-hidden="true"></i> FIXTURE SESSION</span>
+        </div>
+        <div class="source-badge" aria-label="Data source: fixture">FIXTURE</div>
+      </header>
+
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">JUDGE VIEW <span aria-hidden="true">/</span> INCIDENT RESPONSE</p>
+          <h1 id="page-title">The Arena</h1>
+          <p id="scenario-summary" class="scenario-summary">Loading the fixture story…</p>
+        </div>
+        <div class="phase-block">
+          <span class="field-label">CURRENT PHASE</span>
+          <strong id="phase-label">—</strong>
+        </div>
+      </section>
+
+      <section class="stage panel" aria-labelledby="stage-title">
+        <div class="stage-heading">
+          <div>
+            <p class="eyebrow">SESSION SCENE <span class="dot-separator" aria-hidden="true">·</span> FIXTURE ART</p>
+            <h2 id="stage-title">Incident floor</h2>
+          </div>
+          <span id="scene-label" class="scene-chip">SCENE</span>
+        </div>
+        <figure class="scene-frame">
+          <img id="scene-image" src="" alt="">
+          <div id="scene-live-state" class="scene-live-state" data-tone="normal" aria-live="polite">
+            <span class="scene-state-light" aria-hidden="true"></span>
+            <span><strong id="scene-state-title">FIXTURE READY</strong><small id="scene-state-detail">Waiting for walkthrough</small></span>
+            <span class="scene-state-source">FIXTURE</span>
+          </div>
+          <div id="scene-alarm" class="scene-alarm" aria-hidden="true">SIMULATED INCIDENT</div>
+          <figcaption id="scene-caption" class="scene-caption"></figcaption>
+          <span class="corner-tag">RECORDED ENVIRONMENT ART</span>
+        </figure>
+        <div class="playback-panel" aria-label="Fixture walkthrough controls">
+          <div class="playback-controls">
+            <button id="playback-toggle" class="primary-control" type="button" aria-pressed="false">Play fixture</button>
+            <button id="step-back" class="secondary-control" type="button" aria-label="Previous event">Previous</button>
+            <button id="step-forward" class="secondary-control" type="button" aria-label="Next event">Next event</button>
+            <button id="playback-reset" class="secondary-control" type="button">Reset</button>
+          </div>
+          <div class="playback-progress" role="progressbar" aria-label="Fixture events played" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">
+            <span id="playback-progress-fill"></span>
+          </div>
+          <p id="playback-message" class="playback-message" role="status" aria-live="polite">Fixture ready · Play to step through the sample incident.</p>
+        </div>
+      </section>
+
+      <section class="agents-section" aria-labelledby="agents-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">SESSION ROSTER</p>
+            <h2 id="agents-title">Agents</h2>
+          </div>
+          <span id="agent-count" class="count-chip">— agents</span>
+        </div>
+        <div id="agent-grid" class="agent-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="timeline-section panel" aria-labelledby="timeline-title">
+        <div class="section-heading timeline-heading">
+          <div>
+            <p class="eyebrow">JUDGE-SAFE EVENT FEED</p>
+            <h2 id="timeline-title">Incident timeline</h2>
+          </div>
+          <span class="ordered-note"><span aria-hidden="true">↕</span> Ordered by fixture sequence</span>
+        </div>
+        <ol id="timeline-list" class="timeline-list" aria-live="polite"></ol>
+      </section>
+
+      <footer class="footer-note">
+        <span>Illustrative session data only. This page is not connected to a live target or agent runtime.</span>
+        <span>RowdyHacks26 Arena</span>
+      </footer>
+    </main>
+    <noscript><p class="noscript">Enable JavaScript to render this fixture session.</p></noscript>
+  </body>
+</html>

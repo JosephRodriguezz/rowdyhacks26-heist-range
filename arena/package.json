@@ -1,0 +1,10 @@
+{
+  "name": "rowdyhacks26-arena-v2",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Omar's portable 14-scene fixture motion baseline",
+  "scripts": {
+    "test": "node --test tests/core.test.cjs tests/ui.test.cjs motion-proof/tests/motion.test.cjs",
+    "verify-assets": "node verify-assets.cjs"
+  }
+}

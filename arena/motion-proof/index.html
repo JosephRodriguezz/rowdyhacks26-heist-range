@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RowdyHacks26 — Arena v2</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0d12; --panel: #141821; --panel2: #1b2030; --line: #283043;
+    --text: #e9ecf2; --muted: #a0a8b8; --red: #ff5a5a; --amber: #ffb84d; --focus: #ffd166; --green: #88d9bc;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: #9cc3ff; }
+
+  .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .bar .title strong { font-size: 16px; margin-right: 10px; }
+  .bar .title span { color: var(--muted); font-size: 13px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .badge { font-size: 12px; font-weight: 700; letter-spacing: .06em; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .badge.fixture { background: var(--amber); color: #1a1205; border-color: transparent; }
+
+  main { max-width: 1320px; margin: 0 auto; padding: 16px; display: grid; gap: 12px; }
+
+  /* Stage keeps the approved art's 1672x941 aspect; overlays are placed in % of the image. */
+  .stage { position: relative; margin: 0 auto; width: min(100%, max(300px, calc((100vh - 270px) * 1.7768))); aspect-ratio: 1672 / 941; background: #000; border-radius: 10px; overflow: hidden; container-type: inline-size; }
+  .world { position: absolute; inset: 0; will-change: transform; }
+  .world img { position: absolute; inset: 0; width: 100%; height: 100%; display: none; user-select: none; }
+  .world img.on { display: block; }
+  .fx-layer { position: absolute; inset: 0; display: none; pointer-events: none; }
+  .fx-layer.on { display: block; }
+  #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .glow { position: absolute; transform: translate(-50%, -50%); mix-blend-mode: screen; opacity: 0; pointer-events: none; }
+  .fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+
+  .tag { position: absolute; top: 1.4cqw; font-size: max(11px, 1.05cqw); font-weight: 700; padding: .35cqw .8cqw; border-radius: 999px; background: rgba(8, 10, 16, .72); }
+  .tag.scene { left: 1.4cqw; }
+  .tag.source { right: 1.4cqw; background: var(--amber); color: #1a1205; letter-spacing: .05em; }
+  .poster { position: absolute; inset: 0; margin: auto; width: max-content; height: max-content; font: 800 max(14px, 1.6cqw) system-ui, sans-serif; padding: .8cqw 1.8cqw; border-radius: 999px; border: 0; background: rgba(255, 255, 255, .92); color: #111; cursor: pointer; box-shadow: 0 .6cqw 2cqw rgba(0, 0, 0, .5); }
+  .poster[hidden] { display: none; }
+  .errbar { position: absolute; left: 50%; top: 4.2cqw; transform: translateX(-50%); max-width: 84%; background: #7a1d1d; color: #fff; padding: .4cqw 1cqw; border-radius: 8px; font-size: max(11px, 1cqw); font-weight: 600; }
+  .errbar[hidden] { display: none; }
+  .endcard { position: absolute; left: 3%; bottom: 5%; padding: 1.2cqw 1.6cqw; border: 1px solid rgba(136, 217, 188, .37); border-radius: 12px; background: rgba(8, 24, 36, .93); box-shadow: 0 12px 40px rgba(0, 0, 0, .55); }
+  .endcard[hidden] { display: none; }
+  .endcard span { display: block; color: var(--green); font: 700 max(10px, .9cqw) ui-monospace, Consolas, monospace; letter-spacing: .1em; }
+  .endcard strong { display: block; font-size: max(16px, 2.3cqw); margin: .4cqw 0 .3cqw; }
+  .endcard em { display: block; font-style: normal; color: var(--muted); font-size: max(10px, .95cqw); margin-bottom: .8cqw; }
+  .endcard button { font-size: max(11px, 1.1cqw); padding: .4cqw 1.3cqw; border-color: #5d9683; }
+
+  /* On-screen bank website (large display) */
+  .screen { position: absolute; overflow: hidden; border-radius: .2cqw; }
+  .screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .06) 0 1px, transparent 1px 3px), linear-gradient(135deg, rgba(255, 255, 255, .10), transparent 40%); }
+  /* Sized in cqw to fill the 46x21 cqw glass of the large display in scene 04. */
+  .site { background: #f5f2ec; color: #1c2230; font: 500 1.1cqw/1.25 system-ui, "Segoe UI", sans-serif; display: flex; flex-direction: column; box-shadow: 0 0 2cqw rgba(150, 190, 255, .25); }
+  .site-top { display: flex; align-items: center; gap: 1cqw; padding: .6cqw 1.1cqw; background: #fff; border-bottom: .1cqw solid #e2ddd3; }
+  .site-logo { background: #c8102e; color: #fff; font-weight: 800; padding: .18cqw .5cqw; border-radius: .25cqw; font-size: 1.05cqw; }
+  .site-name { font-weight: 700; font-size: 1.3cqw; }
+  .site-nav { display: flex; gap: 1.1cqw; margin-left: auto; color: #586174; font-size: .98cqw; }
+  .pill { background: #1f9d55; color: #fff; font-size: .86cqw; font-weight: 700; padding: .15cqw .6cqw; border-radius: 1.2cqw; letter-spacing: .04em; }
+  .site-body { flex: 1; display: grid; grid-template-columns: 1fr 1.15fr; gap: 1.1cqw; padding: 1.1cqw; min-height: 0; }
+  .site-hero { display: flex; flex-direction: column; gap: .55cqw; }
+  .site-h { font-size: 1.9cqw; font-weight: 800; color: #11151d; }
+  .site-sub { font-size: .96cqw; color: #5c6577; margin-bottom: .25cqw; }
+  .site-field { background: #fff; border: .1cqw solid #d6d0c4; border-radius: .3cqw; padding: .38cqw .62cqw; font-size: .96cqw; color: #3a4252; }
+  .site-btn { background: #c8102e; color: #fff; text-align: center; border-radius: .3cqw; padding: .45cqw; font-weight: 700; font-size: 1.02cqw; }
+  .site-panel { background: #fff; border: .1cqw solid #e2ddd3; border-radius: .45cqw; padding: .75cqw .9cqw; display: flex; flex-direction: column; gap: .5cqw; min-height: 0; }
+  .site-ph { font-weight: 700; font-size: 1.12cqw; }
+  .site-row { display: flex; justify-content: space-between; font-size: .96cqw; padding: .38cqw 0; border-bottom: .08cqw solid #eee9df; }
+  .site-loading { display: flex; align-items: center; gap: .6cqw; color: #6a7386; font-size: 1cqw; padding-top: .75cqw; }
+  .spinner { width: 1.35cqw; height: 1.35cqw; border: .2cqw solid #d9d3c8; border-top-color: #c8102e; border-radius: 50%; }
+  .site-foot { display: flex; align-items: center; gap: 1.1cqw; padding: .45cqw 1.1cqw; background: #ece7de; font-size: .88cqw; color: #4b5466; }
+  .rt.ok { color: #1f9d55; }
+  .rt.warn { color: #b7791f; }
+  .rt.bad { color: #c8102e; }
+  .site-notice { color: #9a5b00; font-weight: 600; opacity: 0; }
+  .site-fx { margin-left: auto; font-weight: 800; color: #9a5b00; letter-spacing: .06em; }
+
+  /* Code feeds: red (default) and blue. */
+  .code { background: #0d0a10; box-shadow: 0 0 1.2cqw rgba(255, 70, 70, .25); padding: .35cqw .45cqw; }
+  .code pre { margin: 0; font: .64cqw/1.02cqw ui-monospace, "Cascadia Mono", Consolas, monospace; color: #ff9a9a; white-space: pre; }
+  .code.caret-on pre::after { content: "\258C"; color: #ff5c5c; }
+  .code strong { display: flex; justify-content: space-between; font: 700 .6cqw/1.2 system-ui, sans-serif; letter-spacing: .06em; color: #ffb0b0; margin-bottom: .25cqw; padding-bottom: .2cqw; border-bottom: .06cqw solid rgba(255, 255, 255, .18); }
+  .code.blue { background: #07101d; box-shadow: 0 0 1.4cqw rgba(80, 150, 255, .3); }
+  .code.blue pre { color: #a7dbff; }
+  .code.blue strong { color: #7ccbff; border-color: #345679; }
+  .code.blue.caret-on pre::after { color: #6fbaff; }
+
+  /* Keypad key backlight */
+  .key { position: absolute; width: 2.3cqw; height: 2.2cqw; transform: translate(-50%, -50%); border-radius: .35cqw; background: rgba(170, 215, 255, .35); box-shadow: 0 0 .9cqw .25cqw rgba(140, 200, 255, .85), inset 0 0 .5cqw rgba(255, 255, 255, .7); mix-blend-mode: screen; opacity: 0; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+  button, select { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+  button.primary { background: #e9ecf2; color: #0b0d12; border-color: transparent; font-weight: 700; min-width: 84px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chips button { padding: 6px 9px; font-variant-numeric: tabular-nums; }
+  .chips button[aria-current] { border-color: var(--red); color: #fff; background: #3a1d24; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  label.inline { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+  .time { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .segments { display: flex; gap: 3px; height: 6px; }
+  .segments div { background: var(--panel2); border-radius: 3px; }
+  .segments div.on { background: var(--red); }
+  #scrub { width: 100%; margin: 0; accent-color: var(--red); }
+
+  .info { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 12px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .panel h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  dl.status { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; }
+  dl.status dt { color: var(--muted); }
+  dl.status dd { margin: 0; font-weight: 600; }
+  dl.status dd[data-state="ONLINE"] { color: #4ade80; }
+  dl.status dd[data-state="OFFLINE"], dl.status dd[data-state="on"] { color: #ff6b6b; }
+  dl.status dd[data-state="RECOVERING"] { color: var(--amber); }
+  .note p { margin: 0 0 8px; }
+  .note p:last-child { margin: 0; }
+  @media (max-width: 720px) {
+    .info { grid-template-columns: 1fr; }
+    .time { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="title"><strong>Arena v2 · motion baseline</strong><span>14 scenes · approved art · <a href="../index.html">back to arena v0</a></span></div>
+  <div class="badges">
+    <span class="badge fixture" title="Everything shown is local fixture data">FIXTURE</span>
+    <span class="badge">Referee: Not connected</span>
+  </div>
+</header>
+
+<main>
+  <section class="stage" id="stage" aria-label="Scene viewer">
+    <div class="world" id="world">
+      <canvas id="fx" aria-hidden="true"></canvas>
+    </div>
+    <div class="fade" id="fade"></div>
+    <div class="tag scene" id="sceneTag" aria-hidden="true"></div>
+    <div class="tag source" aria-hidden="true">FIXTURE · not live</div>
+    <div class="errbar" id="errBanner" role="alert" hidden></div>
+    <div class="endcard" id="endCard" hidden>
+      <span>DEMO COMPLETE</span><strong>End of the road.</strong>
+      <em>FIXTURE · independent referee not connected</em>
+      <button id="endReplay" type="button">Replay ↻</button>
+    </div>
+    <button class="poster" id="poster" type="button">Play animated demo</button>
+  </section>
+
+  <div class="controls" role="group" aria-label="Playback controls">
+    <button class="primary" id="play" type="button">Play</button>
+    <button id="replay" type="button">Replay</button>
+    <div class="chips" id="chips" role="group" aria-label="Jump to scene"></div>
+    <label class="inline">Speed
+      <select id="speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+      </select>
+    </label>
+    <label class="inline"><input type="checkbox" id="reduced"> Reduced motion</label>
+    <span class="time" id="time" aria-live="off"></span>
+  </div>
+  <div class="segments" id="segments" aria-hidden="true"></div>
+  <input type="range" id="scrub" min="0" step="0.01" value="0" aria-label="Seek through the demo">
+
+  <div class="info">
+    <section class="panel">
+      <h2>Contest state</h2>
+      <dl class="status" aria-live="polite">
+        <dt>Scene</dt><dd id="hudScene"></dd>
+        <dt>Phase</dt><dd id="hudPhase"></dd>
+        <dt>Active agent</dt><dd id="hudActor"></dd>
+        <dt>Red</dt><dd id="hudRed"></dd>
+        <dt>Blue</dt><dd id="hudBlue"></dd>
+        <dt>Bank site</dt><dd id="hudBank"></dd>
+        <dt>Alarm</dt><dd id="hudAlarm"></dd>
+        <dt>Referee</dt><dd>Not connected</dd>
+        <dt>Source</dt><dd>FIXTURE</dd>
+      </dl>
+    </section>
+    <section class="panel note">
+      <h2>What this shows</h2>
+      <p><strong>Moves:</strong> camera pushes and impact shake, light and glow, rain, debris, dust, sparks, emergency lights, and the on-screen bank website, Red feed and Blue feed.</p>
+      <p><strong>Does not move:</strong> the characters and the cars. They are part of the approved still images, so they stay still.</p>
+      <p>Motion design over approved art: not generated video, not live cyber activity. The story follows the v0 fixture, 85.5 seconds. Keys: Space play/pause, R replay, 1–9 jump to a scene, [ ] previous/next scene, ← → seek one second.</p>
+    </section>
+  </div>
+</main>
+
+<noscript><p style="padding:16px">This demo needs JavaScript.</p></noscript>
+<script src="story.js"></script>
+<script src="lib.js"></script>
+<script src="scenes/s01_driver.js"></script>
+<script src="scenes/s02_crash.js"></script>
+<script src="scenes/s03_entry.js"></script>
+<script src="scenes/s04_vault.js"></script>
+<script src="scenes/s05_alarm.js"></script>
+<script src="scenes/s06_dispatch.js"></script>
+<script src="scenes/s07_money.js"></script>
+<script src="scenes/s08_exit.js"></script>
+<script src="scenes/s09_rush.js"></script>
+<script src="scenes/s10_mirror.js"></script>
+<script src="scenes/s11_pursuit.js"></script>
+<script src="scenes/s12_recovered.js"></script>
+<script src="scenes/s13_hydroplane.js"></script>
+<script src="scenes/s14_arrest.js"></script>
+<script src="engine.js"></script>
+</body>
+</html>

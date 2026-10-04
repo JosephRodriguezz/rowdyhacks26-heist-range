@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101116">
+  <title>RowdyHacks26 | Visual Workflow Concept</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f4f0e8;
+      --muted: #aaa9ae;
+      --panel: #1a1b21;
+      --line: #34343c;
+      --red: #ef5a52;
+      --blue: #55a9ff;
+      --gold: #e3bb77;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at 50% -18%, #343039 0, #17181d 46rem, #111216 78rem);
+      color: var(--ink);
+      font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .page { width: min(1180px, calc(100% - 40px)); margin: auto; padding: 34px 0 64px; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding-bottom: 25px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 13px; letter-spacing: .12em; font-size: 12px; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #8f332f; border-radius: 50%; color: #ff746c; font-weight: 850; letter-spacing: -.05em; }
+    .brand small { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; letter-spacing: .18em; }
+    .source { border: 1px solid #805a2b; border-radius: 999px; padding: 7px 12px; color: #f4ca87; background: #372a1b; font-size: 10px; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
+    .hero { padding: 43px 0 34px; display: grid; grid-template-columns: 1.3fr .7fr; gap: 32px; align-items: end; }
+    .eyebrow { margin: 0 0 10px; color: var(--gold); font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(34px, 5vw, 61px); line-height: 1.02; letter-spacing: -.045em; }
+    .lede { max-width: 740px; margin: 18px 0 0; color: #c8c6c7; font-size: 16px; }
+    .mission-note { border-left: 2px solid var(--gold); padding: 12px 0 12px 16px; color: #d7d2c8; font-size: 13px; }
+    .mission-note strong { display: block; color: var(--ink); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+    .flowline { display: flex; align-items: center; gap: 9px; overflow-x: auto; padding: 0 0 26px; color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .flowline span { white-space: nowrap; }
+    .flowline i { width: 20px; height: 1px; background: #62616a; flex: 0 0 auto; }
+    .flowline .r { color: var(--red); }.flowline .b { color: var(--blue); }.flowline .j { color: var(--gold); }
+    .beats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .beat { overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: linear-gradient(155deg, #202127, #17181d 76%); box-shadow: 0 15px 36px #0003; }
+    .beat.wide { grid-column: 1 / -1; display: grid; grid-template-columns: 1.12fr .88fr; }
+    .visual { position: relative; min-height: 250px; overflow: hidden; background: #101217; border-bottom: 1px solid var(--line); }
+    .wide .visual { min-height: 300px; border: 0; border-right: 1px solid var(--line); }
+    .visual img { display: block; width: 100%; height: 100%; min-height: inherit; object-fit: cover; }
+    .visual .art-label { position: absolute; inset: auto 12px 12px auto; padding: 5px 8px; border: 1px solid #ffffff30; border-radius: 5px; background: #111b; color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+    .copy { padding: 19px 21px 21px; }
+    .wide .copy { display: flex; flex-direction: column; justify-content: center; padding: 28px; }
+    .beat-head { display: flex; gap: 12px; align-items: start; margin-bottom: 12px; }
+    .num { flex: 0 0 32px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: #2c2c33; color: #e8d6b7; font-weight: 800; }
+    h2 { margin: 0; font-size: 19px; line-height: 1.2; letter-spacing: -.02em; }
+    .tag { display: inline-flex; margin-top: 6px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .beat p { margin: 0; color: #c2c0c2; font-size: 13px; }
+    .beat p + p { margin-top: 10px; }
+    .mock {
+      position: absolute; inset: 18px; display: flex; flex-direction: column; justify-content: space-between;
+      overflow: hidden; border: 1px solid #55515a; border-radius: 12px;
+      background: linear-gradient(160deg, #30323a, #13151a 74%); padding: 15px;
+    }
+    .mock-top { display: flex; justify-content: space-between; align-items: center; color: #b6bbc6; font-size: 9px; letter-spacing: .13em; }
+    .lights { display: flex; gap: 5px; }.lights i { width: 6px; height: 6px; border-radius: 50%; background: #d45a52; }.lights i:nth-child(2) { background: #d4aa59; }.lights i:nth-child(3) { background: #58b47e; }
+    .road { position: absolute; left: 15%; right: 15%; bottom: -35%; height: 77%; transform: perspective(150px) rotateX(25deg); border: 2px solid #c7a65c; border-bottom: 0; background: repeating-linear-gradient(0deg, transparent 0 26px, #fff4 27px 29px), linear-gradient(90deg, #18191e 0 47%, #e7d8b2 48% 51%, #18191e 52%); }
+    .road::before { content: ""; position: absolute; left: 50%; top: -25%; width: 48%; height: 31%; transform: translateX(-50%); border: 2px solid #dfb978; border-radius: 55% 55% 8px 8px; background: linear-gradient(#d0b88a 0 18%, #8a3029 19% 27%, #322621 28%); box-shadow: 0 0 27px #f04d3840; }
+    .map-chip { position: relative; z-index: 1; width: 48%; padding: 10px; border: 1px solid #555a64; border-radius: 8px; background: #101720eF; color: #e4e7eb; font-size: 10px; }
+    .map-chip b { display: block; margin-bottom: 5px; color: #8cc8ff; font-size: 9px; letter-spacing: .12em; }
+    .start { align-self: center; z-index: 1; border: 1px solid #ffd99c; border-radius: 999px; padding: 8px 24px; background: #a63730; color: white; font-size: 12px; font-weight: 900; letter-spacing: .15em; box-shadow: 0 0 22px #ef574f70; }
+    .overlay-panel { position: absolute; inset: 17px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .terminal { min-width: 0; border: 1px solid #464a51; border-radius: 9px; background: #101318ed; padding: 12px; color: #b8c2ca; font: 10px/1.8 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .terminal strong { display: flex; justify-content: space-between; margin-bottom: 8px; color: #fff; font: 800 9px/1.4 Inter, system-ui, sans-serif; letter-spacing: .11em; }
+    .terminal.red strong { color: #ff7168; }.terminal.blue strong { color: #69b8ff; }
+    .code-line { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .status-line { padding: 6px 8px; border-radius: 5px; background: #7c332e44; color: #ff8b7d; font: 800 9px/1.4 Inter, system-ui, sans-serif; letter-spacing: .08em; }
+    .scenario-branches { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .branch { padding: 11px; border: 1px solid #393a43; border-radius: 9px; background: #121319; }
+    .branch strong { display: block; margin-bottom: 4px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+    .branch.red strong { color: var(--red); }.branch.blue strong { color: var(--blue); }
+    .branch span { display: block; color: #aaa9ae; font-size: 11px; }
+    .notice { margin-top: 25px; padding: 15px 18px; border: 1px solid #4a3d2a; border-radius: 10px; background: #241e17; color: #d6c9b6; font-size: 12px; }
+    .notice strong { color: #f3d395; }
+    footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 23px; color: #88878f; font-size: 10px; }
+    @media (max-width: 760px) {
+      .page { width: min(100% - 24px, 600px); padding-top: 22px; }
+      .hero { grid-template-columns: 1fr; gap: 18px; padding-top: 31px; }
+      .beats { grid-template-columns: 1fr; }
+      .beat.wide { grid-column: auto; display: flex; flex-direction: column; }
+      .wide .visual { min-height: 250px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .wide .copy { padding: 20px; }
+      footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .beat { animation: reveal .45s both; }
+      .beat:nth-child(2) { animation-delay: .04s; }.beat:nth-child(3) { animation-delay: .08s; }.beat:nth-child(4) { animation-delay: .12s; }
+      @keyframes reveal { from { opacity: .65; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="brand"><span class="brand-mark">RH</span><span><b>ROWDYHACKS</b><small>2026 · HEIST RANGE</small></span></div>
+      <span class="source">CONCEPT · FIXTURE ONLY</span>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Judge-facing story · visual workflow v0</p>
+        <h1>One incident.<br>Two teams. A clear story.</h1>
+        <p class="lede">A cinematic wrapper around a controlled bank-lab exercise: Red attempts the selected scenario, Blue responds, and the auditor explains only what the independent referee actually verified.</p>
+      </div>
+      <aside class="mission-note"><strong>Mission truth stays separate</strong>The animation sets the scene; it never decides whether vault data was accessed, service was restored, or a defense worked.</aside>
+    </section>
+
+    <nav class="flowline" aria-label="Workflow overview">
+      <span>01 Start</span><i></i><span class="r">02 Red entry</span><i></i><span class="r">03 Incident</span><i></i><span class="b">04 Blue call</span><i></i><span>05 Chase / response</span><i></i><span class="j">06 Audit</span>
+    </nav>
+
+    <section class="beats" aria-label="Storyboard scenes">
+      <article class="beat">
+        <div class="visual" aria-label="Illustrative driver view and start control">
+          <div class="mock">
+            <div class="mock-top"><span>RED TEAM · ROUTE VIEW</span><span class="lights"><i></i><i></i><i></i></span></div>
+            <div class="map-chip"><b>MAP / LOCAL LAB</b>Destination locked<br>Fictional Omar Bank · TEST RANGE</div>
+            <div class="road" aria-hidden="true"></div>
+            <button class="start" type="button" aria-label="Conceptual start button; inactive">START</button>
+          </div>
+          <span class="art-label">UI CONCEPT</span>
+        </div>
+        <div class="copy"><div class="beat-head"><span class="num">01</span><div><h2>Driver view · choose and start</h2><span class="tag">Opening frame</span></div></div><p>Choose the demo scenario and the fixed Red/Blue agents. The fictional map is a visual prop; the button begins a scripted presentation, not a real-world drive or open-ended target selection.</p></div>
+      </article>
+
+      <article class="beat">
+        <div class="visual">
+          <img src="../Heist_Blender_Designs/arena_previews/01_exterior_start.png" alt="Blender concept render of the fictional bank exterior and the starting scene">
+          <span class="art-label">BLENDER RENDER · EXISTING</span>
+        </div>
+        <div class="copy"><div class="beat-head"><span class="num">02</span><div><h2>Arrival · Red enters the bank</h2><span class="tag">Scene transition</span></div></div><p>Camera pulls from the route view to the bank exterior. Red enters through a stylized, non-destructive action beat; the Blue response is not on scene until the incident alert.</p></div>
+      </article>
+
+      <article class="beat wide">
+        <div class="visual">
+          <img src="../Heist_Blender_Designs/arena_previews/02_battle.png" alt="Blender concept render of the bank battle room with Red and Blue stations">
+          <div class="overlay-panel" aria-hidden="true">
+            <div class="terminal red"><strong><span>RED · SIMULATED ACTION</span><span>FIXTURE</span></strong><span class="code-line">01  Scope: registered bank-lab target</span><span class="code-line">02  Scenario: selected in demo setup</span><span class="code-line">03  Activity: sanitized event summary</span><span class="status-line">NO LIVE COMMANDS SHOWN</span></div>
+            <div class="terminal blue"><strong><span>BLUE · DEFENSE FEED</span><span>FIXTURE</span></strong><span class="code-line">01  Awaiting incident signal…</span><span class="code-line">02  No Red plan or private board</span><span class="code-line">03  Judge-safe status only</span><span class="status-line" style="background:#17375766;color:#8bcaff">ISOLATED LAB TARGET</span></div>
+          </div>
+          <span class="art-label">FIXTURE UI OVERLAY · NOT LIVE TELEMETRY</span>
+        </div>
+        <div class="copy"><div class="beat-head"><span class="num">03</span><div><h2>Incident begins · screens tell the story</h2><span class="tag">Main arena scene</span></div></div><p>The jumbotron presents the fictional bank website and its status. Small stations show sanitized, team-specific activity. Red/Blue boards remain private; the judge view gets only approved events and source labels.</p><p>Website availability is a visible indicator. It is not proof of vault-data access, a compromise, or a successful recovery.</p>
+          <div class="scenario-branches"><div class="branch red"><strong>Scenario A · availability</strong><span>Controlled load simulation; show service status and Blue recovery.</span></div><div class="branch red"><strong>Scenario B · site integrity</strong><span>Fictional takeover/defacement state; Blue restores the known-good fixture.</span></div></div>
+        </div>
+      </article>
+
+      <article class="beat">
+        <div class="visual">
+          <img src="../Heist_Blender_Designs/arena_previews/02_battle.png" alt="Battle-room Blender render used as art for the alert transition">
+          <div class="mock" style="inset:auto 10% 12% 10%;height:auto;gap:12px;justify-content:center;background:#1c1114ed;border-color:#8c353b">
+            <div class="mock-top" style="color:#ffaaa2"><b>⚠ INCIDENT ALERT · FIXTURE</b><span>RED → BLUE DISPATCH</span></div>
+            <div style="font-size:13px;font-weight:750">Bank-lab monitor reports a simulated incident</div>
+            <div style="color:#c6babe;font-size:10px">No public target. No uncontrolled traffic. Blue receives its own alert.</div>
+          </div>
+          <span class="art-label">ALERT TRANSITION CONCEPT</span>
+        </div>
+        <div class="copy"><div class="beat-head"><span class="num">04</span><div><h2>Alarm · Blue is dispatched</h2><span class="tag">Response begins</span></div></div><p>A red beacon and short dispatch beat mark the incident. Blue sees the alert and its own defender telemetry; it does not see Red’s plan, private notes, or the referee’s seeded answer.</p></div>
+      </article>
+
+      <article class="beat">
+        <div class="visual">
+          <img src="../Heist_Blender_Designs/arena_previews/03_red_vault.png" alt="Blender concept render of the fictional vault scene with the robber and cash">
+          <span class="art-label">BLENDER RENDER · EXISTING</span>
+        </div>
+        <div class="copy"><div class="beat-head"><span class="num">05</span><div><h2>Vault beat · protected-data checkpoint</h2><span class="tag">Narrative branch</span></div></div><p>The keypad and vault are set dressing for the first-mission theme. The screen may say “attempted,” “blocked,” or “verified” only when backed by the matching event/referee evidence. Cash imagery is metaphor—not the mission success condition.</p></div>
+      </article>
+
+      <article class="beat">
+        <div class="visual">
+          <div class="mock" style="inset:15px;background:linear-gradient(150deg,#1e2630,#101318 74%);border-color:#455267">
+            <div class="mock-top"><b style="color:#79bfff">BLUE RESPONSE · FIXTURE</b><span>LAB ONLY</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:center;flex:1">
+              <div class="terminal blue"><strong>DEFENDER</strong><span class="code-line">Alert triaged</span><span class="code-line">Containment action</span><span class="code-line">Restore baseline</span></div>
+              <div style="padding:15px;border:1px solid #59606b;border-radius:9px;background:#0e1117;text-align:center"><div style="font-size:30px">🚓</div><b style="color:#8ecbff;font-size:10px">CONTROLLED PURSUIT</b><div style="color:#aaa;font-size:9px">visual sequence only</div></div>
+            </div>
+            <div class="status-line" style="background:#17375766;color:#8bcaff">RESTORE CLAIM → REFEREE CHECK → JUDGE STATUS</div>
+          </div>
+          <span class="art-label">MOTION / UI CONCEPT</span>
+        </div>
+        <div class="copy"><div class="beat-head"><span class="num">06</span><div><h2>Blue response · restore, then pursuit</h2><span class="tag">Recovery sequence</span></div></div><p>Blue’s scripted scene shows investigation, containment, and baseline restoration. A getaway/chase beat can follow for the heist framing, but it remains a visual metaphor; it must not imply an actual live patch or verified repair.</p></div>
+      </article>
+
+      <article class="beat wide">
+        <div class="visual">
+          <img src="../Heist_Blender_Designs/arena_previews/04_blue_arrest.png" alt="Blender concept render of the Blue-team arrest ending in the bank battle room">
+          <span class="art-label">BLENDER RENDER · EXISTING</span>
+        </div>
+        <div class="copy"><div class="beat-head"><span class="num">07</span><div><h2>Auditor closes the story</h2><span class="tag">Ending · same arena stage</span></div></div><p>After Blue’s response, the cop approaches the robber and the auditor raises the tablet. The jumbotron may announce the verified outcome in a restrained banner; keep the room, banners, and screen positions consistent between states.</p>
+          <div class="scenario-branches"><div class="branch blue"><strong>Judge-safe result</strong><span>Show the referee’s recorded result, confidence/source, and unresolved checks.</span></div><div class="branch"><strong>Always visible</strong><span>FIXTURE / RECORDED / LIVE label. Never promote a fixture to live.</span></div></div>
+        </div>
+      </article>
+    </section>
+
+    <aside class="notice"><strong>Scope guard:</strong> this page is a storyboard, not an animation, working website, MCP connection, or live cyber-range. Keep the first mission’s referee-verified vault-data condition distinct from the optional availability/site-integrity narratives. Every security action stays inside the registered isolated lab.</aside>
+    <footer><span>RowdyHacks26 · Arena visual workflow · v0 concept</span><span>Next gate: approve this story, then map beats to Blender scenes / web transitions.</span></footer>
+  </main>
+</body>
+</html>

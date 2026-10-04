@@ -1,0 +1,27 @@
+[
+  {
+    "file": "setting.blend",
+    "objects": 263,
+    "reopened_and_verified": true
+  },
+  {
+    "file": "characters.blend",
+    "objects": 80,
+    "reopened_and_verified": true
+  },
+  {
+    "file": "robber.blend",
+    "objects": 30,
+    "reopened_and_verified": true
+  },
+  {
+    "file": "officer.blend",
+    "objects": 25,
+    "reopened_and_verified": true
+  },
+  {
+    "file": "auditor.blend",
+    "objects": 33,
+    "reopened_and_verified": true
+  }
+]

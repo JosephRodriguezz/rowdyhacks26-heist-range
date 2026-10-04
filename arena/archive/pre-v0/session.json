@@ -1,0 +1,188 @@
+{
+  "source_mode": "FIXTURE",
+  "session_id": "fixture-availability-001",
+  "session_name": "Bank Lab · Service Recovery Walkthrough",
+  "scenario": "Service availability disruption",
+  "scenario_summary": "Illustrative fixture: Red activity simulates a service interruption on the isolated bank demo. Blue detects the impact and restores the fixture. No live target or agent runtime is connected.",
+  "phase": "Fixture walkthrough ready",
+  "scene": {
+    "id": "exterior",
+    "label": "EXTERIOR",
+    "backdrop": "../Heist_Blender_Designs/arena_previews/01_exterior_start.png",
+    "alt": "Recorded Blender preview of the fictional bank exterior with the Red robber, Blue officer, and auditor at the start.",
+    "caption": "Fixture walkthrough ready. Start playback to follow the sample incident."
+  },
+  "visual_scenes": {
+    "exterior": {
+      "id": "exterior",
+      "label": "EXTERIOR",
+      "backdrop": "../Heist_Blender_Designs/arena_previews/01_exterior_start.png",
+      "alt": "Recorded Blender preview of the fictional bank exterior with the Red robber, Blue officer, and auditor at the start."
+    },
+    "battle-room": {
+      "id": "battle-room",
+      "label": "BATTLE ROOM",
+      "backdrop": "../Heist_Blender_Designs/arena_previews/02_battle.png",
+      "alt": "Recorded Blender preview of the RowdyHacks bank battle room with Red and Blue stations and an auditor in the center."
+    }
+  },
+  "agents": [
+    {
+      "id": "red-scout",
+      "team": "red",
+      "name": "Red Scout",
+      "role": "Scout",
+      "status": "Completed",
+      "task": "Fixture narrative: observe the registered demo service and report its baseline state."
+    },
+    {
+      "id": "red-operator",
+      "team": "red",
+      "name": "Red Operator",
+      "role": "Operator",
+      "status": "Completed",
+      "task": "Fixture narrative: trigger the pre-scripted service interruption against the local demo fixture."
+    },
+    {
+      "id": "blue-monitor",
+      "team": "blue",
+      "name": "Blue Monitor",
+      "role": "Monitor",
+      "status": "Completed",
+      "task": "Fixture narrative: identify the simulated availability change and notify the response role."
+    },
+    {
+      "id": "blue-defender",
+      "team": "blue",
+      "name": "Blue Defender",
+      "role": "Defender",
+      "status": "Completed",
+      "task": "Fixture narrative: apply the scripted recovery and confirm the demo service is available again."
+    }
+  ],
+  "timeline": [
+    {
+      "sequence": 1,
+      "time": "00:00",
+      "actor": "Session",
+      "summary": "Fixture session starts; registered demo target reports available.",
+      "visual": {
+        "scene": "exterior",
+        "tone": "normal",
+        "title": "FIXTURE READY",
+        "detail": "Demo service · available",
+        "service": "AVAILABLE",
+        "active_agents": []
+      }
+    },
+    {
+      "sequence": 2,
+      "time": "00:08",
+      "actor": "Red Scout",
+      "summary": "Baseline observation recorded for the local demo service.",
+      "visual": {
+        "scene": "exterior",
+        "tone": "red",
+        "title": "RED SCOUT ACTIVE",
+        "detail": "Baseline observation · fixture",
+        "service": "AVAILABLE",
+        "active_agents": [
+          "red-scout"
+        ]
+      }
+    },
+    {
+      "sequence": 3,
+      "time": "00:16",
+      "actor": "Red Operator",
+      "summary": "Pre-scripted service interruption begins in the fixture narrative.",
+      "visual": {
+        "scene": "battle-room",
+        "tone": "red",
+        "title": "SIMULATED INCIDENT",
+        "detail": "Red activity · fixture sequence",
+        "service": "DEGRADING · FIXTURE",
+        "active_agents": [
+          "red-operator"
+        ],
+        "alarm": true
+      }
+    },
+    {
+      "sequence": 4,
+      "time": "00:20",
+      "actor": "Demo site",
+      "summary": "Fixture status changes to unavailable; this is sample data, not a live health check.",
+      "visual": {
+        "scene": "battle-room",
+        "tone": "red",
+        "title": "SERVICE UNAVAILABLE",
+        "detail": "Sample status · not a live check",
+        "service": "UNAVAILABLE · FIXTURE",
+        "active_agents": [],
+        "alarm": true
+      }
+    },
+    {
+      "sequence": 5,
+      "time": "00:27",
+      "actor": "Blue Monitor",
+      "summary": "Simulated outage is detected and a response handoff is recorded.",
+      "visual": {
+        "scene": "battle-room",
+        "tone": "blue",
+        "title": "BLUE RESPONSE STARTED",
+        "detail": "Detection · fixture sequence",
+        "service": "UNAVAILABLE · FIXTURE",
+        "active_agents": [
+          "blue-monitor"
+        ],
+        "alarm": false
+      }
+    },
+    {
+      "sequence": 6,
+      "time": "00:35",
+      "actor": "Blue Defender",
+      "summary": "Scripted recovery action is shown for the isolated demo fixture.",
+      "visual": {
+        "scene": "battle-room",
+        "tone": "blue",
+        "title": "RECOVERY IN PROGRESS",
+        "detail": "Scripted response · not a verified fix",
+        "service": "RECOVERING · FIXTURE",
+        "active_agents": [
+          "blue-defender"
+        ]
+      }
+    },
+    {
+      "sequence": 7,
+      "time": "00:42",
+      "actor": "Demo site",
+      "summary": "Fixture status returns to available after the scripted recovery.",
+      "visual": {
+        "scene": "battle-room",
+        "tone": "blue",
+        "title": "FIXTURE SERVICE RESTORED",
+        "detail": "Sample state · referee not connected",
+        "service": "AVAILABLE · FIXTURE",
+        "active_agents": []
+      }
+    },
+    {
+      "sequence": 8,
+      "time": "00:48",
+      "actor": "Auditor",
+      "summary": "Fixture timeline ends; live verification and referee verdict are not connected.",
+      "visual": {
+        "scene": "battle-room",
+        "tone": "gold",
+        "title": "AUDIT CHECK PENDING",
+        "detail": "No live referee verdict connected",
+        "service": "FIXTURE COMPLETE",
+        "active_agents": []
+      }
+    }
+  ]
+}

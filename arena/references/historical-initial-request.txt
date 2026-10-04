@@ -1,0 +1,178 @@
+You are the primary executor for Omar’s RowdyHacks26 arena work.
+
+Workspace root:
+C:\Users\escob\OneDrive\Desktop\RowdyHacks
+
+Omar owns the judge-facing arena and website experience. The project is a fictional, isolated Red-vs-Blue cyber-range around a bank. The website should visually explain the simulation as events progress.
+
+Important final direction:
+
+- Do NOT use Unreal Engine.
+- Do NOT use Unreal MCP.
+- Do NOT require Blender at runtime.
+- Do NOT create a separate video or pre-rendered playthrough.
+- Use the website as the runtime.
+- The website should transition between approved scene images as simulation events occur.
+- The images are visual scene assets, not the source of truth for security results.
+- Keep `FIXTURE`, `RECORDED`, and `LIVE` labels accurate at all times.
+
+Before doing anything, read these files:
+
+1. `AGENTS.md`
+2. `HANDOFF.md`
+3. `_status/claude.md`
+4. `_status/antigravity.md`
+5. `_status/codex.md`
+6. `CLAUDE.md`
+7. `NEW_CHAT_HANDOFF.md`
+
+Follow the agent claim rules. Read all status files before editing. Only claim files in `_status/codex.md`. Do not edit Claude’s or Antigravity’s status files. Do not commit, branch, push, merge, or stash.
+
+Current project areas:
+
+- Website prototype:
+  `RowdyHacks26_Project\arena\index.html`
+  `RowdyHacks26_Project\arena\styles.css`
+  `RowdyHacks26_Project\arena\arena.js`
+  `RowdyHacks26_Project\arena\fixtures\session.json`
+
+- New concept scene assets for review:
+  `RowdyHacks26_Project\arena\concept-scenes\`
+
+- Existing Blender preview renders:
+  `RowdyHacks26_Project\Heist_Blender_Designs\arena_previews\`
+
+The six new concept images are:
+
+- `01_driver_start.png`
+  Red robber driver view with a route map and Start button.
+
+- `02_bank_arrival.png`
+  Red vehicle arriving at the fictional bank in a stylized, non-graphic way.
+
+- `03_blue_dispatch.png`
+  Blue officer receiving a simulated incident alert.
+
+- `04_vault_keypad.png`
+  Red robber at the vault keypad with a fictional bank-status screen and abstract activity display.
+
+- `05_blue_pursuit.png`
+  Blue response/pursuit scene with a recovery indicator.
+
+- `06_auditor_arrest_result.png`
+  Auditor holding a tablet while Blue escorts the robber; restrained result display on the jumbotron.
+
+Existing renders include:
+
+- `01_exterior_start.png`
+- `02_battle.png`
+- `03_red_vault.png`
+- `04_blue_arrest.png`
+
+Required work order:
+
+STEP 1 — Verify the scenes first.
+
+Open and inspect the six concept images in `RowdyHacks26_Project\arena\concept-scenes\`, along with the existing preview renders.
+
+For every scene, evaluate:
+
+- Does it match the RowdyHacks visual style?
+- Are the Red robber, Blue officer, auditor, bank, vehicles, vault, screens, and tablet visually consistent?
+- Is the composition readable to judges?
+- Does the scene clearly communicate its role in the workflow?
+- Are the website/jumbotron/status screens understandable?
+- Is the scene safe, fictional, and non-graphic?
+- Does it preserve the Red/Blue information boundary?
+- Does it accidentally imply a real live attack or verified result?
+
+Create a review table or notes identifying each scene as:
+
+- APPROVED
+- NEEDS REVISION
+- REMOVE/REPLACE
+
+Do not build the final website around scenes that Omar has not approved.
+
+STEP 2 — Create the website around the approved scenes.
+
+Use the existing arena prototype in `RowdyHacks26_Project\arena\`. Do not create an unrelated separate website.
+
+The website should contain:
+
+- Judge-facing main arena view.
+- Current scene image as the visual backdrop.
+- Jumbotron/status area.
+- Red and Blue activity panels.
+- Auditor panel with tablet/result state.
+- Visible source label: `FIXTURE`, `RECORDED`, or `LIVE`.
+- Event timeline.
+- Clear current phase/status.
+- Keyboard-accessible controls.
+- Responsive layout for the main simulation screen.
+
+STEP 3 — Animate from simulation events.
+
+The website should transition between scenes as events arrive.
+
+The intended visual sequence is approximately:
+
+1. Driver view with Start button.
+2. Red arrival at the fictional bank.
+3. Battle-room scene with Red and Blue activity.
+4. Red vault/keypad scene and fictional website status.
+5. Simulated incident/alarm.
+6. Blue dispatch/response scene.
+7. Blue pursuit/recovery scene.
+8. Auditor tablet and final result/arrest scene.
+
+This must be event-driven. Do not treat it as a fixed video. A fixture event should be able to change:
+
+- Current scene.
+- Scene caption.
+- Current phase.
+- Red/Blue active status.
+- Jumbotron status.
+- Alert/alarm state.
+- Timeline highlight.
+- Auditor result state.
+
+The first implementation may use fixture JSON and local controls such as:
+
+- Play fixture.
+- Pause.
+- Previous event.
+- Next event.
+- Reset.
+
+Later, the fixture event source can be replaced by a live event adapter if the team supplies the contract.
+
+STEP 4 — Test the complete workflow.
+
+Verify:
+
+- Every approved image loads.
+- Scene transitions occur in the intended order.
+- The website does not launch a separate video.
+- The website does not require Unreal, MCP, or Blender.
+- Source labels remain visible.
+- Fixture data is never presented as live.
+- Red and Blue information remains separated.
+- No credentials or private agent plans appear.
+- The auditor result is not determined by animation alone.
+- The final result only claims verification when independent referee data says so.
+- Website availability is not treated as proof of vault-data access.
+- The page works from a local web server, since `fixtures/session.json` may not load from `file://`.
+
+Security and truth boundaries:
+
+- Use only registered isolated lab targets and synthetic data.
+- Do not expose arbitrary targets or external systems.
+- Keep Red, Blue, judge, and referee data separate.
+- The referee answer key must never appear in the judge UI.
+- Distinguish attempted actions, evidence-backed findings, proposed defenses, applied actions, and independently verified fixes.
+- Animation is presentation only; the independent referee determines the outcome.
+- The first mission is protected vault-data access while legitimate bank access remains available.
+- Website availability or outage is a separate scenario and must not decide the first mission.
+
+Do not set up an MCP port. Do not install Unreal Engine. Do not automate Blender. Start by reviewing the scene assets and reporting which ones are approved, need revision, or should be replaced.

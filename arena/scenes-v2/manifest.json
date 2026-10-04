@@ -1,0 +1,142 @@
+[
+  {
+    "sequence": 1,
+    "scene_id": "driver",
+    "file": "01_driver_start.png",
+    "title": "Approved opening retained",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Your original driver viewpoint, route map and Start graphic are preserved.",
+    "display_notes": "Use a real keyboard-accessible Start control in the arena. The pictured START is decorative."
+  },
+  {
+    "sequence": 2,
+    "scene_id": "crash",
+    "file": "02_bank_crash.png",
+    "title": "Crash through the bank doors",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "The same red hatchback breaks through the closed double doors of the bank at night.",
+    "display_notes": "Door damage is a fictional visual beat; nobody is injured. The hatchback remains the vehicle for later scenes."
+  },
+  {
+    "sequence": 3,
+    "scene_id": "entry",
+    "file": "03_bank_entry-r2.png",
+    "title": "Enter and see the vault from far",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Red stands inside the damaged entrance and looks down the long lobby toward the distant closed vault. The red car has been removed from the doorway view.",
+    "display_notes": "Car removed from scene 03 only. The long lobby, robber viewpoint and distant closed vault are retained."
+  },
+  {
+    "sequence": 4,
+    "scene_id": "vault",
+    "file": "04_large_straight_website-r4.png",
+    "title": "Website + separate Red screen",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Red uses the keypad beside the closed vault. The enlarged website screen dominates the wall; the separate Red code screen below it is much smaller. The displayed website is straight and level.",
+    "display_notes": "Website HTML has no skew, rotation or perspective clipping. The two displays have a clear gap. Vault remains closed during the attempt."
+  },
+  {
+    "sequence": 5,
+    "scene_id": "alarm",
+    "file": "05_open_vault_matched-r3.png",
+    "title": "Alarm + website blackout + Red check",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "The vault is now open. The larger website display goes black, the small Red screen shows a green completion check, and the alarm glows red.",
+    "display_notes": "Same screen sizes, positions, keypad, robber and camera as scene 04. Only the vault opening and alarm/completion state change. Approved by Omar."
+  },
+  {
+    "sequence": 6,
+    "scene_id": "dispatch",
+    "file": "06_car_orientation-r9.png",
+    "title": "Cop view from the marked street area",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Blue receives the alarm from inside the cop car at the marked end of the street, facing back down the road toward the bank ahead on the left.",
+    "display_notes": "The yellow-marked road area is the camera/car location, with the direction reversed toward the bank. Several lamp and tree spacings lead toward the bank. Dashboard is alert only; Blue code remains inactive until scene 11. The parked red hatchback is turned to preserve scene 08's direction; from this opposite cop viewpoint its front headlights and grille are visible."
+  },
+  {
+    "sequence": 7,
+    "scene_id": "money",
+    "file": "07_inside_vault_money-r2.png",
+    "title": "Red fills the money bag",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "The robber fills the cloth money bag fully inside the vault chamber, surrounded by storage shelves. No vault door, doorway or corridor is visible.",
+    "display_notes": "The camera looks into the enclosed storage interior, away from the entrance. Keep the fictional money collection as story art, separate from security evidence."
+  },
+  {
+    "sequence": 8,
+    "scene_id": "exit",
+    "file": "08_bank_exit.png",
+    "title": "Exit and spot Blue far away",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Red emerges from the damaged bank entrance and notices a distant approaching police car.",
+    "display_notes": "Keep the police car distant here so the next rush-to-car scene has a clear trigger."
+  },
+  {
+    "sequence": 9,
+    "scene_id": "rush",
+    "file": "09_rush_same_parking-r2.png",
+    "title": "Rush to the car",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Red rushes from the bank steps to the open driver door of the red hatchback, preserving scene 08's parking spot beside the bank and its street viewpoint.",
+    "display_notes": "Scene 08 is the continuity reference: the car remains at the same curbside position near the damaged entrance. Only the robber action and driver door change."
+  },
+  {
+    "sequence": 10,
+    "scene_id": "mirror",
+    "file": "10_rear_view.png",
+    "title": "Rear-view police reveal",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Red is back at the wheel, and the police car is visible behind him in the rear-view mirror.",
+    "display_notes": "The forward view is the city street away from the bank. This is Red's car viewpoint."
+  },
+  {
+    "sequence": 11,
+    "scene_id": "pursuit",
+    "file": "11_blue_pursuit.png",
+    "title": "Street pursuit + larger Blue screen",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Blue's car viewpoint follows the red hatchback along the city street, away from the bank. More cabin and a much larger dashboard display are visible.",
+    "display_notes": "The dashboard preview contains sanitized fixture activity. Live public Blue activity will replace it once the team provides the feed."
+  },
+  {
+    "sequence": 12,
+    "scene_id": "recovered",
+    "file": "12_blue_recovery_complete.png",
+    "title": "Blue recovery completion",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "The same pursuit viewpoint is retained; the enlarged Blue display switches to a green completion check.",
+    "display_notes": "This illustrates recovery completion. Actual restored availability and independent verification remain separate event fields."
+  },
+  {
+    "sequence": 13,
+    "scene_id": "hydroplane",
+    "file": "13_hydroplane_check-r2.png",
+    "title": "Hydroplane into the light pole",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "The red hatchback hydroplanes into the light pole in the same Blue car viewpoint. The dashboard completion check matches scene 12's larger size.",
+    "display_notes": "Match the completion icon's diameter, location and glow to scene 12. Preserve the crash, rain, street, car and cockpit viewpoint."
+  },
+  {
+    "sequence": 14,
+    "scene_id": "arrest",
+    "file": "14_street_arrest.png",
+    "title": "Street arrest after the crash",
+    "approval": "APPROVED",
+    "source": "ILLUSTRATIVE_ART",
+    "description": "Blue arrests the uninjured Red robber on the same street beside the stopped cars.",
+    "display_notes": "This closes the visual story. No auditor-room scene or baked winner plaque is used, and the illustration does not determine a referee verdict."
+  }
+]

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080e18">
+  <title>Bank Lab · Demo v0</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="fixtures/session.js" defer></script>
+  <script src="demo-core.js" defer></script>
+  <script src="arena.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#playback-toggle">Skip to demo controls</a>
+<main class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#cinema"><span class="brand-mark">RH</span><span><strong>ROWDYHACKS26</strong><small>BANK LAB / DEMO V0</small></span></a>
+    <p class="tagline">One heist. Two teams. A race to restore.</p>
+    <a class="review-link" href="scene-review.html">Approved scenes ↗</a>
+  </header>
+  <section id="cinema" class="cinema" aria-label="Heist demo player">
+    <div class="player-heading">
+      <div><p class="eyebrow" id="phase-label">THE NIGHT SHIFT</p><h1 id="stage-title">The getaway begins</h1></div>
+      <div class="heading-meta"><span class="source-badge">FIXTURE · SIMULATED</span><button id="presentation-toggle" class="quiet-button" type="button" aria-pressed="false">Cinema view ⛶</button></div>
+    </div>
+    <figure id="scene-frame" class="scene-frame" data-scene="driver">
+      <img id="scene-image" src="scenes-v2/01_driver_start.png" alt="Robber in the car outside Bank Lab." width="1672" height="941" fetchpriority="high">
+      <span class="frame-source">DEMO V0 · FIXTURE</span>
+      <span id="scene-number" class="frame-number">01 / 14</span>
+      <button id="scene-start" class="scene-start" type="button" aria-label="Start the demo from the dashboard"><span class="sr-only">Start demo</span></button>
+      <section id="bank-screen" class="screen bank-screen" aria-label="Bank Lab simulated website" hidden>
+        <div class="bank-brand"><strong>BANK LAB</strong><span>DEMO ACCOUNT</span></div>
+        <div class="bank-nav">Overview <span>Activity</span><span>Support</span></div>
+        <h2>Welcome to your bank.</h2><p class="bank-subtitle">Your everyday banking, in one place.</p>
+        <div class="bank-account"><span>Demo checking · •• 2026</span><strong>$12,500.00</strong><small>Synthetic account balance</small></div>
+        <div class="bank-bottom"><span id="website-health">● All systems available</span><span>FIXTURE</span></div>
+      </section>
+      <section id="red-screen" class="screen code-screen red-screen" aria-label="Red simulated activity" hidden><strong>RED / SIMULATED</strong><pre id="red-code"></pre><span class="code-cursor" aria-hidden="true">▍</span></section>
+      <section id="dispatch-screen" class="screen dispatch-screen" aria-label="Blue simulated bank alert" hidden><span>BLUE DISPATCH · FIXTURE</span><strong>⚠ BANK LAB ALERT</strong><p>Website unavailable</p><div class="dispatch-rule"></div><p>Respond to Bank Lab</p><small>Recovery team on standby</small></section>
+      <section id="blue-screen" class="screen code-screen blue-screen" aria-label="Blue simulated recovery activity" hidden><strong>BLUE / SERVICE RECOVERY <span>FIXTURE</span></strong><pre id="blue-code"></pre><span class="code-cursor" aria-hidden="true">▍</span></section>
+      <div id="end-card" class="end-card" hidden><span>DEMO COMPLETE</span><strong>End of the road.</strong><button id="replay-button" type="button">Replay demo ↻</button></div>
+    </figure>
+    <div class="scene-caption"><p id="scene-caption">Choose the route and begin the nighttime heist.</p><span id="session-status" role="status">Ready</span></div>
+    <div class="transport">
+      <div class="transport-buttons">
+        <button id="playback-toggle" class="primary-button" type="button" aria-pressed="false">▶ Start demo</button>
+        <button id="step-back" type="button" aria-label="Previous scene">← Previous</button>
+        <button id="step-forward" type="button" aria-label="Next scene">Next →</button>
+        <button id="playback-stop" type="button">Stop</button>
+        <button id="playback-reset" type="button">↻ Reset</button>
+      </div>
+      <div class="timing"><label for="playback-speed">Speed</label><select id="playback-speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select><span id="elapsed-label">00:00 / 01:26</span></div>
+    </div>
+    <div id="playback-progress" class="progress" role="progressbar" aria-label="Demo playback progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="playback-progress-fill"></span></div>
+    <nav id="scene-nav" class="scene-nav" aria-label="Jump to an approved scene"></nav>
+    <div class="player-bottom"><span id="playback-message" role="status" aria-live="polite">Ready · press Start demo.</span><span class="keyboard-hint">Space: play/pause · ← →: scenes · R: reset</span></div>
+  </section>
+  <section class="telemetry" aria-label="Current demo state">
+    <div><span class="metric-label">BANK WEBSITE</span><strong id="bank-status" data-state="ONLINE">● ONLINE</strong><small>Simulated availability</small></div>
+    <div><span class="metric-label red-text">RED TEAM</span><strong id="red-status">Ready</strong><small id="red-result">Action pending</small></div>
+    <div><span class="metric-label blue-text">BLUE TEAM</span><strong id="blue-status">Standby</strong><small id="blue-result">Recovery pending</small></div>
+    <div><span class="metric-label">INDEPENDENT REFEREE</span><strong>Not connected</strong><small>No live result in demo v0</small></div>
+  </section>
+  <section class="operations" aria-labelledby="operations-title">
+    <div class="section-heading"><div><p class="eyebrow">BEHIND THE SCENE</p><h2 id="operations-title">Agent activity</h2></div><span class="subtle">Select an agent to inspect its public demo activity</span></div>
+    <div id="agent-grid" class="agent-grid"></div>
+    <div class="inspector-layout">
+      <section class="inspector panel" aria-labelledby="inspector-name"><p id="inspector-team" class="eyebrow">RED TEAM</p><h3 id="inspector-name">Red Scout</h3><p id="inspector-role"></p><p id="inspector-task"></p><div class="inspector-meta"><span id="inspector-status"></span><span>FIXTURE</span></div><h4>Recent public activity</h4><ul id="inspector-events"></ul><p class="evidence-note">Evidence: simulated story events only.</p></section>
+      <section class="timeline panel" aria-labelledby="timeline-title"><div class="timeline-heading"><h3 id="timeline-title">Event timeline</h3><label>Show <select id="timeline-filter"><option value="all">All events</option><option value="red">Red team</option><option value="blue">Blue team</option><option value="shared">Bank / story</option></select></label></div><ol id="timeline-list"></ol></section>
+    </div>
+  </section>
+  <footer><span>Demo v0 · 14 approved scenes · Simulated events and synthetic bank data</span><a href="DEMO_V0.md">Demo notes ↗</a></footer>
+  <p id="load-error" class="error" role="alert" hidden></p>
+</main>
+<noscript><p class="error">Enable JavaScript to play the local demo.</p></noscript>
+</body>
+</html>

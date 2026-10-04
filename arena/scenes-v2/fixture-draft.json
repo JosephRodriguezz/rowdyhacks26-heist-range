@@ -1,0 +1,640 @@
+{
+  "source_mode": "FIXTURE",
+  "session_id": "fixture-night-heist-v2",
+  "session_name": "Bank Lab · Night Shift",
+  "scenario": "Service availability interruption and recovery",
+  "scenario_summary": "A fictional nighttime heist illustrates a Bank Lab availability interruption and Blue recovery. Scene art is presentation; team and referee feeds are not connected.",
+  "scene": {
+    "id": "driver",
+    "backdrop": "scenes-v2/01_driver_start.png",
+    "label": "01 / DRIVER",
+    "alt": "Red sits in the car outside the closed Bank Lab. Start the fixture to follow the story.",
+    "caption": "Red sits in the car outside the closed Bank Lab. Start the fixture to follow the story."
+  },
+  "visual_scenes": {
+    "driver": {
+      "id": "driver",
+      "backdrop": "scenes-v2/01_driver_start.png",
+      "label": "01 / Choose the route",
+      "alt": "Red sits in the car outside the closed Bank Lab. Start the fixture to follow the story.",
+      "screen": null
+    },
+    "crash": {
+      "id": "crash",
+      "backdrop": "scenes-v2/02_bank_crash.png",
+      "label": "02 / Through the front doors",
+      "alt": "The red hatchback crashes through the closed bank doors. Fictional, non-graphic entry scene.",
+      "screen": null
+    },
+    "entry": {
+      "id": "entry",
+      "backdrop": "scenes-v2/03_bank_entry-r2.png",
+      "label": "03 / The vault in the distance",
+      "alt": "Red enters the lobby and sees the vault at the far end.",
+      "screen": null
+    },
+    "vault": {
+      "id": "vault",
+      "backdrop": "scenes-v2/04_large_straight_website-r4.png",
+      "label": "04 / At the keypad",
+      "alt": "Red uses the keypad beside the closed vault. The enlarged website screen dominates the wall; the separate Red code screen below it is much smaller. The displayed website is straight and level.",
+      "screen": "vault",
+      "display_surfaces": {
+        "website": {
+          "left": 49,
+          "top": 14,
+          "width": 45.7,
+          "height": 33.3,
+          "transform": "none"
+        },
+        "red_activity": {
+          "left": 78,
+          "top": 56.2,
+          "width": 14.8,
+          "height": 13.6,
+          "transform": "none"
+        }
+      },
+      "vault_door": "closed"
+    },
+    "alarm": {
+      "id": "alarm",
+      "backdrop": "scenes-v2/05_open_vault_matched-r3.png",
+      "label": "05 / Alarm · Bank Lab goes dark",
+      "alt": "The vault is now open. The larger website display goes black, the small Red screen shows a green completion check, and the alarm glows red.",
+      "screen": "vault",
+      "display_surfaces": {
+        "website": {
+          "left": 49,
+          "top": 14,
+          "width": 45.7,
+          "height": 33.3,
+          "transform": "none"
+        },
+        "red_activity": {
+          "left": 78,
+          "top": 56.2,
+          "width": 14.8,
+          "height": 13.6,
+          "transform": "none"
+        }
+      },
+      "vault_door": "open"
+    },
+    "dispatch": {
+      "id": "dispatch",
+      "backdrop": "scenes-v2/06_car_orientation-r9.png",
+      "label": "06 / Alert from marked street area",
+      "alt": "Blue receives the alarm from inside the cop car at the marked end of the street, facing back down the road toward the bank ahead on the left.",
+      "screen": "car",
+      "vehicle_orientation": "Matches scene 08 world direction; front visible from opposite cop POV"
+    },
+    "money": {
+      "id": "money",
+      "backdrop": "scenes-v2/07_inside_vault_money-r2.png",
+      "label": "07 / Fill the bag",
+      "alt": "Inside the bank, Red puts fictional money into a bag. This is story art, not evidence of vault-data access.",
+      "screen": null
+    },
+    "exit": {
+      "id": "exit",
+      "backdrop": "scenes-v2/08_bank_exit.png",
+      "label": "08 / Blue arrives in the distance",
+      "alt": "Red leaves the damaged bank entrance and spots the police car approaching from far away.",
+      "screen": null
+    },
+    "rush": {
+      "id": "rush",
+      "backdrop": "scenes-v2/09_rush_same_parking-r2.png",
+      "label": "09 / Back to the hatchback",
+      "alt": "Red rushes toward the same red hatchback in the rainy street.",
+      "screen": null
+    },
+    "mirror": {
+      "id": "mirror",
+      "backdrop": "scenes-v2/10_rear_view.png",
+      "label": "10 / Blue in the rear-view mirror",
+      "alt": "Red is back at the wheel; the police car appears in the rear-view mirror.",
+      "screen": null
+    },
+    "pursuit": {
+      "id": "pursuit",
+      "backdrop": "scenes-v2/11_blue_pursuit.png",
+      "label": "11 / Pursuit · recovery in progress",
+      "alt": "From inside Blue's car, the enlarged dashboard shows sanitized recovery activity. The chase heads away from the bank.",
+      "screen": "car"
+    },
+    "recovered": {
+      "id": "recovered",
+      "backdrop": "scenes-v2/12_blue_recovery_complete.png",
+      "label": "12 / Blue's scripted recovery completes",
+      "alt": "The fixture reports restored website availability; Blue's dashboard changes to a green completion check. Independent live verification remains pending.",
+      "screen": "car"
+    },
+    "hydroplane": {
+      "id": "hydroplane",
+      "backdrop": "scenes-v2/13_hydroplane_check-r2.png",
+      "label": "13 / Rain · loss of traction",
+      "alt": "From Blue's car, Red's hatchback hydroplanes into a street light pole. The toy robber is uninjured.",
+      "screen": "car"
+    },
+    "arrest": {
+      "id": "arrest",
+      "backdrop": "scenes-v2/14_street_arrest.png",
+      "label": "14 / The street arrest",
+      "alt": "Blue arrests Red on the same rainy street beside the cars. The story ends; no live security verdict is claimed.",
+      "screen": null
+    }
+  },
+  "agents": [
+    {
+      "id": "red-scout",
+      "team": "red",
+      "name": "Red Scout",
+      "role": "Observation",
+      "task": "Public fixture summary: approaches the fictional Bank Lab."
+    },
+    {
+      "id": "red-operator",
+      "team": "red",
+      "name": "Red Operator",
+      "role": "Scenario action",
+      "task": "Public fixture summary: illustrates an availability interruption."
+    },
+    {
+      "id": "blue-monitor",
+      "team": "blue",
+      "name": "Blue Monitor",
+      "role": "Detection",
+      "task": "Public fixture summary: receives the simulated availability alert."
+    },
+    {
+      "id": "blue-defender",
+      "team": "blue",
+      "name": "Blue Defender",
+      "role": "Recovery",
+      "task": "Public fixture summary: applies a scripted recovery action."
+    }
+  ],
+  "timeline": [
+    {
+      "sequence": 1,
+      "time": "00:00",
+      "actor": "Session",
+      "summary": "Red sits in the car outside the closed Bank Lab. Start the fixture to follow the story.",
+      "visual": {
+        "scene": "driver",
+        "title": "Choose the route",
+        "phase": "Ready",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Ready",
+        "blue_status": "Standby",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "state = \"ready\";"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 2,
+      "time": "00:04",
+      "actor": "Red Operator",
+      "summary": "The red hatchback crashes through the closed bank doors. Fictional, non-graphic entry scene.",
+      "visual": {
+        "scene": "crash",
+        "title": "Through the front doors",
+        "phase": "Entry",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [
+          "red-operator"
+        ],
+        "red_status": "Entering",
+        "blue_status": "Standby",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "state = \"ready\";"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 3,
+      "time": "00:08",
+      "actor": "Red Scout",
+      "summary": "Red enters the lobby and sees the vault at the far end.",
+      "visual": {
+        "scene": "entry",
+        "title": "The vault in the distance",
+        "phase": "Inside the bank",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [
+          "red-scout"
+        ],
+        "red_status": "Approaching vault",
+        "blue_status": "Standby",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "state = \"ready\";"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 4,
+      "time": "00:12",
+      "actor": "Red Operator",
+      "summary": "Red uses the keypad beside the closed vault. The enlarged website screen dominates the wall; the separate Red code screen below it is much smaller. The displayed website is straight and level.",
+      "visual": {
+        "scene": "vault",
+        "title": "Website + separate Red screen",
+        "phase": "Red activity",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [
+          "red-operator"
+        ],
+        "red_status": "Attempt in progress",
+        "blue_status": "Standby",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false,
+        "vault_door": "closed"
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "attempt.status = \"in_progress\";",
+          "bank.observed = \"online\";"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 5,
+      "time": "00:16",
+      "actor": "Bank Lab",
+      "summary": "The vault is now open. The larger website display goes black, the small Red screen shows a green completion check, and the alarm glows red.",
+      "visual": {
+        "scene": "alarm",
+        "title": "Alarm + website blackout + Red check",
+        "phase": "Simulated interruption",
+        "bank": "OFFLINE",
+        "alarm": true,
+        "active_agents": [],
+        "red_status": "Scripted action complete",
+        "blue_status": "Alert pending",
+        "red_check": true,
+        "blue_check": false,
+        "blue_code_active": false,
+        "vault_door": "open"
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 6,
+      "time": "00:20",
+      "actor": "Blue Monitor",
+      "summary": "Blue receives the alarm from inside the cop car at the marked end of the street, facing back down the road toward the bank ahead on the left.",
+      "visual": {
+        "scene": "dispatch",
+        "title": "Cop view from the marked street area",
+        "phase": "Blue alert",
+        "bank": "OFFLINE",
+        "alarm": true,
+        "active_agents": [
+          "blue-monitor"
+        ],
+        "red_status": "Inside bank",
+        "blue_status": "Alert received",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 7,
+      "time": "00:24",
+      "actor": "Story",
+      "summary": "Inside the bank, Red puts fictional money into a bag. This is story art, not evidence of vault-data access.",
+      "visual": {
+        "scene": "money",
+        "title": "Fill the bag",
+        "phase": "Heist illustration",
+        "bank": "OFFLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Story: collecting money",
+        "blue_status": "Responding",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 8,
+      "time": "00:28",
+      "actor": "Story",
+      "summary": "Red leaves the damaged bank entrance and spots the police car approaching from far away.",
+      "visual": {
+        "scene": "exit",
+        "title": "Blue arrives in the distance",
+        "phase": "Exit",
+        "bank": "OFFLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Leaving",
+        "blue_status": "Approaching",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 9,
+      "time": "00:32",
+      "actor": "Story",
+      "summary": "Red rushes toward the same red hatchback in the rainy street.",
+      "visual": {
+        "scene": "rush",
+        "title": "Back to the hatchback",
+        "phase": "Escape",
+        "bank": "OFFLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Returning to car",
+        "blue_status": "Arriving",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 10,
+      "time": "00:36",
+      "actor": "Story",
+      "summary": "Red is back at the wheel; the police car appears in the rear-view mirror.",
+      "visual": {
+        "scene": "mirror",
+        "title": "Blue in the rear-view mirror",
+        "phase": "Pursuit starts",
+        "bank": "OFFLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Driving",
+        "blue_status": "Following",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": false
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": []
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 11,
+      "time": "00:40",
+      "actor": "Blue Defender",
+      "summary": "From inside Blue's car, the enlarged dashboard shows sanitized recovery activity. The chase heads away from the bank.",
+      "visual": {
+        "scene": "pursuit",
+        "title": "Pursuit · recovery in progress",
+        "phase": "Blue recovery",
+        "bank": "RECOVERING",
+        "alarm": false,
+        "active_agents": [
+          "blue-defender"
+        ],
+        "red_status": "Driving",
+        "blue_status": "Recovery action applied",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": true
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": [
+          "// public fixture feed",
+          "recovery.status = \"applied\";",
+          "verification.status = \"pending\";"
+        ]
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 12,
+      "time": "00:44",
+      "actor": "Blue Defender",
+      "summary": "The fixture reports restored website availability; Blue's dashboard changes to a green completion check. Independent live verification remains pending.",
+      "visual": {
+        "scene": "recovered",
+        "title": "Blue's scripted recovery completes",
+        "phase": "Recovery reported",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Driving",
+        "blue_status": "Scripted action complete",
+        "red_check": false,
+        "blue_check": true,
+        "blue_code_active": true
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": [
+          "// public fixture feed",
+          "recovery.status = \"scripted_complete\";",
+          "bank.observed = \"online\";"
+        ]
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 13,
+      "time": "00:48",
+      "actor": "Story",
+      "summary": "From Blue's car, Red's hatchback hydroplanes into a street light pole. The toy robber is uninjured.",
+      "visual": {
+        "scene": "hydroplane",
+        "title": "Rain · loss of traction",
+        "phase": "Street crash",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Story: vehicle stopped",
+        "blue_status": "Stopping",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": true
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": [
+          "// public fixture feed",
+          "recovery.status = \"scripted_complete\";",
+          "bank.observed = \"online\";"
+        ]
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    },
+    {
+      "sequence": 14,
+      "time": "00:52",
+      "actor": "Story",
+      "summary": "Blue arrests Red on the same rainy street beside the cars. The story ends; no live security verdict is claimed.",
+      "visual": {
+        "scene": "arrest",
+        "title": "The street arrest",
+        "phase": "Story complete",
+        "bank": "ONLINE",
+        "alarm": false,
+        "active_agents": [],
+        "red_status": "Story complete",
+        "blue_status": "Story complete",
+        "red_check": false,
+        "blue_check": false,
+        "blue_code_active": true
+      },
+      "public_activity": {
+        "red": [
+          "// public fixture feed",
+          "action.status = \"scripted_complete\";",
+          "// No private plan or attack code"
+        ],
+        "blue": [
+          "// public fixture feed",
+          "recovery.status = \"scripted_complete\";",
+          "bank.observed = \"online\";"
+        ]
+      },
+      "referee": {
+        "status": "NOT_CONNECTED",
+        "verified": false
+      }
+    }
+  ]
+}
