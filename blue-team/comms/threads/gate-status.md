@@ -13,3 +13,64 @@ Per `docs/HACKATHON_PLAN.md` and `blue-team/proposals/red-availability-subtasks.
 3. Is now a reasonable time for Diego to start looking at the availability ask, or should it wait for Gate 6 / AV-01 first?
 
 Not asking blue to do anything here — just trying to avoid putting a contract request in front of Diego that the team's own plan says isn't ready to be made yet.
+
+### 2026-10-04T00:18:14Z | codex | answer
+
+Cross-team answer from Codex, posted at Joseph's explicit request. This is a status/intent reply, not a gate certificate, a board vote, or a human-only workflow approval.
+
+## 1. Gates 1-6: Gate 6 has not passed
+
+I cannot substantiate a team-wide Gate 1-6 sign-off. The available evidence is preparation/prototype work, not the integrated event bank and arena.
+
+| Gate | Evidence/status I can substantiate |
+| --- | --- |
+| 1 - wire contract | Draft contracts, fixtures and local adapters exist. No verified all-four-owner acceptance of the current event-bank/availability interface. |
+| 2 - resettable bank | A resettable synthetic Red loopback bank exists and has regression coverage. Diego's actual event bank is not built/connected in the work Joseph has provided here; that is not an event-bank gate pass. |
+| 3 - core/referee | A local preparation core has controls, budgets, SQLite, target restrictions and independent checks. It remains unpublished/uncommitted and has two current test failures; not signed off. |
+| 4 - arena | No verified integrated Omar arena walkthrough or gate sign-off available to me. Treat as unverified, not as proof that Omar has done no work. |
+| 5 - Red/Blue integration | Local fixture-driven integration uses the actual Scout/Operator workers, pinned Blue observe(), real loopback HTTP and session revocation. Diego's bank/Omar's arena are not connected; this is prototype coverage, not team-wide acceptance. |
+| 6 - vault rehearsal | Not passed. No complete signed-off, repeated event-bank/arena rehearsal covering all required cases. Current core regression failures also preclude an all-green claim. |
+
+I re-ran the local preparation core checks for this reply:
+
+`python3 -m unittest discover -s tests -p 'test_core*.py' -q`
+
+83 tests run, two failures:
+- `test_exhausted_action_or_planner_budget_is_inconclusive` (planner case): returns `not_achieved` instead of `inconclusive`.
+- `test_failed_start_receipt_rolls_back_events_state_and_runtime_launch`: retains a phantom runtime after a failed start receipt.
+
+These are existing unfinished core issues; I did not fix them or mark a gate passed while answering this thread.
+
+Separately, Joseph's new Blue HTTP-flood preparation has 353 passing Blue tests, including real loopback reference-bank mitigation and ordinary access during sustained bounded traffic. Its runtime suite passed three repeat runs. This is NOT Diego-bank integration, NOT Gate 6, and NOT an Internet/network-layer DDoS guarantee. The new Blue code and core preparation are local to `codex/core-orchestrator`, not published on Mayo; only this reply is being sent here. Mayo's task statuses, including B-33, are unchanged.
+
+## 2. AV-01: human direction exists; the formal repository decision does not
+
+I found no formal AV-01 entry in the checked decision records. On published `codex/red-team-design` at `c133293604bc651df609f730003ca4a096bde62f`, `docs/DECISIONS.md` still calls availability an open, vault-dependent decision, and `docs/HACKATHON_PLAN.md` still says availability only after Gate 6. Mayo's availability sub-task proposal repeats that older sequence.
+
+However, Joseph has explicitly changed the direction in this chat:
+- Joseph takes Blue; Aaron/Mayo takes Red.
+- DDoS/availability first, defacement afterwards.
+- The demo is an attack/recovery story, not a scored contest with a winning team.
+- Deterministic, credential-free correctness first; optional model behavior and a clearly labeled fallback/replay.
+- Bounded traffic must cause real disruption in the isolated bank. Blue applies a known, evidence-backed recovery/mitigation; independent checks prove ordinary access within an agreed latency limit while high-rate load continues; only then may the live arrest animation play.
+- Bank traffic may degrade, but core controls, telemetry, recovery and arena stay separate. Only the bank public interface goes to the second computer.
+
+This changes the old priority order; it does not retroactively pass the vault gates. The durable AV-01/root-plan update still needs to be recorded and reconciled by Joseph with the integration owner. This answer records the already-confirmed direction, not an accepted contract change or a fabricated orchestrator decision.
+
+The live-demo cut line is: do not claim live recovery or play a verified arrest unless the actual isolated bank, bounded registry-only load, reviewed Blue response, continuing-load ordinary-access checks and truthful event/UI integration all work repeatably. If they do not, keep the result inconclusive and use an explicitly labeled fallback; do not guarantee recovery by relabeling a fixture or forcing a verdict. Exact bank load/latency limits require calibration, not invented defaults.
+
+## 3. Diego can review the availability ask now
+
+Yes: design/interface review now is reasonable under Joseph's revised DDoS-first direction. Do not wait for an obsolete vault-first scheduling assumption to have that conversation. This is permission to discuss the request, not a claim that gates, contracts, deployment or rehearsal are approved.
+
+Before implementation, reconcile Red's request with the actual-bank plan:
+- Health monitoring is useful, but a health endpoint alone is not proof that ordinary bank pages/account access work.
+- A "degrade trigger" must not become a fake outage toggle. Measure a real failure from strictly bounded traffic against a disposable, resource-isolated bank, then choose Blue's response for that measured failure.
+- Core owns target resolution, load limits/cancellation, private recovery tools and ordered judge-safe events. Red requests a bounded capability; Blue proposes; trusted execution applies; the independent referee verifies.
+- Blue's prepared adapter uses temporary application-level source limits with expiry/rollback and privately registered client identities. Diego must review that identity/bootstrap boundary, especially for the second browser, and adapt it to the bank's actual stack. It is not a general firewall/network defense.
+- Keep ordinary access and actual continued high-rate traffic in the recovery test. Blocking everyone, failed logins, timeouts and application-generated 429s are not proof of Blue mitigation.
+- Reconcile the shared contract and root-plan changes with Diego/Joseph before adopting them. Nothing in this reply changes those files or closes a task.
+
+I could not resolve `red/availability-ddos` as a published origin ref during this check. I am treating its scenario and `docs/red/DIEGO_AVAILABILITY_ASK.md` as Red-reported local work, not independently reviewed code. Please provide/publish the exact commit/ref for Diego's review.
+
+Sources checked: Mayo `b513871d629df9509459b96ea2a5dc34bd9b22e7` (this thread, handoff, task board and availability proposal); published `codex/red-team-design` `c133293604bc651df609f730003ca4a096bde62f` (decision log and hackathon plan); Joseph's explicit instructions in this chat; the unpublished local preparation workspace and commands above. No team-wide gate pass, new contract acceptance, human review, merge or deployment is claimed.
