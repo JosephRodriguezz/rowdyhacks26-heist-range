@@ -42,7 +42,9 @@ class EngagementError(ValueError):
     pass
 
 
-def _parse_bare_origin(origin: str) -> tuple[str, str, int]:
+def parse_bare_origin(origin: str) -> tuple[str, str, int]:
+    """Public: ActionExecutor uses this to get (scheme, host, port) for dispatch
+    without re-implementing origin parsing or duplicating this validation."""
     parsed = urlsplit(origin)
     if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.path or parsed.query or parsed.fragment:
         raise EngagementError("origin must be a bare http(s) origin, no path, query, or fragment")
@@ -94,7 +96,12 @@ class TargetEngagement:
     def __post_init__(self) -> None:
         if not self.target_id.strip() or len(self.target_id) > 80:
             raise EngagementError("engagement requires a valid target id")
-        _parse_bare_origin(self.origin)  # validated for its side effect: raises if malformed
+        parse_bare_origin(self.origin)  # validated for its side effect: raises if malformed
+
+    @property
+    def host_port(self) -> tuple[str, int]:
+        _scheme, host, port = parse_bare_origin(self.origin)
+        return host, port
 
 
 def verify_ownership(origin: str, target_id: str, expected_token: str, *, timeout: float = 2.0) -> bool:
@@ -103,7 +110,7 @@ def verify_ownership(origin: str, target_id: str, expected_token: str, *, timeou
     skipped, never inferred from anything other than one successful, matching fetch.
     Any transport failure, non-200, or malformed/missing token is simply "not verified",
     never raised -- the same fail-closed posture as the rest of this project."""
-    scheme, hostname, port = _parse_bare_origin(origin)
+    scheme, hostname, port = parse_bare_origin(origin)
     conn_cls = http.client.HTTPSConnection if scheme == "https" else http.client.HTTPConnection
     conn = conn_cls(hostname, port, timeout=timeout)
     try:

@@ -16,6 +16,7 @@ from typing import Any
 
 from .board import BudgetExceeded, BudgetLedger, RedBoard, RunCancelled
 from .domain import API_BODY_FIELDS, ActionProposal, Evidence, LoadProfile, Role, RunLimits
+from .engagement import EngagementError, EngagementRegistry, EngagementScope, parse_bare_origin
 from .lab import LabState
 
 
@@ -92,8 +93,10 @@ class ActionExecutor:
         max_response_bytes: int | None = None,
         before_dispatch: Any | None = None,
         load_profile: LoadProfile | None = None,
+        engagement_registry: EngagementRegistry | None = None,
     ) -> None:
         self.registry, self.state, self.limits, self.budget, self.board = registry, state, limits, budget, board
+        self.engagement_registry = engagement_registry
         self.max_response_bytes = max_response_bytes or limits.response_bytes
         self.before_dispatch = before_dispatch
         self.load_profile = load_profile or LoadProfile()
@@ -173,18 +176,46 @@ class ActionExecutor:
             raise ActionRejected("credential-like query fields are not accepted")
         return urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, ""))
 
-    def _validate(self, proposal: ActionProposal) -> tuple[str, str, dict[str, str], str | None]:
-        host, port = self.registry.resolve(proposal.target_id)
+    def _resolve_target(self, target_id: str) -> tuple[str, str, int, EngagementScope | None]:
+        """(scheme, host, port, scope) for any registered target id, bank-local or not.
+        scope is None for bank-local and the registry's own extra_targets (the
+        narrower, human-operator-only, loopback-only, http-only AV-05 probe path);
+        a real EngagementScope for a verified engagement (real, re-checkable proof of
+        control -- see engagement.py -- any host, http or https). A verified
+        engagement takes priority over extra_targets when both could apply: an
+        engagement's scope is the generalized replacement for that narrower
+        mechanism, not an addition alongside it with separate rules. Falls back to
+        the registry so existing extra_targets behavior (and its tests) are
+        unchanged when no engagement registry is configured, or the id is not an
+        engagement. Called identically by _validate and execute, so both agree on
+        exactly what was resolved."""
+        if target_id != TARGET_ID and self.engagement_registry is not None:
+            try:
+                engagement = self.engagement_registry.resolve(target_id)
+            except EngagementError:
+                engagement = None
+            if engagement is not None:
+                scheme, host, port = parse_bare_origin(engagement.origin)
+                return scheme, host, port, engagement.scope
+        host, port = self.registry.resolve(target_id)  # raises ActionRejected if unknown everywhere
         if host != "127.0.0.1" or port <= 0:
             raise ActionRejected("registered target is outside loopback scope")
+        return "http", host, port, None
+
+    def _validate(self, proposal: ActionProposal) -> tuple[str, str, dict[str, str], str | None]:
         capability = proposal.capability
-        if proposal.target_id != TARGET_ID and capability not in ("request_api", "read_page"):
-            # A registered non-bank-local target (e.g. a real external lab) is reachable
-            # only for a generic, read-only-shaped passthrough request. The bank-local
-            # login/logout/form flow and the load test assume this lab's own fixed API
-            # shape and in-process status log; neither is safe to assume for another
-            # target without that target separately supplying the same guarantees.
-            raise ActionRejected("capability is not available for this registered target")
+        _scheme, _host, _port, scope = self._resolve_target(proposal.target_id)
+        if proposal.target_id != TARGET_ID:
+            if capability not in ("request_api", "read_page"):
+                # A registered non-bank-local target (an engagement-backed site, or the
+                # narrower AV-05 operator probe) is reachable only for a generic,
+                # read-only-shaped passthrough request. The bank-local login/logout/form
+                # flow and the load test assume this lab's own fixed API shape and
+                # in-process status log; neither is safe to assume for another target
+                # without that target separately supplying the same guarantees.
+                raise ActionRejected("capability is not available for this registered target")
+            if scope is not None and capability not in scope.allowed_capabilities:
+                raise ActionRejected("capability is outside this engagement's authorized scope")
         if capability == "start_account_session":
             if proposal.identity_ref not in IDENTITY_REFS:
                 raise ActionRejected("identity reference is not supplied to Red")
@@ -213,6 +244,8 @@ class ActionExecutor:
             if proposal.method != "GET" or proposal.body:
                 raise ActionRejected("read_page accepts only a GET without a body")
             path, method = self._validate_path(proposal.path), "GET"
+            if scope is not None and scope.path_excluded(path):
+                raise ActionRejected("path is excluded from this engagement's authorized scope")
         elif capability == "request_api":
             if proposal.identity_ref or proposal.form_ref:
                 raise ActionRejected("request_api does not accept identity or form references")
@@ -220,9 +253,18 @@ class ActionExecutor:
                 raise ActionRejected("API method is not allowed")
             path = self._validate_path(proposal.path)
             parsed = urllib.parse.urlsplit(path)
-            if not (parsed.path.startswith("/api/") or parsed.path.startswith("/demo/")):
-                raise ActionRejected("API action must use a registered local app path")
-            if set(proposal.body) - BODY_FIELDS:
+            if scope is None:
+                # bank-local's (and the narrower AV-05 probe path's) own namespace
+                # convention -- not a general rule. An engagement-backed target has no
+                # such fixed namespace; its real boundary is its own scope, checked below.
+                if not (parsed.path.startswith("/api/") or parsed.path.startswith("/demo/")):
+                    raise ActionRejected("API action must use a registered local app path")
+            elif scope.path_excluded(parsed.path):
+                raise ActionRejected("path is excluded from this engagement's authorized scope")
+            # BODY_FIELDS is bank-local's own schema; an engagement-backed target has no
+            # per-site body policy yet; GET requests (the only kind this prototype's own
+            # mock site supports) are unaffected since they carry no body at all.
+            if scope is None and set(proposal.body) - BODY_FIELDS:
                 raise ActionRejected("API body contains fields outside its schema")
             if proposal.method == "GET" and proposal.body:
                 raise ActionRejected("GET body is not supported")
@@ -280,7 +322,7 @@ class ActionExecutor:
             self._validate_load_proposal(proposal)
             return self._execute_stop_load(proposal, role=role, evidence_id=evidence_id)
         method, path, body, identity_ref = self._validate(proposal)
-        host, port = self.registry.resolve(proposal.target_id)
+        scheme, host, port, _scope = self._resolve_target(proposal.target_id)
         cookie: str | None = None
         if proposal.capability == "end_account_session":
             cookie = self._session_cookie(proposal.session_ref, role)
@@ -320,7 +362,8 @@ class ActionExecutor:
         elif body:
             request_bytes = json.dumps(body, separators=(",", ":")).encode("utf-8")
             headers["Content-Type"] = "application/json"
-        conn = http.client.HTTPConnection(host, port, timeout=self.limits.request_timeout_seconds)
+        conn_cls = http.client.HTTPSConnection if scheme == "https" else http.client.HTTPConnection
+        conn = conn_cls(host, port, timeout=self.limits.request_timeout_seconds)
         status: int | None = None
         response_text = ""
         summary = ""
