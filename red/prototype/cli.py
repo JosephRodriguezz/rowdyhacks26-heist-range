@@ -57,6 +57,7 @@ def _run_once(args: argparse.Namespace, *, scenario: str | None = None,
             defense_after_actions=args.defense_after_actions,
             load_profile=_load_profile(args),
             external_target_origin=getattr(args, "target_origin", None),
+            availability_max_attempts=getattr(args, "availability_max_attempts", 1),
         ),
         provider=provider,
     ).run()
@@ -96,6 +97,10 @@ def _add_run_options(parser: argparse.ArgumentParser, *, model: bool = True) -> 
                         help="availability scenario: max wall-clock duration of the bounded load profile")
     parser.add_argument("--load-timeout", type=float, default=1.0,
                         help="availability scenario: per-request timeout inside the bounded load profile")
+    parser.add_argument("--availability-max-attempts", type=int, default=1,
+                        help="availability scenario: retry the one registered bounded profile, unchanged, "
+                             "up to this many times when rate-limited with no measured degradation, before "
+                             "concluding (1, the default, is run_availability_baseline's exact behavior: never retry)")
 
 
 def make_parser() -> argparse.ArgumentParser:

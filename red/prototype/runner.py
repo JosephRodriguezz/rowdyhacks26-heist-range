@@ -22,7 +22,7 @@ from ..evaluation.evaluator import (
 )
 from .actions import TARGET_ID, ActionExecutor, FixedTargetRegistry
 from .agents import AgentWorker, HandoffWork
-from .availability import run_availability_baseline
+from .availability import run_availability_adaptive, run_availability_baseline
 from .baseline import run_surface_survey
 from .board import BudgetLedger, RedBoard
 from .domain import LoadProfile, RunLimits, RunReport
@@ -40,6 +40,11 @@ class RunOptions:
     defense_after_actions: int = 4
     load_profile: LoadProfile = LoadProfile()
     external_target_origin: str | None = None
+    # Availability scenario only: retry the one registered bounded profile, unchanged,
+    # up to this many times when an attempt is fully rate-limited with no measured
+    # degradation, before concluding. 1 means "never retry" (run_availability_baseline's
+    # exact behavior); the default of 1 preserves existing behavior unless raised.
+    availability_max_attempts: int = 1
 
 
 class PrototypeRunner:
@@ -124,7 +129,14 @@ class PrototypeRunner:
                 if self.options.mode == "deterministic_baseline":
                     if self.options.scenario_id == "availability":
                         task = board.add_task("scout", "Run the bounded load profile and confirm recovery", status="queued")
-                        run_availability_baseline(executor=executor, board=board, task_id=task.task_id, stop_if_achieved=objective_reached)
+                        if self.options.availability_max_attempts > 1:
+                            run_availability_adaptive(
+                                executor=executor, board=board, task_id=task.task_id,
+                                stop_if_achieved=objective_reached,
+                                max_attempts=self.options.availability_max_attempts,
+                            )
+                        else:
+                            run_availability_baseline(executor=executor, board=board, task_id=task.task_id, stop_if_achieved=objective_reached)
                     else:
                         task = board.add_task("scout", "Survey public surfaces and compare observed account/resource behavior", status="queued")
                         run_surface_survey(executor=executor, board=board, task_id=task.task_id, stop_if_achieved=objective_reached)

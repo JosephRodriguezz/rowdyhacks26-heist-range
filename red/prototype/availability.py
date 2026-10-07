@@ -7,8 +7,9 @@ scenario can reuse.
 
 from __future__ import annotations
 
+import json
 import time
-from typing import Callable
+from typing import Any, Callable
 
 from .actions import ActionExecutor
 from .board import BudgetExceeded, RedBoard, RunCancelled
@@ -72,6 +73,133 @@ def run_availability_baseline(
         time.sleep(0.1)
         # Confirm recovery with one explicit, recorded observation rather than assuming it.
         act("request_api", path="/api/status")
+        board.finish_task(task_id, "completed")
+    except (BudgetExceeded, RunCancelled):
+        board.finish_task(task_id, "yielded")
+
+
+def _run_one_bounded_attempt(
+    *, executor: ActionExecutor, task_id: str, stop_if_achieved: Callable[[], bool], attempt: int,
+) -> dict[str, Any]:
+    """One full start -> observe -> stop cycle of the one registered, hard-ceilinged
+    profile -- never a different or larger one. Returns what this attempt's own
+    target-side status_log actually showed, by this attempt's load_test_id, so the
+    caller can decide what to do next from real target evidence, not a guess."""
+
+    def act(capability: str, *, path: str = "/", method: str = "GET"):
+        return executor.execute(
+            ActionProposal(capability=capability, path=path, method=method),
+            role="scout", task_id=task_id,
+        )
+
+    act("request_api", path=f"/api/catalog?probe=baseline-{attempt}")
+    start = act("start_load_test")
+    load_test_id = json.loads(start.evidence.body).get("load_test_id") if start.dispatched else None
+    deadline = time.monotonic() + executor.load_profile.duration_seconds + 0.5
+    max_probes, probes_sent, polls = 5, 0, 0
+    # Same load-state-aware pacing as run_availability_baseline, and for the same
+    # reason: a bounded burst can self-terminate well before duration_seconds elapses.
+    while time.monotonic() < deadline and probes_sent < max_probes and polls < 200:
+        if stop_if_achieved():
+            break
+        polls += 1
+        if executor.state.active_load_test_id is None:
+            if probes_sent > 0:
+                break
+            time.sleep(0.01)
+            continue
+        act("request_api", path=f"/api/catalog?probe={attempt}-{probes_sent}")
+        probes_sent += 1
+    act("stop_load_test")
+    time.sleep(0.1)
+    act("request_api", path="/api/status")
+    attempt_rows = [row for row in executor.state.status_log if row["load_test_id"] == load_test_id]
+    return {
+        "attempt": attempt,
+        "load_test_id": load_test_id,
+        "saw_degraded": any(row["label"] == "degraded" for row in attempt_rows),
+        "saw_rate_limited": any(row["label"] == "rate_limited" for row in attempt_rows),
+    }
+
+
+def run_availability_adaptive(
+    *,
+    executor: ActionExecutor,
+    board: RedBoard,
+    task_id: str,
+    stop_if_achieved: Callable[[], bool],
+    max_attempts: int = 2,
+    cooldown_seconds: float = 0.3,
+) -> None:
+    """Like run_availability_baseline, but recognizes Blue's rate-limiter defense from
+    target-side status_log evidence and adapts: when an attempt is fully shed (rate
+    limiting observed, no real degradation), Red records that it noticed, waits a short
+    cooldown, and retries the *same* bounded profile -- never a larger, faster, or
+    differently-shaped one -- up to `max_attempts` times before concluding.
+
+    This is deliberately not routed through HypothesisLedger/adaptation_label: that
+    system's own evidence-usability check excludes 429 and 5xx responses from ever
+    being cited as proof (see docs/red/AVAILABILITY_SCENARIO.md and the system prompt
+    in agents.py -- "rate limiting... remains inconclusive"), which is correct for the
+    vault-access mission's success/denial evidence shape and would be wrong to weaken
+    for this one. Availability's adaptation is recorded honestly on its own terms
+    instead, as board events any reader can inspect, not forced through a mechanism
+    built for a different kind of evidence.
+
+    The *target* decides whether the mitigation holds (evaluate_availability and
+    evaluate_ordinary_access_during_load, reading the same target-side logs); this
+    function only decides whether Red keeps trying, and says why, honestly, every time.
+    """
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be at least 1")
+    owner = "deterministic-adaptive"
+    if not board.claim_task(task_id, owner):
+        raise RuntimeError("adaptive task could not be claimed")
+
+    try:
+        attempt = 1
+        result = _run_one_bounded_attempt(
+            executor=executor, task_id=task_id, stop_if_achieved=stop_if_achieved, attempt=attempt,
+        )
+        board.record_event("availability.adaptive_attempt", result)
+        while (
+            not result["saw_degraded"] and result["saw_rate_limited"]
+            and attempt < max_attempts and not stop_if_achieved()
+        ):
+            board.record_event("availability.adaptation_decision", {
+                "attempt": attempt,
+                "observed": "rate_limited_without_degradation",
+                "decision": "retry_same_bounded_profile_after_cooldown",
+                "rationale": (
+                    "The registered load was shed by rate limiting rather than producing a measured "
+                    "degradation. Retrying the identical bounded profile once, unchanged, to tell a "
+                    "consistently applied mitigation apart from an incidental single-burst shed."
+                ),
+            })
+            time.sleep(cooldown_seconds)
+            attempt += 1
+            result = _run_one_bounded_attempt(
+                executor=executor, task_id=task_id, stop_if_achieved=stop_if_achieved, attempt=attempt,
+            )
+            board.record_event("availability.adaptive_attempt", result)
+        if not result["saw_degraded"] and result["saw_rate_limited"]:
+            board.record_event("availability.adaptation_decision", {
+                "attempt": attempt,
+                "observed": "rate_limited_without_degradation",
+                "decision": "concluded_mitigation_holds",
+                "rationale": (
+                    f"Rate limiting was observed on every attempt (of {attempt}); the registered "
+                    "defense appears to consistently block this load pattern. This is Red's own "
+                    "narrative, not the independent evaluator's verdict."
+                ),
+            })
+        elif result["saw_degraded"]:
+            board.record_event("availability.adaptation_decision", {
+                "attempt": attempt,
+                "observed": "degraded",
+                "decision": "no_retry_needed",
+                "rationale": "This attempt produced a measured degradation; no defense signal to adapt to.",
+            })
         board.finish_task(task_id, "completed")
     except (BudgetExceeded, RunCancelled):
         board.finish_task(task_id, "yielded")
