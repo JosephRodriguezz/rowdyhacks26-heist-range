@@ -105,6 +105,13 @@ class ActionExecutor:
         self._session_revision: dict[str, int] = {}
         self._target_revision = 0
         self._closed = False
+        # Engagement scope ceilings (max_requests_per_window, window_seconds,
+        # max_concurrency) are enforced here, per target_id, not only declared. Never
+        # touched for bank-local or the AV-05 probe path -- those have their own
+        # existing ceilings (LoadProfile) and are unaffected by this.
+        self._engagement_rate_lock = threading.Lock()
+        self._engagement_request_times: dict[str, list[float]] = {}
+        self._engagement_concurrency: dict[str, int] = {}
         self._load_lock = threading.Lock()
         self._active_load: dict[str, Any] | None = None
 
@@ -201,6 +208,33 @@ class ActionExecutor:
         if host != "127.0.0.1" or port <= 0:
             raise ActionRejected("registered target is outside loopback scope")
         return "http", host, port, None
+
+    def _admit_engagement_request(self, target_id: str, scope: EngagementScope) -> str | None:
+        """Enforced, not only declared: a scope's own rate/concurrency ceilings are
+        checked here, on every dispatch to an engagement-backed target. Returns None
+        if admitted (and counted, incrementing in-flight concurrency the caller must
+        release); otherwise the reason it was shed, same as any other boundary this
+        action is rejected for -- never raised, so a rate-shed request is reported as
+        evidence (like a target's own 429) rather than treated as an invalid proposal."""
+        now = time.monotonic()
+        with self._engagement_rate_lock:
+            recent = self._engagement_request_times.setdefault(target_id, [])
+            cutoff = now - scope.window_seconds
+            recent[:] = [t for t in recent if t > cutoff]
+            if len(recent) >= scope.max_requests_per_window:
+                return (f"engagement rate limit exceeded: {scope.max_requests_per_window} "
+                        f"requests per {scope.window_seconds}s window")
+            if self._engagement_concurrency.get(target_id, 0) >= scope.max_concurrency:
+                return f"engagement concurrency limit exceeded: {scope.max_concurrency} in flight"
+            recent.append(now)
+            self._engagement_concurrency[target_id] = self._engagement_concurrency.get(target_id, 0) + 1
+            return None
+
+    def _release_engagement_concurrency(self, target_id: str) -> None:
+        with self._engagement_rate_lock:
+            current = self._engagement_concurrency.get(target_id, 0)
+            if current > 0:
+                self._engagement_concurrency[target_id] = current - 1
 
     def _validate(self, proposal: ActionProposal) -> tuple[str, str, dict[str, str], str | None]:
         capability = proposal.capability
@@ -322,7 +356,7 @@ class ActionExecutor:
             self._validate_load_proposal(proposal)
             return self._execute_stop_load(proposal, role=role, evidence_id=evidence_id)
         method, path, body, identity_ref = self._validate(proposal)
-        scheme, host, port, _scope = self._resolve_target(proposal.target_id)
+        scheme, host, port, scope = self._resolve_target(proposal.target_id)
         cookie: str | None = None
         if proposal.capability == "end_account_session":
             cookie = self._session_cookie(proposal.session_ref, role)
@@ -345,6 +379,15 @@ class ActionExecutor:
             )
             self.board.add_evidence(evidence)
             return ActionResult(self.board.get_evidence(evidence_id), dispatched=False)  # type: ignore[arg-type]
+        if scope is not None:
+            shed_reason = self._admit_engagement_request(proposal.target_id, scope)
+            if shed_reason is not None:
+                evidence = Evidence(
+                    evidence_id, 0, role, proposal.capability, method, path, None,
+                    shed_reason, "", session_ref=proposal.session_ref, failure_kind="engagement_rate_limited",
+                )
+                self.board.add_evidence(evidence)
+                return ActionResult(self.board.get_evidence(evidence_id), dispatched=False)  # type: ignore[arg-type]
         self.budget.reserve_action(evidence_id)
         self.budget.check_active()
         if self._closed:
@@ -422,6 +465,8 @@ class ActionExecutor:
             summary = f"Local target request failed ({type(exc).__name__}); result is inconclusive."
         finally:
             conn.close()
+            if scope is not None:
+                self._release_engagement_concurrency(proposal.target_id)
         evidence = Evidence(
             evidence_id=evidence_id,
             sequence=0,

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import http.client
 import json
+import time
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -247,6 +248,7 @@ class ActionExecutorEngagementDispatchTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.executor.close()
         self.mocksite.close()
+        self.state.close()
 
     def act(self, capability: str, **kwargs):
         return self.executor.execute(
@@ -327,6 +329,129 @@ class ActionExecutorEngagementDispatchTests(unittest.TestCase):
             self.assertEqual(result.evidence.status, 200)
         finally:
             executor.close()
+
+
+class EngagementRateLimitTests(unittest.TestCase):
+    """EngagementScope's rate/concurrency ceilings, actually enforced at dispatch --
+    not only declared. Independent per target_id; never touched for bank-local."""
+
+    def setUp(self) -> None:
+        self.mock_state = MockSiteState(site_name="Acme Test Co.")
+        self.mocksite = MockSiteServer(self.mock_state).start()
+        self.engagement_registry = EngagementRegistry()
+        self.scope = EngagementScope(
+            allowed_capabilities=frozenset({"request_api"}),
+            max_requests_per_window=2, window_seconds=0.3, max_concurrency=1,
+        )
+        self.engagement = self.engagement_registry.register("acme-test-site", self.mocksite.origin, self.scope)
+        self.mock_state.set_authorization_token("acme-test-site", self.engagement.verification_token)
+        self.engagement_registry.verify("acme-test-site")
+        self.state = LabState("clean")
+        self.board = RedBoard()
+        self.limits = RunLimits()
+        self.budget = BudgetLedger(self.limits)
+        self.executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=self.engagement_registry,
+        )
+        self.task = self.board.add_task("scout", "rate limit test")
+        self.board.claim_task(self.task.task_id, "scout-test")
+
+    def tearDown(self) -> None:
+        self.executor.close()
+        self.mocksite.close()
+        self.state.close()
+
+    def act(self, *, target_id: str = "acme-test-site", path: str = "/about"):
+        return self.executor.execute(
+            ActionProposal("request_api", target_id=target_id, path=path),
+            role="scout", task_id=self.task.task_id,
+        )
+
+    def test_requests_within_the_window_ceiling_are_admitted(self) -> None:
+        first = self.act(path="/about?x=1")
+        second = self.act(path="/about?x=2")  # distinct path: dodges the dedup fingerprint, not the rate limit
+        self.assertEqual(first.evidence.status, 200)
+        self.assertEqual(second.evidence.status, 200)
+
+    def test_exceeding_the_window_ceiling_sheds_the_request(self) -> None:
+        self.act(path="/about?x=1")
+        self.act(path="/about?x=2")
+        third = self.act(path="/about?x=3")
+        self.assertEqual(third.evidence.failure_kind, "engagement_rate_limited")
+        self.assertFalse(third.dispatched)
+
+    def test_admission_recovers_once_the_window_elapses(self) -> None:
+        self.act(path="/about?x=1")
+        self.act(path="/about?x=2")
+        shed = self.act(path="/about?x=3")
+        self.assertEqual(shed.evidence.failure_kind, "engagement_rate_limited")
+        time.sleep(self.scope.window_seconds + 0.15)
+        recovered = self.act(path="/about?x=4")
+        self.assertEqual(recovered.evidence.status, 200)
+
+    def test_two_engagements_have_independent_rate_counters(self) -> None:
+        other_state = MockSiteState(site_name="Other Test Co.")
+        with MockSiteServer(other_state) as other_site:
+            other_engagement = self.engagement_registry.register("other-test-site", other_site.origin, self.scope)
+            other_state.set_authorization_token("other-test-site", other_engagement.verification_token)
+            self.engagement_registry.verify("other-test-site")
+            self.act(path="/about?x=1")
+            self.act(path="/about?x=2")
+            shed = self.act(path="/about?x=3")
+            self.assertEqual(shed.evidence.failure_kind, "engagement_rate_limited")
+            # The second engagement's own window is untouched by the first's exhaustion.
+            fresh = self.act(target_id="other-test-site", path="/about")
+            self.assertEqual(fresh.evidence.status, 200)
+
+    def test_concurrency_ceiling_is_enforced(self) -> None:
+        # White-box: proves the counter logic precisely and deterministically, without
+        # depending on real thread scheduling to land two requests truly concurrently.
+        first = self.executor._admit_engagement_request("acme-test-site", self.scope)
+        self.assertIsNone(first)  # admitted; concurrency now 1 == max_concurrency
+        second = self.executor._admit_engagement_request("acme-test-site", self.scope)
+        self.assertIsNotNone(second)
+        self.assertIn("concurrency", second)
+        self.executor._release_engagement_concurrency("acme-test-site")
+        third = self.executor._admit_engagement_request("acme-test-site", self.scope)
+        self.assertIsNone(third)
+        self.executor._release_engagement_concurrency("acme-test-site")
+
+    def test_concurrency_is_released_even_when_the_request_fails(self) -> None:
+        # A transport failure (not a validation rejection) must still release its slot,
+        # or one failed request would permanently occupy the concurrency ceiling.
+        bad_registry = EngagementRegistry()
+        bad_engagement = bad_registry.register("unreachable-site", "http://127.0.0.1:1", self.scope)
+        bad_engagement.status = "verified"  # force-verified: this test is about release-on-failure, not verification
+        executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=bad_registry,
+        )
+        try:
+            result = executor.execute(
+                ActionProposal("request_api", target_id="unreachable-site", path="/"),
+                role="scout", task_id=self.task.task_id,
+            )
+            self.assertEqual(result.evidence.failure_kind, "target_transport")
+            self.assertEqual(executor._engagement_concurrency.get("unreachable-site", 0), 0)
+        finally:
+            executor.close()
+
+    def test_bank_local_is_never_subject_to_engagement_rate_limiting(self) -> None:
+        # Bank-local resolves with scope=None, so _admit_engagement_request is never
+        # even consulted for it -- proven here by exhausting acme-test-site's window
+        # and confirming a bank-local attempt is unaffected (it only fails on the
+        # unrelated placeholder-port transport, exactly as without any engagement
+        # registry configured at all).
+        self.act(path="/about?x=1")
+        self.act(path="/about?x=2")
+        shed = self.act(path="/about?x=3")
+        self.assertEqual(shed.evidence.failure_kind, "engagement_rate_limited")
+        bank_local_result = self.executor.execute(
+            ActionProposal("request_api", target_id=TARGET_ID, path="/api/catalog"),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(bank_local_result.evidence.failure_kind, "target_transport")
 
 
 if __name__ == "__main__":
