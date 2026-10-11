@@ -16,7 +16,7 @@ from typing import Any
 
 from .board import BudgetExceeded, BudgetLedger, RedBoard, RunCancelled
 from .domain import API_BODY_FIELDS, ActionProposal, Evidence, LoadProfile, Role, RunLimits
-from .engagement import EngagementError, EngagementRegistry, EngagementScope, parse_bare_origin
+from .engagement import EngagementError, EngagementRegistry, EngagementScope, SiteProfile, parse_bare_origin
 from .lab import LabState
 
 
@@ -137,6 +137,27 @@ class ActionExecutor:
                 raise ActionRejected("session reference is unknown or belongs to another role")
             return entry["cookie"]
 
+    def _known_secrets(self) -> list[str]:
+        """Every secret value currently in play, bank-local or engagement, so none of
+        them can ever leak into evidence or logs regardless of which target they
+        belong to. Scrubs every live target's secrets (defense in depth), not only
+        the one the current proposal happens to address."""
+        found: list[str] = []
+        with self.state.lock:
+            found.extend(item["password"] for item in self.state.identities.values())
+            found.extend(self.state.sessions.keys())
+        with self._session_lock:
+            # Red's own tracked cookie values -- populated identically for a
+            # bank-local or an engagement-backed login, so this covers both.
+            found.extend(entry["cookie"] for entry in self._sessions.values())
+        if self.engagement_registry is not None:
+            for engagement in self.engagement_registry.engagements():
+                if engagement.profile is None:
+                    continue
+                for identity in engagement.profile.identities.values():
+                    found.extend(str(value) for value in identity.values())
+        return found
+
     @staticmethod
     def _sanitize_payload(value: Any) -> Any:
         if isinstance(value, dict):
@@ -183,12 +204,14 @@ class ActionExecutor:
             raise ActionRejected("credential-like query fields are not accepted")
         return urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, ""))
 
-    def _resolve_target(self, target_id: str) -> tuple[str, str, int, EngagementScope | None]:
-        """(scheme, host, port, scope) for any registered target id, bank-local or not.
-        scope is None for bank-local and the registry's own extra_targets (the
-        narrower, human-operator-only, loopback-only, http-only AV-05 probe path);
-        a real EngagementScope for a verified engagement (real, re-checkable proof of
-        control -- see engagement.py -- any host, http or https). A verified
+    def _resolve_target(
+        self, target_id: str,
+    ) -> tuple[str, str, int, EngagementScope | None, SiteProfile | None]:
+        """(scheme, host, port, scope, profile) for any registered target id, bank-local
+        or not. scope/profile are None for bank-local and the registry's own
+        extra_targets (the narrower, human-operator-only, loopback-only, http-only
+        AV-05 probe path); real values for a verified engagement (real, re-checkable
+        proof of control -- see engagement.py -- any host, http or https). A verified
         engagement takes priority over extra_targets when both could apply: an
         engagement's scope is the generalized replacement for that narrower
         mechanism, not an addition alongside it with separate rules. Falls back to
@@ -203,11 +226,11 @@ class ActionExecutor:
                 engagement = None
             if engagement is not None:
                 scheme, host, port = parse_bare_origin(engagement.origin)
-                return scheme, host, port, engagement.scope
+                return scheme, host, port, engagement.scope, engagement.profile
         host, port = self.registry.resolve(target_id)  # raises ActionRejected if unknown everywhere
         if host != "127.0.0.1" or port <= 0:
             raise ActionRejected("registered target is outside loopback scope")
-        return "http", host, port, None
+        return "http", host, port, None, None
 
     def _admit_engagement_request(self, target_id: str, scope: EngagementScope) -> str | None:
         """Enforced, not only declared: a scope's own rate/concurrency ceilings are
@@ -238,40 +261,65 @@ class ActionExecutor:
 
     def _validate(self, proposal: ActionProposal) -> tuple[str, str, dict[str, str], str | None]:
         capability = proposal.capability
-        _scheme, _host, _port, scope = self._resolve_target(proposal.target_id)
+        _scheme, _host, _port, scope, profile = self._resolve_target(proposal.target_id)
         if proposal.target_id != TARGET_ID:
-            if capability not in ("request_api", "read_page"):
-                # A registered non-bank-local target (an engagement-backed site, or the
-                # narrower AV-05 operator probe) is reachable only for a generic,
-                # read-only-shaped passthrough request. The bank-local login/logout/form
-                # flow and the load test assume this lab's own fixed API shape and
-                # in-process status log; neither is safe to assume for another target
-                # without that target separately supplying the same guarantees.
-                raise ActionRejected("capability is not available for this registered target")
-            if scope is not None and capability not in scope.allowed_capabilities:
-                raise ActionRejected("capability is outside this engagement's authorized scope")
+            if scope is None:
+                # The narrower AV-05 probe path: only ever the two generic, read-only
+                # capabilities. An engagement's own declared scope (below) is what
+                # generalizes beyond this; it never widens this narrower mechanism.
+                if capability not in ("request_api", "read_page"):
+                    raise ActionRejected("capability is not available for this registered target")
+            else:
+                if capability not in scope.allowed_capabilities:
+                    raise ActionRejected("capability is outside this engagement's authorized scope")
+                if capability in ("start_account_session", "end_account_session", "submit_form") and profile is None:
+                    raise ActionRejected("this engagement has no site profile declaring how to do this")
         if capability == "start_account_session":
-            if proposal.identity_ref not in IDENTITY_REFS:
-                raise ActionRejected("identity reference is not supplied to Red")
+            if proposal.target_id == TARGET_ID:
+                if proposal.identity_ref not in IDENTITY_REFS:
+                    raise ActionRejected("identity reference is not supplied to Red")
+                if proposal.path != "/" or proposal.body or proposal.session_ref or proposal.form_ref:
+                    raise ActionRejected("account login accepts only an identity reference")
+                return "POST", "/api/login", {}, proposal.identity_ref
+            if proposal.identity_ref not in profile.identities:
+                raise ActionRejected("identity reference is not supplied to Red for this engagement")
             if proposal.path != "/" or proposal.body or proposal.session_ref or proposal.form_ref:
                 raise ActionRejected("account login accepts only an identity reference")
-            return "POST", "/api/login", {}, proposal.identity_ref
+            return profile.login_method, profile.login_path, {}, proposal.identity_ref
         if capability == "end_account_session":
-            if proposal.path not in ("/", "/api/logout"):
+            if proposal.target_id == TARGET_ID:
+                if proposal.path not in ("/", "/api/logout"):
+                    raise ActionRejected("logout path is fixed by the action boundary")
+                if not proposal.session_ref or proposal.body or proposal.identity_ref or proposal.form_ref:
+                    raise ActionRejected("logout requires an owned session reference")
+                return "POST", "/api/logout", {}, None
+            if proposal.path not in ("/", profile.logout_path):
                 raise ActionRejected("logout path is fixed by the action boundary")
             if not proposal.session_ref or proposal.body or proposal.identity_ref or proposal.form_ref:
                 raise ActionRejected("logout requires an owned session reference")
-            return "POST", "/api/logout", {}, None
+            return profile.logout_method, profile.logout_path, {}, None
         if capability == "submit_form":
-            if proposal.form_ref != "contact_form":
-                raise ActionRejected("form reference was not discovered or registered")
-            if proposal.identity_ref:
-                raise ActionRejected("form submission does not accept account credentials")
-            if proposal.method != "POST" or proposal.path not in ("/", "/api/contact"):
-                raise ActionRejected("form destination and method are fixed")
-            if set(proposal.body) - {"name", "message"}:
-                raise ActionRejected("form contains fields outside its schema")
-            path, method = "/api/contact", "POST"
+            if proposal.target_id == TARGET_ID:
+                if proposal.form_ref != "contact_form":
+                    raise ActionRejected("form reference was not discovered or registered")
+                if proposal.identity_ref:
+                    raise ActionRejected("form submission does not accept account credentials")
+                if proposal.method != "POST" or proposal.path not in ("/", "/api/contact"):
+                    raise ActionRejected("form destination and method are fixed")
+                if set(proposal.body) - {"name", "message"}:
+                    raise ActionRejected("form contains fields outside its schema")
+                path, method = "/api/contact", "POST"
+            else:
+                form = profile.forms.get(proposal.form_ref) if proposal.form_ref else None
+                if form is None:
+                    raise ActionRejected("form reference was not discovered or registered")
+                if proposal.identity_ref:
+                    raise ActionRejected("form submission does not accept account credentials")
+                if proposal.method != form.method or proposal.path not in ("/", form.path):
+                    raise ActionRejected("form destination and method are fixed")
+                if set(proposal.body) - form.allowed_fields:
+                    raise ActionRejected("form contains fields outside its schema")
+                path, method = form.path, form.method
         elif capability == "read_page":
             if proposal.identity_ref or proposal.form_ref:
                 raise ActionRejected("read_page does not accept identity or form references")
@@ -309,9 +357,7 @@ class ActionExecutor:
             raise ActionRejected("body field exceeds the configured bound")
         if len(json.dumps(proposal.body).encode("utf-8")) > 2_048:
             raise ActionRejected("request body exceeds the configured bound")
-        with self.state.lock:
-            known_secrets = [item["password"] for item in self.state.identities.values()]
-            known_secrets.extend(self.state.sessions.keys())
+        known_secrets = self._known_secrets()
         if any(secret and secret in urllib.parse.unquote(path) for secret in known_secrets):
             raise ActionRejected("tool-owned credential material cannot be placed in a target path")
         if any(
@@ -331,9 +377,7 @@ class ActionExecutor:
         rendered = json.dumps(safe_body, ensure_ascii=False, separators=(",", ":")) if safe_body else ""
         if not rendered:
             return ""
-        with self.state.lock:
-            known_secrets = [item["password"] for item in self.state.identities.values()]
-            known_secrets.extend(self.state.sessions.keys())
+        known_secrets = self._known_secrets()
         for secret in known_secrets:
             if secret:
                 rendered = rendered.replace(secret, "[REDACTED]")
@@ -356,7 +400,8 @@ class ActionExecutor:
             self._validate_load_proposal(proposal)
             return self._execute_stop_load(proposal, role=role, evidence_id=evidence_id)
         method, path, body, identity_ref = self._validate(proposal)
-        scheme, host, port, scope = self._resolve_target(proposal.target_id)
+        scheme, host, port, scope, profile = self._resolve_target(proposal.target_id)
+        session_cookie_name = profile.session_cookie_name if profile is not None else "heist_session"
         cookie: str | None = None
         if proposal.capability == "end_account_session":
             cookie = self._session_cookie(proposal.session_ref, role)
@@ -396,10 +441,14 @@ class ActionExecutor:
             self.before_dispatch()
         headers = {"Accept": "application/json", "X-Lab-Action-ID": evidence_id}
         if cookie:
-            headers["Cookie"] = "heist_session=" + cookie
+            headers["Cookie"] = f"{session_cookie_name}=" + cookie
         request_bytes: bytes | None = None
         if identity_ref:
-            identity = self.state.identities[identity_ref]
+            # Bank-local's identities live in LabState (the bank fixture's own state);
+            # an engagement-backed target's identities live on its own profile, never
+            # LabState, which has no business holding a generic engagement's secrets.
+            identity = (self.state.identities[identity_ref] if proposal.target_id == TARGET_ID
+                        else profile.identities[identity_ref])
             request_bytes = json.dumps(identity, separators=(",", ":")).encode("utf-8")
             headers["Content-Type"] = "application/json"
         elif body:
@@ -445,7 +494,7 @@ class ActionExecutor:
             if proposal.capability == "start_account_session" and status == 200 and set_cookie:
                 morsel = SimpleCookie()
                 morsel.load(set_cookie)
-                cookie_morsel = morsel.get("heist_session")
+                cookie_morsel = morsel.get(session_cookie_name)
                 if cookie_morsel:
                     created_session_ref = "sess-" + uuid.uuid4().hex[:16]
                     with self._session_lock:

@@ -4,16 +4,20 @@ different shape than lab.py's synthetic bank. This is a test site this team buil
 controls for its own prototype use, never a third party's property; see engagement.py
 for why real ownership verification, not this file's existence, is the actual boundary.
 
-It exposes the well-known authorization file a real engagement would fetch, and two
-unrelated ordinary routes, to prove the authorization layer in front of something that
-is not the bank's own API shape at all.
+It exposes the well-known authorization file a real engagement would fetch, two
+unrelated ordinary read routes, and a login/logout/contact-form surface that is
+deliberately shaped differently from the bank's (email+password body, a differently
+named session cookie, JSON error bodies) -- proving the engagement SiteProfile model
+against a real, different site shape, not a relabeled copy of lab.py's API.
 """
 
 from __future__ import annotations
 
 import http.server
 import json
+import secrets
 import threading
+from http.cookies import SimpleCookie
 from typing import Any
 
 
@@ -26,6 +30,12 @@ class MockSiteState:
         # engagement platform gave them.
         self.authorization_tokens: dict[str, str] = {}
         self.requests_seen: list[str] = []
+        # email -> {"password": ...}: this site's own test accounts. Never a real
+        # client's real users; this team creates and controls every account here.
+        self.accounts: dict[str, dict[str, str]] = {}
+        # session token -> email
+        self.sessions: dict[str, str] = {}
+        self.contact_messages: list[dict[str, str]] = []
 
     def set_authorization_token(self, target_id: str, token: str) -> None:
         with self.lock:
@@ -34,6 +44,10 @@ class MockSiteState:
     def clear_authorization_token(self, target_id: str) -> None:
         with self.lock:
             self.authorization_tokens.pop(target_id, None)
+
+    def add_account(self, email: str, password: str) -> None:
+        with self.lock:
+            self.accounts[email] = {"password": password}
 
 
 class MockSiteHandler(http.server.BaseHTTPRequestHandler):
@@ -51,14 +65,39 @@ class MockSiteHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         return
 
-    def _send(self, status: int, payload: Any) -> None:
+    def _send(self, status: int, payload: Any, *, set_cookie: str | None = None) -> None:
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        if set_cookie:
+            self.send_header("Set-Cookie", set_cookie)
         self.end_headers()
         self.wfile.write(body)
+
+    def _body(self) -> dict[str, Any]:
+        try:
+            length = min(int(self.headers.get("Content-Length", "0")), 8_192)
+            if length <= 0:
+                return {}
+            raw = self.rfile.read(length)
+            value = json.loads(raw.decode("utf-8"))
+            return value if isinstance(value, dict) else {}
+        except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+            return {}
+
+    def _session_email(self) -> str | None:
+        cookie = SimpleCookie()
+        try:
+            cookie.load(self.headers.get("Cookie", ""))
+        except Exception:
+            return None
+        morsel = cookie.get("acme_session")
+        if morsel is None:
+            return None
+        with self.state.lock:
+            return self.state.sessions.get(morsel.value)
 
     def do_GET(self) -> None:  # noqa: N802
         path = self.path.split("?", 1)[0]
@@ -78,6 +117,44 @@ class MockSiteHandler(http.server.BaseHTTPRequestHandler):
         self._send(404, {"error": "not found"})
 
     def do_POST(self) -> None:  # noqa: N802
+        path = self.path.split("?", 1)[0]
+        with self.state.lock:
+            self.state.requests_seen.append(path)
+        if path == "/login":
+            body = self._body()
+            email, password = body.get("email"), body.get("password")
+            with self.state.lock:
+                account = self.state.accounts.get(email) if isinstance(email, str) else None
+                if account is None or account["password"] != password:
+                    self._send(401, {"error": "invalid credentials"})
+                    return
+                token = secrets.token_hex(16)
+                self.state.sessions[token] = email
+            self._send(200, {"status": "ok", "email": email}, set_cookie=f"acme_session={token}; Path=/")
+            return
+        if path == "/logout":
+            email = self._session_email()
+            if email is None:
+                self._send(401, {"error": "no active session"})
+                return
+            cookie = SimpleCookie()
+            cookie.load(self.headers.get("Cookie", ""))
+            morsel = cookie.get("acme_session")
+            with self.state.lock:
+                if morsel is not None:
+                    self.state.sessions.pop(morsel.value, None)
+            self._send(200, {"status": "ok"})
+            return
+        if path == "/contact":
+            body = self._body()
+            name, message = body.get("name"), body.get("message")
+            if not isinstance(name, str) or not isinstance(message, str) or not name or not message:
+                self._send(400, {"error": "name and message are required"})
+                return
+            with self.state.lock:
+                self.state.contact_messages.append({"name": name, "message": message})
+            self._send(200, {"status": "received"})
+            return
         self._send(404, {"error": "not found"})
 
 

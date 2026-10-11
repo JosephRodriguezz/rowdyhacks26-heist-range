@@ -84,10 +84,61 @@ class EngagementScope:
 
 
 @dataclass
+class FormProfile:
+    """One named form's shape on an engagement-backed site -- what submit_form needs
+    to know that Diego's bank's hardcoded /api/contact never had to declare."""
+
+    path: str
+    method: str = "POST"
+    allowed_fields: frozenset[str] = frozenset()
+
+    def __post_init__(self) -> None:
+        if not self.path.startswith("/"):
+            raise EngagementError("form path must be a site-relative path starting with /")
+        if self.method not in ("GET", "POST"):
+            raise EngagementError("form method must be GET or POST")
+
+
+@dataclass
+class SiteProfile:
+    """Declares the login/logout/form shape of a specific engagement-backed site, so
+    Red's generic account-session and form capabilities can work against it without
+    assuming Diego's bank's exact routes and cookie name.
+
+    identities are test credentials for this one engagement's own test accounts --
+    never a real client's real credentials. This prototype only ever tests sites this
+    team builds and controls (see mocksite.py); they live here, scoped to the one
+    engagement that owns them, never in LabState, which is the bank fixture's own
+    state container and has no business holding a generic engagement's secrets.
+    """
+
+    login_path: str = "/login"
+    login_method: str = "POST"
+    session_cookie_name: str = "session"
+    logout_path: str = "/logout"
+    logout_method: str = "POST"
+    identities: dict[str, dict[str, str]] = field(default_factory=dict)
+    forms: dict[str, FormProfile] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        for label, path, method in (
+            ("login", self.login_path, self.login_method),
+            ("logout", self.logout_path, self.logout_method),
+        ):
+            if not path.startswith("/"):
+                raise EngagementError(f"{label} path must be a site-relative path starting with /")
+            if method not in ("GET", "POST"):
+                raise EngagementError(f"{label} method must be GET or POST")
+        if not self.session_cookie_name.strip():
+            raise EngagementError("session cookie name cannot be empty")
+
+
+@dataclass
 class TargetEngagement:
     target_id: str
     origin: str
     scope: EngagementScope
+    profile: SiteProfile | None = None
     status: EngagementStatus = "pending_verification"
     verification_token: str = field(default_factory=lambda: secrets.token_hex(16))
     created_at: float = field(default_factory=time.monotonic)
@@ -142,10 +193,11 @@ class EngagementRegistry:
     def __init__(self) -> None:
         self._engagements: dict[str, TargetEngagement] = {}
 
-    def register(self, target_id: str, origin: str, scope: EngagementScope) -> TargetEngagement:
+    def register(self, target_id: str, origin: str, scope: EngagementScope, *,
+                 profile: SiteProfile | None = None) -> TargetEngagement:
         if target_id in self._engagements:
             raise EngagementError(f"target '{target_id}' is already registered")
-        engagement = TargetEngagement(target_id=target_id, origin=origin, scope=scope)
+        engagement = TargetEngagement(target_id=target_id, origin=origin, scope=scope, profile=profile)
         self._engagements[target_id] = engagement
         return engagement
 

@@ -18,6 +18,8 @@ from red.prototype.engagement import (
     EngagementError,
     EngagementRegistry,
     EngagementScope,
+    FormProfile,
+    SiteProfile,
     TargetEngagement,
     verify_ownership,
 )
@@ -452,6 +454,184 @@ class EngagementRateLimitTests(unittest.TestCase):
             role="scout", task_id=self.task.task_id,
         )
         self.assertEqual(bank_local_result.evidence.failure_kind, "target_transport")
+
+
+class SiteProfileValidationTests(unittest.TestCase):
+    def test_login_and_logout_paths_must_be_site_relative(self) -> None:
+        with self.assertRaises(EngagementError):
+            SiteProfile(login_path="login")  # missing leading /
+        with self.assertRaises(EngagementError):
+            SiteProfile(logout_path="logout")
+
+    def test_login_and_logout_methods_must_be_get_or_post(self) -> None:
+        with self.assertRaises(EngagementError):
+            SiteProfile(login_method="PUT")
+        with self.assertRaises(EngagementError):
+            SiteProfile(logout_method="DELETE")
+
+    def test_session_cookie_name_cannot_be_empty(self) -> None:
+        with self.assertRaises(EngagementError):
+            SiteProfile(session_cookie_name="")
+
+    def test_form_profile_requires_a_site_relative_path_and_valid_method(self) -> None:
+        with self.assertRaises(EngagementError):
+            FormProfile(path="contact")
+        with self.assertRaises(EngagementError):
+            FormProfile(path="/contact", method="PUT")
+
+
+class GeneralizedLoginFormDispatchTests(unittest.TestCase):
+    """start_account_session/end_account_session/submit_form, generalized via a
+    per-engagement SiteProfile, proven against the real mock site over real HTTP --
+    the same way AV-05 and the rate-limit work were proven, not asserted."""
+
+    def setUp(self) -> None:
+        self.mock_state = MockSiteState(site_name="Acme Test Co.")
+        self.mock_state.add_account("alice@example.com", "correct-horse")
+        self.mocksite = MockSiteServer(self.mock_state).start()
+        self.engagement_registry = EngagementRegistry()
+        self.profile = SiteProfile(
+            login_path="/login", login_method="POST", session_cookie_name="acme_session",
+            logout_path="/logout", logout_method="POST",
+            identities={"alice": {"email": "alice@example.com", "password": "correct-horse"}},
+            forms={"contact_form": FormProfile(path="/contact", method="POST",
+                                                allowed_fields=frozenset({"name", "message"}))},
+        )
+        self.scope = EngagementScope(allowed_capabilities=frozenset({
+            "request_api", "read_page", "start_account_session", "end_account_session", "submit_form",
+        }))
+        self.engagement = self.engagement_registry.register(
+            "acme-test-site", self.mocksite.origin, self.scope, profile=self.profile,
+        )
+        self.mock_state.set_authorization_token("acme-test-site", self.engagement.verification_token)
+        self.engagement_registry.verify("acme-test-site")
+        self.state = LabState("clean")
+        self.board = RedBoard()
+        self.limits = RunLimits()
+        self.budget = BudgetLedger(self.limits)
+        self.executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=self.engagement_registry,
+        )
+        self.task = self.board.add_task("scout", "login/form dispatch test")
+        self.board.claim_task(self.task.task_id, "scout-test")
+
+    def tearDown(self) -> None:
+        self.executor.close()
+        self.mocksite.close()
+        self.state.close()
+
+    def test_login_reaches_the_real_mock_site_and_creates_a_session(self) -> None:
+        result = self.executor.execute(
+            ActionProposal("start_account_session", target_id="acme-test-site", identity_ref="alice"),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(result.evidence.status, 200)
+        self.assertIsNotNone(result.created_session_ref)
+
+    def test_unknown_identity_ref_for_this_engagement_is_rejected(self) -> None:
+        with self.assertRaises(ActionRejected):
+            self.executor.execute(
+                ActionProposal("start_account_session", target_id="acme-test-site", identity_ref="mallory"),
+                role="scout", task_id=self.task.task_id,
+            )
+
+    def test_full_login_form_logout_cycle_against_the_real_site(self) -> None:
+        login = self.executor.execute(
+            ActionProposal("start_account_session", target_id="acme-test-site", identity_ref="alice"),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(login.evidence.status, 200)
+
+        form = self.executor.execute(
+            ActionProposal("submit_form", target_id="acme-test-site", method="POST", path="/contact",
+                            form_ref="contact_form", body={"name": "Bob", "message": "hi"}),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(form.evidence.status, 200)
+        self.assertEqual(len(self.mock_state.contact_messages), 1)
+
+        logout = self.executor.execute(
+            ActionProposal("end_account_session", target_id="acme-test-site", path="/logout",
+                            session_ref=login.created_session_ref),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(logout.evidence.status, 200)
+
+    def test_form_fields_outside_the_declared_schema_are_rejected(self) -> None:
+        with self.assertRaises(ActionRejected):
+            self.executor.execute(
+                ActionProposal("submit_form", target_id="acme-test-site", method="POST", path="/contact",
+                                form_ref="contact_form", body={"name": "Bob", "admin": "true"}),
+                role="scout", task_id=self.task.task_id,
+            )
+
+    def test_unregistered_form_ref_is_rejected(self) -> None:
+        with self.assertRaises(ActionRejected):
+            self.executor.execute(
+                ActionProposal("submit_form", target_id="acme-test-site", method="POST", path="/newsletter",
+                                form_ref="newsletter_form", body={}),
+                role="scout", task_id=self.task.task_id,
+            )
+
+    def test_capability_outside_the_engagement_scope_is_rejected_even_with_a_profile(self) -> None:
+        narrow_scope = EngagementScope(allowed_capabilities=frozenset({"request_api"}))
+        registry = EngagementRegistry()
+        engagement = registry.register("narrow-site", self.mocksite.origin, narrow_scope, profile=self.profile)
+        self.mock_state.set_authorization_token("narrow-site", engagement.verification_token)
+        registry.verify("narrow-site")
+        executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=registry,
+        )
+        try:
+            with self.assertRaises(ActionRejected):
+                executor.execute(
+                    ActionProposal("start_account_session", target_id="narrow-site", identity_ref="alice"),
+                    role="scout", task_id=self.task.task_id,
+                )
+        finally:
+            executor.close()
+
+    def test_login_capability_without_a_site_profile_is_rejected(self) -> None:
+        registry = EngagementRegistry()
+        engagement = registry.register("no-profile-site", self.mocksite.origin, self.scope)  # no profile=
+        self.mock_state.set_authorization_token("no-profile-site", engagement.verification_token)
+        registry.verify("no-profile-site")
+        executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=registry,
+        )
+        try:
+            with self.assertRaises(ActionRejected):
+                executor.execute(
+                    ActionProposal("start_account_session", target_id="no-profile-site", identity_ref="alice"),
+                    role="scout", task_id=self.task.task_id,
+                )
+        finally:
+            executor.close()
+
+    def test_engagement_identities_are_scrubbed_from_request_summaries(self) -> None:
+        # The raw password must never leak into evidence/logs, for an engagement's
+        # own identities just as much as for bank-local's.
+        summary = self.executor._request_summary(
+            ActionProposal("submit_form", target_id="acme-test-site",
+                            body={"note": "correct-horse leaked?"}), None,
+        )
+        self.assertNotIn("correct-horse", summary)
+
+    def test_session_cookie_uses_the_profile_declared_name_not_bank_locals(self) -> None:
+        login = self.executor.execute(
+            ActionProposal("start_account_session", target_id="acme-test-site", identity_ref="alice"),
+            role="scout", task_id=self.task.task_id,
+        )
+        session_ref = login.created_session_ref
+        self.assertIsNotNone(session_ref)
+        with self.executor._session_lock:
+            stored_cookie = self.executor._sessions[session_ref]["cookie"]
+        # The mock site issued this exact value under its own "acme_session" cookie
+        # name (never "heist_session"); proves the executor read the right one.
+        self.assertIn(stored_cookie, self.mock_state.sessions)
 
 
 if __name__ == "__main__":
