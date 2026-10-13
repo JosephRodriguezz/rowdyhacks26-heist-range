@@ -2,7 +2,7 @@
 
 ## Project state
 
-This repository is the planning foundation for the RowdyHacks 2026 submission. It currently contains planning documents and agent workflow skills, not a working cyber range or finished demo. Preparation, research, contracts, and isolated prototypes may happen before the event; do not describe the integrated contest or final demo as complete until it has been built and verified during the hackathon.
+This repository is the planning foundation for the RowdyHacks 2026 submission. It includes a standalone, loopback-only Red prototype, but not the integrated control plane, Blue team, arena, or finished demo. Preparation, research, contracts, and isolated prototypes may happen before the event; do not describe the integrated contest or final demo as complete until it has been built and verified during the hackathon.
 
 The product name, visual design, languages, frameworks, model provider, and deployment approach remain open unless the team records a decision in [the decision log](docs/DECISIONS.md).
 
@@ -43,9 +43,20 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
   python3 .agent-toolkit/bin/workspace_toolkit.py inventory .
   python3 .agent-toolkit/bin/workspace_toolkit.py validate .
   git diff --check
+  python3 -m compileall -q red
+  python3 -m unittest discover -s tests -v
+  python3 -m unittest discover -s tests -p 'test_external_target.py' -v
+  python3 -m unittest discover -s tests -p 'test_hypoth*.py' -v
+  python3 -m unittest tests.test_network.TcpProbeTests tests.test_network.NetworkScanExecutorProbeTests tests.test_vulnerability.UnauthenticatedNetworkAccessVulnerabilityTests -v
+  python3 -m red.prototype.cli evaluate
+  python3 -m red.prototype.cli run --scenario access_control --mode deterministic_baseline
+  python3 -m red.prototype.cli replay --from artifacts/access.run.json
   ```
 
-  There is no live application test suite yet. Do not report the planning preview or fixture data as evidence of live security behavior.
+  The Red tests exercise the disposable local mock only. The deterministic baseline is a labeled comparison, and the fixture-provider adaptation test is control-flow evidence rather than model performance. No remote model run or integrated contest has been verified.
+- AV-05 permits a caller-started prototype target in the same process via `RunOptions.external_target_origin` or `run --target-origin`. Exact setup: `python3 -c "from red.prototype.lab import LabState, LocalBankServer; from red.prototype.cli import main; server = LocalBankServer(LabState('availability')).start(); main(['run', '--scenario', 'availability', '--target-origin', server.origin]); server.close()"`. See the README for ownership and fresh-state requirements. Separate-process services and Diego's bank remain unsupported.
+- The network-side vulnerability test (`test_unauthenticated_network_access` in `red/prototype/vulnerability.py`, CWE-306 missing authentication) has its own targeted command: `python3 -m unittest tests.test_network.TcpProbeTests tests.test_network.NetworkScanExecutorProbeTests tests.test_vulnerability.UnauthenticatedNetworkAccessVulnerabilityTests -v`. Proven against `mocknetwork.py`'s own toggleable missing-authentication flaw on real sockets, never a third-party host. A verdict of `vulnerable` requires the probed port to actually grant access with no credential offered; any shed/closed/filtered/timed-out probe or an unrecognized response is `inconclusive`, never a confirmed finding.
+- Hypothesis statuses are Red agent assessments, not independently verified findings or mission verdicts. Keep their comparison evidence and revision history intact. Reopening requires new observations and a fresh baseline/comparison before a new conclusion; ambiguous failures remain inconclusive.
 - Git changes are manual by default. Do not commit, create branches, push, merge, or stash unless Joseph explicitly asks.
 
 ## Workflow skills
