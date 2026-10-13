@@ -36,6 +36,13 @@ class MockSiteState:
         # session token -> email
         self.sessions: dict[str, str] = {}
         self.contact_messages: list[dict[str, str]] = []
+        # A real, toggleable flaw -- off by default (the already-correct behavior
+        # proven in mocksite's own earlier tests: logout actually invalidates the
+        # session). When True, /logout tells the caller "ok" but secretly leaves the
+        # session usable, so the standard-handling vulnerability test can prove both
+        # the vulnerable and the fixed case against the same route, the same pattern
+        # lab.py's own active_flaws/disable_family already uses for the bank.
+        self.session_fixation_vulnerable = False
 
     def set_authorization_token(self, target_id: str, token: str) -> None:
         with self.lock:
@@ -114,6 +121,13 @@ class MockSiteHandler(http.server.BaseHTTPRequestHandler):
                 tokens = dict(self.state.authorization_tokens)
             self._send(200, {"tokens": tokens})
             return
+        if path == "/account":
+            email = self._session_email()
+            if email is None:
+                self._send(401, {"error": "active session required"})
+                return
+            self._send(200, {"email": email})
+            return
         self._send(404, {"error": "not found"})
 
     def do_POST(self) -> None:  # noqa: N802
@@ -141,7 +155,11 @@ class MockSiteHandler(http.server.BaseHTTPRequestHandler):
             cookie.load(self.headers.get("Cookie", ""))
             morsel = cookie.get("acme_session")
             with self.state.lock:
-                if morsel is not None:
+                # The real, toggleable flaw: when vulnerable, this tells the caller
+                # "ok" without actually removing the session, so it keeps working
+                # afterward -- never a flag the caller can see or set, only the
+                # site's own, separately-configured state.
+                if morsel is not None and not self.state.session_fixation_vulnerable:
                     self.state.sessions.pop(morsel.value, None)
             self._send(200, {"status": "ok"})
             return
