@@ -22,8 +22,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from .actions import ActionExecutor
+from .board import RedBoard
 from .engagement import EngagementRegistry
 from .network import NetworkScanError, NetworkScanExecutor, NetworkTargetRegistry, PortScanResult
+from .vulnerability import VulnerabilityFinding, test_session_reuse_after_logout
 
 AgentType = Literal["web_pentest", "network_pentest"]
 
@@ -146,3 +149,79 @@ def scan_and_delegate(
         engagement_registry=engagement_registry, network_results=network_results,
         network_registry=network_registry, max_agents=max_agents,
     )
+
+
+def execute_web_pentest_assignment(
+    assignment: AgentAssignment,
+    *,
+    executor: ActionExecutor,
+    engagement_registry: EngagementRegistry,
+    board: RedBoard,
+    task_id: str,
+) -> list[VulnerabilityFinding]:
+    """Runs every web vulnerability test this project currently has, against every
+    identity the engagement's own SiteProfile declares. Today that is exactly one
+    test (session reuse after logout); as more web vulnerability tests are added,
+    this is the one place that wires a new one into every web_pentest assignment,
+    not something each caller has to remember to add separately. An engagement with
+    no profile, or no declared identities, correctly yields no findings -- there is
+    nothing this test can log in with, not an error."""
+    if assignment.agent_type != "web_pentest":
+        raise ValueError(f"execute_web_pentest_assignment only handles web_pentest assignments, got {assignment.agent_type!r}")
+    engagement = engagement_registry.resolve(assignment.target_id)  # raises if no longer verified
+    findings: list[VulnerabilityFinding] = []
+    if engagement.profile is None:
+        return findings
+    for identity_ref in engagement.profile.identities:
+        findings.append(test_session_reuse_after_logout(
+            executor=executor, board=board, task_id=task_id,
+            target_id=assignment.target_id, identity_ref=identity_ref,
+        ))
+    return findings
+
+
+def execute_network_pentest_assignment(assignment: AgentAssignment) -> list[VulnerabilityFinding]:
+    """No vulnerability test exists yet for network_pentest assignments -- this
+    function exists so the dispatch point in execute_plan is honest and ready for
+    one, not so it claims coverage that does not exist. Always returns an empty
+    list, never a fabricated finding, until a real network-side vulnerability test
+    is built and wired in here the same way the web side is above."""
+    if assignment.agent_type != "network_pentest":
+        raise ValueError(f"execute_network_pentest_assignment only handles network_pentest assignments, got {assignment.agent_type!r}")
+    return []
+
+
+def execute_plan(
+    plan: DelegationPlan,
+    *,
+    executor: ActionExecutor,
+    board: RedBoard,
+    engagement_registry: EngagementRegistry | None = None,
+) -> dict[str, list[VulnerabilityFinding]]:
+    """Runs whatever vulnerability tests exist for each assignment in plan.assignments
+    -- never plan.deferred, which was explicitly not assigned and is not this
+    function's to act on. One claimed task per assignment, matching the one-agent-
+    per-surface model delegate() already enforces: this is that one agent's own
+    unit of work, not everything lumped under one shared task. Returns a mapping of
+    target_id -> findings; an agent_type with no implemented test yet
+    (network_pentest, today) yields an empty list for that target, not an error.
+    """
+    results: dict[str, list[VulnerabilityFinding]] = {}
+    for assignment in plan.assignments:
+        task = board.add_task("scout", f"{assignment.agent_type} assignment for {assignment.target_id}")
+        if not board.claim_task(task.task_id, f"{assignment.agent_type}-agent"):
+            raise RuntimeError(f"could not claim the task for {assignment.target_id}")
+        if assignment.agent_type == "web_pentest":
+            if engagement_registry is None:
+                raise ValueError("web_pentest assignments require engagement_registry")
+            findings = execute_web_pentest_assignment(
+                assignment, executor=executor, engagement_registry=engagement_registry,
+                board=board, task_id=task.task_id,
+            )
+        elif assignment.agent_type == "network_pentest":
+            findings = execute_network_pentest_assignment(assignment)
+        else:
+            raise ValueError(f"unknown agent_type: {assignment.agent_type!r}")
+        results[assignment.target_id] = findings
+        board.finish_task(task.task_id, "completed")
+    return results

@@ -7,8 +7,19 @@ from __future__ import annotations
 
 import unittest
 
-from red.prototype.delegation import delegate, scan_and_delegate
-from red.prototype.engagement import EngagementRegistry, EngagementScope
+from red.prototype.actions import ActionExecutor, FixedTargetRegistry
+from red.prototype.board import BudgetLedger, RedBoard
+from red.prototype.delegation import (
+    AgentAssignment,
+    delegate,
+    execute_network_pentest_assignment,
+    execute_plan,
+    execute_web_pentest_assignment,
+    scan_and_delegate,
+)
+from red.prototype.domain import RunLimits
+from red.prototype.engagement import EngagementRegistry, EngagementScope, SiteProfile
+from red.prototype.lab import LabState
 from red.prototype.mocknetwork import MockNetworkHost
 from red.prototype.mocksite import MockSiteServer, MockSiteState
 from red.prototype.network import NetworkScanExecutor, NetworkScope, NetworkTargetRegistry, PortScanResult
@@ -198,6 +209,147 @@ class DelegationCeilingTests(unittest.TestCase):
         # Deterministic priority: web is considered before network when the ceiling bites.
         self.assertEqual(plan.assignments[0].agent_type, "web_pentest")
         self.assertEqual(plan.deferred[0].agent_type, "network_pentest")
+
+
+class ExecuteAssignmentTests(unittest.TestCase):
+    """Closing the loop: a web_pentest assignment actually runs the available
+    vulnerability tests against the real mock site; a network_pentest assignment
+    honestly yields nothing yet, rather than fabricated coverage."""
+
+    def setUp(self) -> None:
+        self.mock_state = MockSiteState()
+        self.mock_state.add_account("alice@example.com", "correct-horse")
+        self.mocksite = MockSiteServer(self.mock_state).start()
+        self.profile = SiteProfile(
+            login_path="/login", session_cookie_name="acme_session", logout_path="/logout",
+            identities={"alice": {"email": "alice@example.com", "password": "correct-horse"}},
+        )
+        self.scope = EngagementScope(allowed_capabilities=frozenset({
+            "request_api", "read_page", "start_account_session", "end_account_session",
+        }))
+        self.registry = EngagementRegistry()
+        self.engagement = self.registry.register("acme-web", self.mocksite.origin, self.scope, profile=self.profile)
+        self.mock_state.set_authorization_token("acme-web", self.engagement.verification_token)
+        self.registry.verify("acme-web")
+        self.state = LabState("clean")
+        self.board = RedBoard()
+        self.limits = RunLimits()
+        self.budget = BudgetLedger(self.limits)
+        self.executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=self.registry,
+        )
+
+    def tearDown(self) -> None:
+        self.executor.close()
+        self.mocksite.close()
+        self.state.close()
+
+    def _task_id(self) -> str:
+        task = self.board.add_task("scout", "test")
+        self.board.claim_task(task.task_id, "test")
+        return task.task_id
+
+    def test_web_pentest_assignment_runs_the_real_test_against_the_real_site(self) -> None:
+        self.mock_state.session_fixation_vulnerable = True
+        assignment = AgentAssignment(agent_type="web_pentest", target_id="acme-web", reason="test")
+        findings = execute_web_pentest_assignment(
+            assignment, executor=self.executor, engagement_registry=self.registry,
+            board=self.board, task_id=self._task_id(),
+        )
+        self.assertEqual(len(findings), 1)  # one identity (alice) declared in the profile
+        self.assertEqual(findings[0].verdict, "vulnerable")
+
+    def test_web_pentest_assignment_runs_one_test_per_declared_identity(self) -> None:
+        self.mock_state.add_account("bob@example.com", "another-horse")
+        registry = EngagementRegistry()
+        profile = SiteProfile(
+            login_path="/login", session_cookie_name="acme_session", logout_path="/logout",
+            identities={
+                "alice": {"email": "alice@example.com", "password": "correct-horse"},
+                "bob": {"email": "bob@example.com", "password": "another-horse"},
+            },
+        )
+        engagement = registry.register("acme-web", self.mocksite.origin, self.scope, profile=profile)
+        self.mock_state.set_authorization_token("acme-web", engagement.verification_token)
+        registry.verify("acme-web")
+        executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=registry,
+        )
+        try:
+            assignment = AgentAssignment(agent_type="web_pentest", target_id="acme-web", reason="test")
+            findings = execute_web_pentest_assignment(
+                assignment, executor=executor, engagement_registry=registry,
+                board=self.board, task_id=self._task_id(),
+            )
+            self.assertEqual(len(findings), 2)
+        finally:
+            executor.close()
+
+    def test_web_pentest_assignment_with_no_profile_yields_no_findings_not_an_error(self) -> None:
+        registry = EngagementRegistry()
+        engagement = registry.register("no-profile-site", self.mocksite.origin, self.scope)  # no profile=
+        self.mock_state.set_authorization_token("no-profile-site", engagement.verification_token)
+        registry.verify("no-profile-site")
+        assignment = AgentAssignment(agent_type="web_pentest", target_id="no-profile-site", reason="test")
+        findings = execute_web_pentest_assignment(
+            assignment, executor=self.executor, engagement_registry=registry,
+            board=self.board, task_id=self._task_id(),
+        )
+        self.assertEqual(findings, [])
+
+    def test_web_pentest_executor_rejects_a_network_pentest_assignment(self) -> None:
+        assignment = AgentAssignment(agent_type="network_pentest", target_id="acme-net", reason="test",
+                                      open_ports=(22,))
+        with self.assertRaises(ValueError):
+            execute_web_pentest_assignment(
+                assignment, executor=self.executor, engagement_registry=self.registry,
+                board=self.board, task_id=self._task_id(),
+            )
+
+    def test_network_pentest_assignment_always_yields_an_empty_list_today(self) -> None:
+        assignment = AgentAssignment(agent_type="network_pentest", target_id="acme-net", reason="test",
+                                      open_ports=(22, 80))
+        self.assertEqual(execute_network_pentest_assignment(assignment), [])
+
+    def test_network_pentest_executor_rejects_a_web_pentest_assignment(self) -> None:
+        assignment = AgentAssignment(agent_type="web_pentest", target_id="acme-web", reason="test")
+        with self.assertRaises(ValueError):
+            execute_network_pentest_assignment(assignment)
+
+    def test_execute_plan_runs_one_task_per_assignment_and_reports_per_target(self) -> None:
+        self.mock_state.session_fixation_vulnerable = True
+        plan = delegate(engagement_registry=self.registry)
+        tasks_before = len(self.board.tasks())
+        results = execute_plan(plan, executor=self.executor, board=self.board, engagement_registry=self.registry)
+        self.assertEqual(set(results), {"acme-web"})
+        self.assertEqual(results["acme-web"][0].verdict, "vulnerable")
+        self.assertEqual(len(self.board.tasks()), tasks_before + 1)  # one task for the one assignment
+        self.assertTrue(all(t["status"] == "completed" for t in self.board.tasks()[tasks_before:]))
+
+    def test_execute_plan_never_acts_on_deferred_assignments(self) -> None:
+        # Force a second candidate so something is deferred, to prove it is never run.
+        other_state = MockSiteState()
+        other_state.add_account("carol@example.com", "pw")
+        with MockSiteServer(other_state) as other_site:
+            other_profile = SiteProfile(
+                login_path="/login", session_cookie_name="acme_session", logout_path="/logout",
+                identities={"carol": {"email": "carol@example.com", "password": "pw"}},
+            )
+            other_engagement = self.registry.register("acme-web-2", other_site.origin, self.scope,
+                                                        profile=other_profile)
+            other_state.set_authorization_token("acme-web-2", other_engagement.verification_token)
+            self.registry.verify("acme-web-2")
+            plan = delegate(engagement_registry=self.registry, max_agents=1)
+            self.assertEqual(len(plan.deferred), 1)
+            results = execute_plan(plan, executor=self.executor, board=self.board, engagement_registry=self.registry)
+            self.assertEqual(len(results), 1)  # only the one assignment, never the deferred one
+
+    def test_execute_plan_requires_engagement_registry_for_a_web_pentest_assignment(self) -> None:
+        plan = delegate(engagement_registry=self.registry)
+        with self.assertRaises(ValueError):
+            execute_plan(plan, executor=self.executor, board=self.board, engagement_registry=None)
 
 
 if __name__ == "__main__":
