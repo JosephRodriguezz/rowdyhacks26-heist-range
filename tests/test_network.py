@@ -20,6 +20,7 @@ from red.prototype.network import (
     NetworkTarget,
     NetworkTargetRegistry,
     _tcp_connect_scan,
+    _tcp_probe,
 )
 
 
@@ -141,6 +142,37 @@ class TcpConnectScanTests(unittest.TestCase):
         with patch("socket.socket.connect_ex", side_effect=socket.timeout):
             result = _tcp_connect_scan("127.0.0.1", 1, timeout=0.1)
         self.assertEqual(result.state, "filtered")
+
+
+class TcpProbeTests(unittest.TestCase):
+    """Against real sockets (mocknetwork.py's authenticated port), not a
+    simulation: proves the probe mechanism reports whatever a real service
+    sends back, with no judgment of vulnerable/not baked into it."""
+
+    def setUp(self) -> None:
+        self.host = MockNetworkHost()
+        self.host.__enter__()
+
+    def tearDown(self) -> None:
+        self.host.close()
+
+    def test_a_fixed_port_rejects_a_probe_with_no_token(self) -> None:
+        port = self.host.open_authenticated_port(token="supersecret", vulnerable=False)
+        responded, response = _tcp_probe("127.0.0.1", port, b"PROBE\r\n", timeout=1.0)
+        self.assertTrue(responded)
+        self.assertIn("ERR", response)
+
+    def test_a_vulnerable_port_grants_access_to_an_unauthenticated_probe(self) -> None:
+        port = self.host.open_authenticated_port(token="supersecret", vulnerable=True)
+        responded, response = _tcp_probe("127.0.0.1", port, b"PROBE\r\n", timeout=1.0)
+        self.assertTrue(responded)
+        self.assertIn("OK", response)
+
+    def test_a_closed_port_does_not_respond(self) -> None:
+        port = self.host.reserve_closed_port()
+        responded, response = _tcp_probe("127.0.0.1", port, b"PROBE\r\n", timeout=0.1)
+        self.assertFalse(responded)
+        self.assertIsNone(response)
 
 
 class NetworkTargetRegistryTests(unittest.TestCase):
@@ -309,6 +341,60 @@ class NetworkScanExecutorTests(unittest.TestCase):
         self.assertEqual(len(events), 1)
         self.assertEqual(events[0]["port"], self.open_port)
         self.assertEqual(events[0]["state"], "open")
+
+
+class NetworkScanExecutorProbeTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.site_state = MockSiteState()
+        self.verify_site = MockSiteServer(self.site_state).start()
+        self.net_host = MockNetworkHost()
+        self.net_host.__enter__()
+        verify_host, verify_port = self.verify_site.httpd.server_address[:2]
+        self.fixed_port = self.net_host.open_authenticated_port(port=28_767, token="supersecret", vulnerable=False)
+        self.vulnerable_port = self.net_host.open_authenticated_port(port=28_768, token="supersecret", vulnerable=True)
+        self.registry = NetworkTargetRegistry()
+        self.scope = NetworkScope(min_port=28_760, max_port=28_770, scan_timeout_seconds=0.5,
+                                   max_ports_per_window=3, window_seconds=1.0, max_concurrency=1)
+        self.target = self.registry.register("acme-network", verify_host, self.scope, verification_port=verify_port)
+        self.site_state.set_authorization_token("acme-network", self.target.verification_token)
+        self.registry.verify("acme-network")
+        self.executor = NetworkScanExecutor(registry=self.registry)
+
+    def tearDown(self) -> None:
+        self.verify_site.close()
+        self.net_host.close()
+
+    def test_probe_reaches_the_real_host_and_reports_a_rejection(self) -> None:
+        result = self.executor.probe_unauthenticated_access("acme-network", self.fixed_port)
+        self.assertTrue(result.responded)
+        self.assertIn("ERR", result.response)
+
+    def test_probe_reports_a_real_grant_from_a_vulnerable_port(self) -> None:
+        result = self.executor.probe_unauthenticated_access("acme-network", self.vulnerable_port)
+        self.assertTrue(result.responded)
+        self.assertIn("OK", result.response)
+
+    def test_probe_rejects_a_port_outside_the_declared_range(self) -> None:
+        with self.assertRaises(NetworkScanError):
+            self.executor.probe_unauthenticated_access("acme-network", 1)
+
+    def test_probe_shares_the_same_rate_window_as_scan(self) -> None:
+        self.executor.scan_port("acme-network", self.fixed_port)
+        self.executor.scan_port("acme-network", self.vulnerable_port)
+        self.executor.probe_unauthenticated_access("acme-network", self.fixed_port)
+        shed = self.executor.probe_unauthenticated_access("acme-network", self.vulnerable_port)
+        self.assertFalse(shed.responded)
+        self.assertIsNotNone(shed.detail)
+
+    def test_probe_events_are_recorded_on_a_board_when_one_is_supplied(self) -> None:
+        from red.prototype.board import RedBoard
+        board = RedBoard()
+        executor = NetworkScanExecutor(registry=self.registry, board=board)
+        executor.probe_unauthenticated_access("acme-network", self.vulnerable_port)
+        events = [e for e in board.events() if e["event_type"] == "network.port_probed"]
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["port"], self.vulnerable_port)
+        self.assertTrue(events[0]["responded"])
 
 
 if __name__ == "__main__":

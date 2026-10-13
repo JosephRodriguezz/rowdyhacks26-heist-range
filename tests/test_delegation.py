@@ -240,10 +240,26 @@ class ExecuteAssignmentTests(unittest.TestCase):
             budget=self.budget, board=self.board, engagement_registry=self.registry,
         )
 
+        self.net_verify_state = MockSiteState()
+        self.net_verify_site = MockSiteServer(self.net_verify_state).start()
+        self.net_host = MockNetworkHost()
+        self.net_host.__enter__()
+        verify_host, verify_port = self.net_verify_site.httpd.server_address[:2]
+        self.vulnerable_port = self.net_host.open_authenticated_port(port=28_790, token="supersecret", vulnerable=True)
+        self.fixed_port = self.net_host.open_authenticated_port(port=28_791, token="supersecret", vulnerable=False)
+        self.net_registry = NetworkTargetRegistry()
+        net_scope = NetworkScope(min_port=28_780, max_port=28_800, scan_timeout_seconds=1.0)
+        net_target = self.net_registry.register("acme-net", verify_host, net_scope, verification_port=verify_port)
+        self.net_verify_state.set_authorization_token("acme-net", net_target.verification_token)
+        self.net_registry.verify("acme-net")
+        self.network_executor = NetworkScanExecutor(registry=self.net_registry, board=self.board)
+
     def tearDown(self) -> None:
         self.executor.close()
         self.mocksite.close()
         self.state.close()
+        self.net_verify_site.close()
+        self.net_host.close()
 
     def _task_id(self) -> str:
         task = self.board.add_task("scout", "test")
@@ -308,10 +324,25 @@ class ExecuteAssignmentTests(unittest.TestCase):
                 board=self.board, task_id=self._task_id(),
             )
 
-    def test_network_pentest_assignment_always_yields_an_empty_list_today(self) -> None:
+    def test_network_pentest_assignment_without_an_executor_yields_an_empty_list(self) -> None:
+        # Honest, not fabricated: no network_executor supplied means no coverage
+        # claimed, same posture as a web_pentest assignment with no profile.
         assignment = AgentAssignment(agent_type="network_pentest", target_id="acme-net", reason="test",
                                       open_ports=(22, 80))
         self.assertEqual(execute_network_pentest_assignment(assignment), [])
+
+    def test_network_pentest_assignment_runs_the_real_test_against_every_open_port(self) -> None:
+        assignment = AgentAssignment(
+            agent_type="network_pentest", target_id="acme-net", reason="test",
+            open_ports=(self.vulnerable_port, self.fixed_port),
+        )
+        findings = execute_network_pentest_assignment(
+            assignment, network_executor=self.network_executor, board=self.board,
+        )
+        self.assertEqual(len(findings), 2)
+        by_port = {assignment.open_ports[i]: findings[i] for i in range(2)}
+        self.assertEqual(by_port[self.vulnerable_port].verdict, "vulnerable")
+        self.assertEqual(by_port[self.fixed_port].verdict, "not_vulnerable")
 
     def test_network_pentest_executor_rejects_a_web_pentest_assignment(self) -> None:
         assignment = AgentAssignment(agent_type="web_pentest", target_id="acme-web", reason="test")
@@ -350,6 +381,27 @@ class ExecuteAssignmentTests(unittest.TestCase):
         plan = delegate(engagement_registry=self.registry)
         with self.assertRaises(ValueError):
             execute_plan(plan, executor=self.executor, board=self.board, engagement_registry=None)
+
+    def test_execute_plan_wires_network_executor_through_to_network_pentest_assignments(self) -> None:
+        assignment = AgentAssignment(
+            agent_type="network_pentest", target_id="acme-net", reason="test",
+            open_ports=(self.vulnerable_port,),
+        )
+        from red.prototype.delegation import DelegationPlan
+        plan = DelegationPlan(assignments=(assignment,), deferred=())
+        results = execute_plan(plan, executor=self.executor, board=self.board,
+                                network_executor=self.network_executor)
+        self.assertEqual(results["acme-net"][0].verdict, "vulnerable")
+
+    def test_execute_plan_without_network_executor_still_yields_empty_findings_for_network(self) -> None:
+        assignment = AgentAssignment(
+            agent_type="network_pentest", target_id="acme-net", reason="test",
+            open_ports=(self.vulnerable_port,),
+        )
+        from red.prototype.delegation import DelegationPlan
+        plan = DelegationPlan(assignments=(assignment,), deferred=())
+        results = execute_plan(plan, executor=self.executor, board=self.board)
+        self.assertEqual(results["acme-net"], [])
 
 
 if __name__ == "__main__":

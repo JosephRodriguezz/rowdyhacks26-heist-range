@@ -26,7 +26,11 @@ from .actions import ActionExecutor
 from .board import RedBoard
 from .engagement import EngagementRegistry
 from .network import NetworkScanError, NetworkScanExecutor, NetworkTargetRegistry, PortScanResult
-from .vulnerability import VulnerabilityFinding, test_session_reuse_after_logout
+from .vulnerability import (
+    VulnerabilityFinding,
+    test_session_reuse_after_logout,
+    test_unauthenticated_network_access,
+)
 
 AgentType = Literal["web_pentest", "network_pentest"]
 
@@ -180,15 +184,28 @@ def execute_web_pentest_assignment(
     return findings
 
 
-def execute_network_pentest_assignment(assignment: AgentAssignment) -> list[VulnerabilityFinding]:
-    """No vulnerability test exists yet for network_pentest assignments -- this
-    function exists so the dispatch point in execute_plan is honest and ready for
-    one, not so it claims coverage that does not exist. Always returns an empty
-    list, never a fabricated finding, until a real network-side vulnerability test
-    is built and wired in here the same way the web side is above."""
+def execute_network_pentest_assignment(
+    assignment: AgentAssignment,
+    *,
+    network_executor: NetworkScanExecutor | None = None,
+    board: RedBoard | None = None,
+) -> list[VulnerabilityFinding]:
+    """Runs the unauthenticated-access test against every open port the assignment
+    carries. network_executor is optional so a caller with no network executor
+    wired up still gets an honest empty list, never a fabricated finding or a
+    crash -- same posture execute_web_pentest_assignment has for an engagement
+    with no profile."""
     if assignment.agent_type != "network_pentest":
         raise ValueError(f"execute_network_pentest_assignment only handles network_pentest assignments, got {assignment.agent_type!r}")
-    return []
+    if network_executor is None or board is None:
+        return []
+    return [
+        test_unauthenticated_network_access(
+            network_executor=network_executor, board=board,
+            target_id=assignment.target_id, port=port,
+        )
+        for port in assignment.open_ports
+    ]
 
 
 def execute_plan(
@@ -197,14 +214,15 @@ def execute_plan(
     executor: ActionExecutor,
     board: RedBoard,
     engagement_registry: EngagementRegistry | None = None,
+    network_executor: NetworkScanExecutor | None = None,
 ) -> dict[str, list[VulnerabilityFinding]]:
     """Runs whatever vulnerability tests exist for each assignment in plan.assignments
     -- never plan.deferred, which was explicitly not assigned and is not this
     function's to act on. One claimed task per assignment, matching the one-agent-
     per-surface model delegate() already enforces: this is that one agent's own
     unit of work, not everything lumped under one shared task. Returns a mapping of
-    target_id -> findings; an agent_type with no implemented test yet
-    (network_pentest, today) yields an empty list for that target, not an error.
+    target_id -> findings; a network_pentest assignment yields an empty list for
+    that target, not an error, when network_executor is not supplied.
     """
     results: dict[str, list[VulnerabilityFinding]] = {}
     for assignment in plan.assignments:
@@ -219,7 +237,9 @@ def execute_plan(
                 board=board, task_id=task.task_id,
             )
         elif assignment.agent_type == "network_pentest":
-            findings = execute_network_pentest_assignment(assignment)
+            findings = execute_network_pentest_assignment(
+                assignment, network_executor=network_executor, board=board,
+            )
         else:
             raise ValueError(f"unknown agent_type: {assignment.agent_type!r}")
         results[assignment.target_id] = findings

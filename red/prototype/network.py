@@ -186,6 +186,41 @@ def _try_read_banner(sock: socket.socket, *, max_bytes: int = 256) -> str | None
     return data.decode("utf-8", errors="replace").strip() or None
 
 
+@dataclass(frozen=True)
+class PortProbeResult:
+    """A connect-and-send probe, distinct from a plain scan: it sends a payload
+    with no credential and reports whatever the service sends back, so a
+    vulnerability test can judge whether access was granted. responded=False
+    means no usable response came back at all (closed, filtered, or a transport
+    failure) -- never treated as a grant."""
+
+    port: int
+    responded: bool
+    response: str | None = None
+    detail: str | None = None  # e.g. why a probe was shed
+
+
+def _tcp_probe(host: str, port: int, payload: bytes, *, timeout: float) -> tuple[bool, str | None]:
+    """Connects, sends payload with no credential of any kind, and reads whatever
+    comes back. (False, None) on any connection failure or timeout -- fails closed
+    the same way _tcp_connect_scan does; never raises past this function."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(timeout)
+    try:
+        if sock.connect_ex((host, port)) != 0:
+            return False, None
+        sock.sendall(payload)
+        sock.settimeout(timeout)
+        data = sock.recv(256)
+        if not data:
+            return False, None
+        return True, data.decode("utf-8", errors="replace").strip() or None
+    except (socket.timeout, OSError):
+        return False, None
+    finally:
+        sock.close()
+
+
 class NetworkScanExecutor:
     """Dispatches bounded, scope-enforcing, rate-limited port scans. Mirrors
     ActionExecutor's own discipline (resolve -> check scope -> admit against the
@@ -239,10 +274,42 @@ class NetworkScanExecutor:
     def scan_ports(self, target_id: str, ports: list[int]) -> list[PortScanResult]:
         return [self.scan_port(target_id, port) for port in ports]
 
+    def probe_unauthenticated_access(
+        self, target_id: str, port: int, *, payload: bytes = b"PROBE\r\n",
+    ) -> PortProbeResult:
+        """Same resolve -> check scope -> admit -> dispatch -> record discipline as
+        scan_port, for a different mechanism: connects and sends payload with no
+        credential, then reports whatever came back so a vulnerability test can
+        judge it. Never itself decides vulnerable/not -- that judgment belongs to
+        vulnerability.py, which knows what response shape counts as a grant."""
+        target = self.registry.resolve(target_id)  # raises NetworkScanError if unregistered/unverified
+        if not target.scope.port_in_scope(port):
+            raise NetworkScanError("port is outside this target's authorized scope")
+        shed_reason = self._admit(target_id, target.scope)
+        if shed_reason is not None:
+            result = PortProbeResult(port, responded=False, detail=shed_reason)
+            self._record_probe(target_id, result)
+            return result
+        try:
+            responded, response = _tcp_probe(target.host, port, payload, timeout=target.scope.scan_timeout_seconds)
+        finally:
+            self._release(target_id)
+        result = PortProbeResult(port, responded=responded, response=response)
+        self._record_probe(target_id, result)
+        return result
+
     def _record(self, target_id: str, result: PortScanResult) -> None:
         if self.board is None:
             return
         self.board.record_event("network.port_scanned", {
             "target_id": target_id, "port": result.port, "state": result.state,
             "banner": (result.banner or "")[:256], "detail": result.detail,
+        })
+
+    def _record_probe(self, target_id: str, result: PortProbeResult) -> None:
+        if self.board is None:
+            return
+        self.board.record_event("network.port_probed", {
+            "target_id": target_id, "port": result.port, "responded": result.responded,
+            "response": (result.response or "")[:256], "detail": result.detail,
         })
