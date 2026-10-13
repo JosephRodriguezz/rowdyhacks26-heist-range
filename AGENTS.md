@@ -47,6 +47,7 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
   python3 -m unittest discover -s tests -v
   python3 -m unittest discover -s tests -p 'test_external_target.py' -v
   python3 -m unittest discover -s tests -p 'test_hypoth*.py' -v
+  python3 -m unittest tests.test_network.TcpProbeTests tests.test_network.NetworkScanExecutorProbeTests tests.test_vulnerability.UnauthenticatedNetworkAccessVulnerabilityTests -v
   python3 -m red.prototype.cli evaluate
   python3 -m red.prototype.cli run --scenario access_control --mode deterministic_baseline
   python3 -m red.prototype.cli replay --from artifacts/access.run.json
@@ -54,6 +55,7 @@ Start with Red Scout/Operator and Blue Monitor/Defender responsibilities. Expand
 
   The Red tests exercise the disposable local mock only. The deterministic baseline is a labeled comparison, and the fixture-provider adaptation test is control-flow evidence rather than model performance. No remote model run or integrated contest has been verified.
 - AV-05 permits a caller-started prototype target in the same process via `RunOptions.external_target_origin` or `run --target-origin`. Exact setup: `python3 -c "from red.prototype.lab import LabState, LocalBankServer; from red.prototype.cli import main; server = LocalBankServer(LabState('availability')).start(); main(['run', '--scenario', 'availability', '--target-origin', server.origin]); server.close()"`. See the README for ownership and fresh-state requirements. Separate-process services and Diego's bank remain unsupported.
+- The network-side vulnerability test (`test_unauthenticated_network_access` in `red/prototype/vulnerability.py`, CWE-306 missing authentication) has its own targeted command: `python3 -m unittest tests.test_network.TcpProbeTests tests.test_network.NetworkScanExecutorProbeTests tests.test_vulnerability.UnauthenticatedNetworkAccessVulnerabilityTests -v`. Proven against `mocknetwork.py`'s own toggleable missing-authentication flaw on real sockets, never a third-party host. A verdict of `vulnerable` requires the probed port to actually grant access with no credential offered; any shed/closed/filtered/timed-out probe or an unrecognized response is `inconclusive`, never a confirmed finding.
 - Hypothesis statuses are Red agent assessments, not independently verified findings or mission verdicts. Keep their comparison evidence and revision history intact. Reopening requires new observations and a fresh baseline/comparison before a new conclusion; ambiguous failures remain inconclusive.
 - Git changes are manual by default. Do not commit, create branches, push, merge, or stash unless Joseph explicitly asks.
 
