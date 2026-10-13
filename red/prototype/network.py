@@ -271,8 +271,32 @@ class NetworkScanExecutor:
         self._record(target_id, result)
         return result
 
-    def scan_ports(self, target_id: str, ports: list[int]) -> list[PortScanResult]:
-        return [self.scan_port(target_id, port) for port in ports]
+    def scan_ports(
+        self, target_id: str, ports: list[int], *, max_retry_wait_seconds: float = 30.0,
+    ) -> list[PortScanResult]:
+        """Scans every declared port, pacing to the scope's own rate window rather
+        than reporting a partial range as if it were complete: a port shed by the
+        rate ceiling is retried after waiting out that same window, not abandoned,
+        so a scan of a wide range at a tight ceiling genuinely covers the whole
+        range (slower, correctly) instead of silently only covering however many
+        ports fit in the first window. Bounded by max_retry_wait_seconds of total
+        wait per port, so a misbehaving or permanently exhausted ceiling cannot
+        hang forever; a port still shed once that bound is reached keeps its
+        honest 'shed' result rather than claiming a scan that never happened."""
+        window_seconds: float | None = None
+        results: list[PortScanResult] = []
+        for port in ports:
+            result = self.scan_port(target_id, port)
+            waited = 0.0
+            while result.state == "shed" and waited < max_retry_wait_seconds:
+                if window_seconds is None:
+                    window_seconds = self.registry.resolve(target_id).scope.window_seconds
+                sleep_for = min(window_seconds, max_retry_wait_seconds - waited)
+                time.sleep(sleep_for)
+                waited += sleep_for
+                result = self.scan_port(target_id, port)
+            results.append(result)
+        return results
 
     def probe_unauthenticated_access(
         self, target_id: str, port: int, *, payload: bytes = b"PROBE\r\n",

@@ -143,6 +143,12 @@ class TargetEngagement:
     verification_token: str = field(default_factory=lambda: secrets.token_hex(16))
     created_at: float = field(default_factory=time.monotonic)
     verified_at: float | None = None
+    # The literal address verify_ownership actually connected to at the moment
+    # verification last succeeded -- not re-resolved from the hostname again at
+    # dispatch time. Dispatch connects to this pinned address, never to a fresh
+    # DNS lookup of the origin's hostname, so a DNS change after verification
+    # cannot redirect a later action to a different host still called "verified."
+    resolved_ip: str | None = None
 
     def __post_init__(self) -> None:
         if not self.target_id.strip() or len(self.target_id) > 80:
@@ -155,17 +161,28 @@ class TargetEngagement:
         return host, port
 
 
-def verify_ownership(origin: str, target_id: str, expected_token: str, *, timeout: float = 2.0) -> bool:
+def verify_ownership(
+    origin: str, target_id: str, expected_token: str, *, timeout: float = 2.0,
+    resolved_ip_out: dict[str, str] | None = None,
+) -> bool:
     """Fetch the well-known file over real HTTP and confirm it carries this exact
     engagement's token. This is the actual proof of control -- never a claim, never
     skipped, never inferred from anything other than one successful, matching fetch.
     Any transport failure, non-200, or malformed/missing token is simply "not verified",
-    never raised -- the same fail-closed posture as the rest of this project."""
+    never raised -- the same fail-closed posture as the rest of this project.
+
+    resolved_ip_out, when given, is filled in with the literal peer address this exact
+    connection resolved to and reached (resolved_ip_out["ip"]) -- the same connection
+    used for the verification fetch itself, not a separate lookup that could itself
+    race a DNS change. The caller should only trust it once this function returns True.
+    """
     scheme, hostname, port = parse_bare_origin(origin)
     conn_cls = http.client.HTTPSConnection if scheme == "https" else http.client.HTTPConnection
     conn = conn_cls(hostname, port, timeout=timeout)
     try:
         conn.request("GET", WELL_KNOWN_PATH, headers={"Accept": "application/json"})
+        if resolved_ip_out is not None and conn.sock is not None:
+            resolved_ip_out["ip"] = conn.sock.getpeername()[0]
         response = conn.getresponse()
         if response.status != 200:
             return False
@@ -210,12 +227,16 @@ class EngagementRegistry:
             raise EngagementError(f"target '{target_id}' is not registered")
         if engagement.status == "revoked":
             raise EngagementError(f"target '{target_id}' has been revoked")
-        if verify_ownership(engagement.origin, target_id, engagement.verification_token, timeout=timeout):
+        resolved_ip_out: dict[str, str] = {}
+        if verify_ownership(engagement.origin, target_id, engagement.verification_token,
+                             timeout=timeout, resolved_ip_out=resolved_ip_out):
             engagement.status = "verified"
             engagement.verified_at = time.monotonic()
+            engagement.resolved_ip = resolved_ip_out.get("ip")
         else:
             engagement.status = "pending_verification"
             engagement.verified_at = None
+            engagement.resolved_ip = None
         return engagement
 
     def revoke(self, target_id: str) -> None:

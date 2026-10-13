@@ -133,14 +133,19 @@ def scan_and_delegate(
     network_registry: NetworkTargetRegistry | None = None,
     network_executor: NetworkScanExecutor | None = None,
     max_agents: int = 10,
+    scan_retry_wait_seconds: float = 30.0,
 ) -> DelegationPlan:
     """Convenience: actually runs each verified network target's own declared port
     range through network_executor (respecting its scope's own rate/concurrency
     ceiling, same as any other use of the executor -- a wide range at a tight
     ceiling will genuinely take as long as that implies, which is correct, not a
-    bug), then calls delegate() with the real results. Still never discovers the
-    web surface itself -- an engagement's own declared scope already is that
-    discovery, by design; see delegate()'s own docstring for why.
+    bug), then calls delegate() with the real results. scan_ports itself paces
+    out any ports shed by the ceiling rather than abandoning them, so the range
+    actually gets fully covered; scan_retry_wait_seconds is the bound on how long
+    it will keep retrying a single still-shed port before giving up on it
+    honestly. Still never discovers the web surface itself -- an engagement's own
+    declared scope already is that discovery, by design; see delegate()'s own
+    docstring for why.
     """
     network_results: dict[str, list[PortScanResult]] = {}
     if network_registry is not None and network_executor is not None:
@@ -148,7 +153,9 @@ def scan_and_delegate(
             if target.status != "verified":
                 continue
             ports = list(range(target.scope.min_port, target.scope.max_port + 1))
-            network_results[target.target_id] = network_executor.scan_ports(target.target_id, ports)
+            network_results[target.target_id] = network_executor.scan_ports(
+                target.target_id, ports, max_retry_wait_seconds=scan_retry_wait_seconds,
+            )
     return delegate(
         engagement_registry=engagement_registry, network_results=network_results,
         network_registry=network_registry, max_agents=max_agents,

@@ -310,6 +310,7 @@ class ActionExecutorEngagementDispatchTests(unittest.TestCase):
         # the point here is connection-class selection, not verification again.
         engagement = https_registry._engagements["https-site"]  # test-only introspection
         engagement.status = "verified"
+        engagement.resolved_ip = "127.0.0.1"  # dispatch now requires a pinned address; stub it for this bypass
         executor = ActionExecutor(
             registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
             budget=self.budget, board=self.board, engagement_registry=https_registry,
@@ -425,6 +426,7 @@ class EngagementRateLimitTests(unittest.TestCase):
         bad_registry = EngagementRegistry()
         bad_engagement = bad_registry.register("unreachable-site", "http://127.0.0.1:1", self.scope)
         bad_engagement.status = "verified"  # force-verified: this test is about release-on-failure, not verification
+        bad_engagement.resolved_ip = "127.0.0.1"  # dispatch now requires a pinned address; stub it for this bypass
         executor = ActionExecutor(
             registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
             budget=self.budget, board=self.board, engagement_registry=bad_registry,
@@ -632,6 +634,202 @@ class GeneralizedLoginFormDispatchTests(unittest.TestCase):
         # The mock site issued this exact value under its own "acme_session" cookie
         # name (never "heist_session"); proves the executor read the right one.
         self.assertIn(stored_cookie, self.mock_state.sessions)
+
+    def test_an_excluded_login_path_is_never_dispatched_even_via_the_profile(self) -> None:
+        # Regression: a profile-derived route (login/logout/form) must honor the
+        # same path exclusions as read_page/request_api, not bypass them just
+        # because the route came from the profile rather than the proposal.
+        excluded_scope = EngagementScope(
+            allowed_capabilities=frozenset({"start_account_session"}), excluded_paths=("/login",),
+        )
+        registry = EngagementRegistry()
+        engagement = registry.register("excluded-login-site", self.mocksite.origin, excluded_scope,
+                                        profile=self.profile)
+        self.mock_state.set_authorization_token("excluded-login-site", engagement.verification_token)
+        registry.verify("excluded-login-site")
+        executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=registry,
+        )
+        try:
+            with self.assertRaises(ActionRejected):
+                executor.execute(
+                    ActionProposal("start_account_session", target_id="excluded-login-site", identity_ref="alice"),
+                    role="scout", task_id=self.task.task_id,
+                )
+            self.assertNotIn("/login", self.mock_state.requests_seen)
+        finally:
+            executor.close()
+
+    def test_an_excluded_form_path_is_never_dispatched_even_via_the_profile(self) -> None:
+        excluded_scope = EngagementScope(
+            allowed_capabilities=frozenset({"submit_form"}), excluded_paths=("/contact",),
+        )
+        registry = EngagementRegistry()
+        engagement = registry.register("excluded-form-site", self.mocksite.origin, excluded_scope,
+                                        profile=self.profile)
+        self.mock_state.set_authorization_token("excluded-form-site", engagement.verification_token)
+        registry.verify("excluded-form-site")
+        executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=registry,
+        )
+        try:
+            with self.assertRaises(ActionRejected):
+                executor.execute(
+                    ActionProposal("submit_form", target_id="excluded-form-site", method="POST", path="/contact",
+                                    form_ref="contact_form", body={"name": "Bob", "message": "hi"}),
+                    role="scout", task_id=self.task.task_id,
+                )
+        finally:
+            executor.close()
+
+
+class CrossTargetSessionAndFingerprintTests(unittest.TestCase):
+    """Two distinct verified engagements through one ActionExecutor: a session or a
+    duplicate-detection fingerprint must never be confused between them."""
+
+    def setUp(self) -> None:
+        self.state_a = MockSiteState(site_name="Acme A")
+        self.state_a.add_account("alice@example.com", "correct-horse")
+        self.site_a = MockSiteServer(self.state_a).start()
+        self.state_b = MockSiteState(site_name="Acme B")
+        self.state_b.add_account("alice@example.com", "correct-horse")
+        self.site_b = MockSiteServer(self.state_b).start()
+        self.profile = SiteProfile(
+            login_path="/login", login_method="POST", session_cookie_name="acme_session",
+            logout_path="/logout", logout_method="POST",
+            identities={"alice": {"email": "alice@example.com", "password": "correct-horse"}},
+        )
+        self.scope = EngagementScope(allowed_capabilities=frozenset({
+            "request_api", "read_page", "start_account_session", "end_account_session",
+        }))
+        self.registry = EngagementRegistry()
+        self.engagement_a = self.registry.register("site-a", self.site_a.origin, self.scope, profile=self.profile)
+        self.state_a.set_authorization_token("site-a", self.engagement_a.verification_token)
+        self.registry.verify("site-a")
+        self.engagement_b = self.registry.register("site-b", self.site_b.origin, self.scope, profile=self.profile)
+        self.state_b.set_authorization_token("site-b", self.engagement_b.verification_token)
+        self.registry.verify("site-b")
+        self.lab_state = LabState("clean")
+        self.board = RedBoard()
+        self.limits = RunLimits()
+        self.budget = BudgetLedger(self.limits)
+        self.executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.lab_state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=self.registry,
+        )
+        self.task = self.board.add_task("scout", "cross-target test")
+        self.board.claim_task(self.task.task_id, "scout-test")
+
+    def tearDown(self) -> None:
+        self.executor.close()
+        self.site_a.close()
+        self.site_b.close()
+        self.lab_state.close()
+
+    def test_a_session_created_on_one_target_cannot_be_reused_against_another(self) -> None:
+        login = self.executor.execute(
+            ActionProposal("start_account_session", target_id="site-a", identity_ref="alice"),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(login.evidence.status, 200)
+        session_ref = login.created_session_ref
+        self.assertIsNotNone(session_ref)
+        with self.assertRaises(ActionRejected):
+            self.executor.execute(
+                ActionProposal("request_api", target_id="site-b", path="/about", session_ref=session_ref),
+                role="scout", task_id=self.task.task_id,
+            )
+        # site-b's own cookie jar was never touched by site-a's cookie value.
+        self.assertEqual(self.state_b.requests_seen.count("/about"), 0)
+
+    def test_a_session_still_works_against_the_target_that_issued_it(self) -> None:
+        login = self.executor.execute(
+            ActionProposal("start_account_session", target_id="site-a", identity_ref="alice"),
+            role="scout", task_id=self.task.task_id,
+        )
+        session_ref = login.created_session_ref
+        logout = self.executor.execute(
+            ActionProposal("end_account_session", target_id="site-a", path="/logout", session_ref=session_ref),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(logout.evidence.status, 200)
+
+    def test_identically_shaped_requests_on_two_targets_do_not_collide_as_duplicates(self) -> None:
+        first = self.executor.execute(
+            ActionProposal("request_api", target_id="site-a", path="/about"),
+            role="scout", task_id=self.task.task_id,
+        )
+        second = self.executor.execute(
+            ActionProposal("request_api", target_id="site-b", path="/about"),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(first.evidence.status, 200)
+        self.assertEqual(second.evidence.status, 200)
+        self.assertTrue(second.dispatched)
+        self.assertNotEqual(second.evidence.failure_kind, "duplicate_test")
+
+
+class DnsPinningTests(unittest.TestCase):
+    """A verified engagement's dispatch target is the address pinned at the moment
+    verification last succeeded, never a fresh DNS lookup of the origin's hostname
+    performed again at dispatch time."""
+
+    def setUp(self) -> None:
+        self.mock_state = MockSiteState(site_name="Acme Test Co.")
+        self.mocksite = MockSiteServer(self.mock_state).start()
+        self.registry = EngagementRegistry()
+        self.scope = EngagementScope(allowed_capabilities=frozenset({"request_api"}))
+        self.engagement = self.registry.register("acme-test-site", self.mocksite.origin, self.scope)
+        self.mock_state.set_authorization_token("acme-test-site", self.engagement.verification_token)
+        self.state = LabState("clean")
+        self.board = RedBoard()
+        self.limits = RunLimits()
+        self.budget = BudgetLedger(self.limits)
+        self.executor = ActionExecutor(
+            registry=FixedTargetRegistry("http://127.0.0.1:1"), state=self.state, limits=self.limits,
+            budget=self.budget, board=self.board, engagement_registry=self.registry,
+        )
+        self.task = self.board.add_task("scout", "dns pinning test")
+        self.board.claim_task(self.task.task_id, "scout-test")
+
+    def tearDown(self) -> None:
+        self.executor.close()
+        self.mocksite.close()
+        self.state.close()
+
+    def test_a_successful_verification_pins_the_address_it_actually_connected_to(self) -> None:
+        self.registry.verify("acme-test-site")
+        self.assertEqual(self.engagement.resolved_ip, "127.0.0.1")
+
+    def test_dispatch_is_rejected_when_no_address_has_ever_been_pinned(self) -> None:
+        # Force-verified without ever running verify(), so no real connection (and
+        # therefore no pin) has ever happened -- dispatch must fail closed, never
+        # silently fall back to re-resolving the hostname.
+        self.engagement.status = "verified"
+        with self.assertRaises(ActionRejected):
+            self.executor.execute(
+                ActionProposal("request_api", target_id="acme-test-site", path="/about"),
+                role="scout", task_id=self.task.task_id,
+            )
+
+    def test_dispatch_follows_the_pinned_address_not_a_fresh_resolution_of_the_origin(self) -> None:
+        self.registry.verify("acme-test-site")
+        self.assertEqual(self.engagement.resolved_ip, "127.0.0.1")
+        # Simulate what a DNS change after verification would mean for dispatch: if
+        # dispatch re-resolved the origin's hostname instead of using the pin, this
+        # would have no effect at all (the origin's host is still "127.0.0.1" and
+        # would resolve right back to the real mock site). Overwriting the pin
+        # directly and observing dispatch follow *it* -- not the origin -- is what
+        # proves the pin, not the origin, is what dispatch actually uses.
+        self.engagement.resolved_ip = "127.0.0.2"
+        result = self.executor.execute(
+            ActionProposal("request_api", target_id="acme-test-site", path="/about"),
+            role="scout", task_id=self.task.task_id,
+        )
+        self.assertEqual(result.evidence.failure_kind, "target_transport")
+        self.assertNotIn("/about", self.mock_state.requests_seen)
 
 
 if __name__ == "__main__":

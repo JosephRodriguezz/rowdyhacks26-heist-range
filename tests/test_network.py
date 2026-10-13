@@ -284,6 +284,23 @@ class NetworkScanExecutorTests(unittest.TestCase):
         self.assertEqual([r.port for r in results], [self.open_port, self.closed_port])
         self.assertEqual([r.state for r in results], ["open", "closed"])
 
+    def test_scan_ports_paces_through_a_range_that_exceeds_the_window_ceiling(self) -> None:
+        # max_ports_per_window=3: a 4-port request must not silently report the 4th
+        # as "shed" -- it should be retried once the window clears, so the range is
+        # genuinely covered rather than partially abandoned.
+        ports = [self.open_port, self.closed_port, self.open_port, self.closed_port]
+        results = self.executor.scan_ports("acme-network", ports, max_retry_wait_seconds=5.0)
+        self.assertEqual([r.state for r in results], ["open", "closed", "open", "closed"])
+        self.assertTrue(all(r.state != "shed" for r in results))
+
+    def test_scan_ports_still_reports_shed_honestly_once_the_retry_bound_is_reached(self) -> None:
+        # A ceiling that never actually clears (0 max_retry_wait_seconds: no waiting
+        # at all) must still surface the honest "shed" result, never fabricate a
+        # scan that didn't happen.
+        ports = [self.open_port, self.closed_port, self.open_port, self.closed_port]
+        results = self.executor.scan_ports("acme-network", ports, max_retry_wait_seconds=0.0)
+        self.assertEqual(results[3].state, "shed")
+
     def test_exceeding_the_window_ceiling_sheds_the_scan(self) -> None:
         self.executor.scan_port("acme-network", self.open_port)
         self.executor.scan_port("acme-network", self.closed_port)

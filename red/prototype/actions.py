@@ -128,13 +128,13 @@ class ActionExecutor:
             self._session_revision.clear()
             self._closed = True
 
-    def _session_cookie(self, session_ref: str | None, role: Role) -> str | None:
+    def _session_cookie(self, session_ref: str | None, role: Role, target_id: str) -> str | None:
         if session_ref is None:
             return None
         with self._session_lock:
             entry = self._sessions.get(session_ref)
-            if entry is None or entry["role"] != role:
-                raise ActionRejected("session reference is unknown or belongs to another role")
+            if entry is None or entry["role"] != role or entry["target_id"] != target_id:
+                raise ActionRejected("session reference is unknown, belongs to another role, or was issued for a different target")
             return entry["cookie"]
 
     def _known_secrets(self) -> list[str]:
@@ -206,10 +206,10 @@ class ActionExecutor:
 
     def _resolve_target(
         self, target_id: str,
-    ) -> tuple[str, str, int, EngagementScope | None, SiteProfile | None]:
-        """(scheme, host, port, scope, profile) for any registered target id, bank-local
-        or not. scope/profile are None for bank-local and the registry's own
-        extra_targets (the narrower, human-operator-only, loopback-only, http-only
+    ) -> tuple[str, str, int, EngagementScope | None, SiteProfile | None, str]:
+        """(scheme, host, port, scope, profile, connect_host) for any registered target
+        id, bank-local or not. scope/profile are None for bank-local and the registry's
+        own extra_targets (the narrower, human-operator-only, loopback-only, http-only
         AV-05 probe path); real values for a verified engagement (real, re-checkable
         proof of control -- see engagement.py -- any host, http or https). A verified
         engagement takes priority over extra_targets when both could apply: an
@@ -218,7 +218,15 @@ class ActionExecutor:
         the registry so existing extra_targets behavior (and its tests) are
         unchanged when no engagement registry is configured, or the id is not an
         engagement. Called identically by _validate and execute, so both agree on
-        exactly what was resolved."""
+        exactly what was resolved.
+
+        connect_host is what dispatch actually opens a socket to. For an engagement
+        it is the literal address pinned at verification time (engagement.resolved_ip),
+        never a fresh DNS lookup of host -- a hostname's DNS can change at any moment
+        after verification, and a dispatch that re-resolved it would follow that
+        change onto an address nothing ever proved control of. host itself is kept
+        for the Host header and for anything that still wants the logical hostname.
+        """
         if target_id != TARGET_ID and self.engagement_registry is not None:
             try:
                 engagement = self.engagement_registry.resolve(target_id)
@@ -226,11 +234,15 @@ class ActionExecutor:
                 engagement = None
             if engagement is not None:
                 scheme, host, port = parse_bare_origin(engagement.origin)
-                return scheme, host, port, engagement.scope, engagement.profile
+                if not engagement.resolved_ip:
+                    raise ActionRejected(
+                        "engagement has no pinned address from its last successful verification; re-verify first"
+                    )
+                return scheme, host, port, engagement.scope, engagement.profile, engagement.resolved_ip
         host, port = self.registry.resolve(target_id)  # raises ActionRejected if unknown everywhere
         if host != "127.0.0.1" or port <= 0:
             raise ActionRejected("registered target is outside loopback scope")
-        return "http", host, port, None, None
+        return "http", host, port, None, None, host
 
     def _admit_engagement_request(self, target_id: str, scope: EngagementScope) -> str | None:
         """Enforced, not only declared: a scope's own rate/concurrency ceilings are
@@ -261,7 +273,7 @@ class ActionExecutor:
 
     def _validate(self, proposal: ActionProposal) -> tuple[str, str, dict[str, str], str | None]:
         capability = proposal.capability
-        _scheme, _host, _port, scope, profile = self._resolve_target(proposal.target_id)
+        _scheme, _host, _port, scope, profile, _connect_host = self._resolve_target(proposal.target_id)
         if proposal.target_id != TARGET_ID:
             if scope is None:
                 # The narrower AV-05 probe path: only ever the two generic, read-only
@@ -285,6 +297,8 @@ class ActionExecutor:
                 raise ActionRejected("identity reference is not supplied to Red for this engagement")
             if proposal.path != "/" or proposal.body or proposal.session_ref or proposal.form_ref:
                 raise ActionRejected("account login accepts only an identity reference")
+            if scope.path_excluded(profile.login_path):
+                raise ActionRejected("login path is excluded from this engagement's authorized scope")
             return profile.login_method, profile.login_path, {}, proposal.identity_ref
         if capability == "end_account_session":
             if proposal.target_id == TARGET_ID:
@@ -297,6 +311,8 @@ class ActionExecutor:
                 raise ActionRejected("logout path is fixed by the action boundary")
             if not proposal.session_ref or proposal.body or proposal.identity_ref or proposal.form_ref:
                 raise ActionRejected("logout requires an owned session reference")
+            if scope.path_excluded(profile.logout_path):
+                raise ActionRejected("logout path is excluded from this engagement's authorized scope")
             return profile.logout_method, profile.logout_path, {}, None
         if capability == "submit_form":
             if proposal.target_id == TARGET_ID:
@@ -319,6 +335,8 @@ class ActionExecutor:
                     raise ActionRejected("form destination and method are fixed")
                 if set(proposal.body) - form.allowed_fields:
                     raise ActionRejected("form contains fields outside its schema")
+                if scope.path_excluded(form.path):
+                    raise ActionRejected("form path is excluded from this engagement's authorized scope")
                 path, method = form.path, form.method
         elif capability == "read_page":
             if proposal.identity_ref or proposal.form_ref:
@@ -400,21 +418,21 @@ class ActionExecutor:
             self._validate_load_proposal(proposal)
             return self._execute_stop_load(proposal, role=role, evidence_id=evidence_id)
         method, path, body, identity_ref = self._validate(proposal)
-        scheme, host, port, scope, profile = self._resolve_target(proposal.target_id)
+        scheme, host, port, scope, profile, connect_host = self._resolve_target(proposal.target_id)
         session_cookie_name = profile.session_cookie_name if profile is not None else "heist_session"
         cookie: str | None = None
         if proposal.capability == "end_account_session":
-            cookie = self._session_cookie(proposal.session_ref, role)
+            cookie = self._session_cookie(proposal.session_ref, role, proposal.target_id)
         elif proposal.session_ref:
-            cookie = self._session_cookie(proposal.session_ref, role)
+            cookie = self._session_cookie(proposal.session_ref, role, proposal.target_id)
         # Exact same test cannot be independently dispatched by a different task in the same target generation.
         with self._session_lock, self.state.lock:
             session_revision = self._session_revision.get(proposal.session_ref or "", 0)
             defense_generation = tuple(sorted(self.state.defenses))
             target_revision = self._target_revision
         fingerprint = json.dumps(
-            [proposal.capability, method, path, sorted(body.items()), proposal.identity_ref, proposal.session_ref,
-             session_revision, defense_generation, target_revision], separators=(",", ":"),
+            [proposal.target_id, proposal.capability, method, path, sorted(body.items()), proposal.identity_ref,
+             proposal.session_ref, session_revision, defense_generation, target_revision], separators=(",", ":"),
         )
         if not self.board.claim_action_fingerprint(fingerprint, task_id):
             evidence = Evidence(
@@ -440,6 +458,12 @@ class ActionExecutor:
         if self.before_dispatch:
             self.before_dispatch()
         headers = {"Accept": "application/json", "X-Lab-Action-ID": evidence_id}
+        if connect_host != host:
+            # Connecting to the pinned IP rather than the logical hostname means
+            # http.client would otherwise send the IP as the Host header; restore
+            # the real hostname explicitly so a name-based target still sees the
+            # request it expects.
+            headers["Host"] = f"{host}:{port}"
         if cookie:
             headers["Cookie"] = f"{session_cookie_name}=" + cookie
         request_bytes: bytes | None = None
@@ -455,7 +479,7 @@ class ActionExecutor:
             request_bytes = json.dumps(body, separators=(",", ":")).encode("utf-8")
             headers["Content-Type"] = "application/json"
         conn_cls = http.client.HTTPSConnection if scheme == "https" else http.client.HTTPConnection
-        conn = conn_cls(host, port, timeout=self.limits.request_timeout_seconds)
+        conn = conn_cls(connect_host, port, timeout=self.limits.request_timeout_seconds)
         status: int | None = None
         response_text = ""
         summary = ""
@@ -498,7 +522,9 @@ class ActionExecutor:
                 if cookie_morsel:
                     created_session_ref = "sess-" + uuid.uuid4().hex[:16]
                     with self._session_lock:
-                        self._sessions[created_session_ref] = {"cookie": cookie_morsel.value, "role": role}
+                        self._sessions[created_session_ref] = {
+                            "cookie": cookie_morsel.value, "role": role, "target_id": proposal.target_id,
+                        }
                         self._session_revision[created_session_ref] = 0
             summary = f"{method} {urllib.parse.urlsplit(path).path} returned HTTP {status}."
             if proposal.capability == "end_account_session" and proposal.session_ref and status == 200:
