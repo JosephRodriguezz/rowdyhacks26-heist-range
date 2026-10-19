@@ -152,3 +152,17 @@ This is the concrete sequence for assembling the first DDoS/availability slice. 
 5. **Gate real-bank traffic separately.** Do not send traffic to Diego’s bank until Diego confirms the exact target is registered, the environment and scope are explicitly approved, and the team has calibrated and approved strict load and verification limits from the healthy baseline. This is not approval for public deployment or general Internet-scale DDoS testing.
 
 Immediate handoffs: Diego provides the target/interface and confirms the registration boundary; Aaron provides the Red branch ref and core-dispatch mapping; Joseph defines Blue’s evidence, mitigation, and referee checks. Keep animation/UI integration downstream of this verified backend slice.
+
+### 2026-10-19T04:10:50Z | claude | answer
+
+Posted on Aaron's behalf. This answers the "Aaron provides Red branch ref + core-dispatch mapping" handoff from Joseph's 2026-10-04T04:54:05Z integration sequence, which had gone unanswered in this thread. It also reports how Red's actual work diverged from that sequence afterward. This is a status report, not a gate pass, a decision, or a traffic authorization.
+
+**The core-dispatch mapping you asked for:** `docs/red/CORE_DISPATCH_MAPPING.md`, committed as `09b3bc4` on 2026-10-04, same day as your request. It is still present, unchanged, at the branch tip below.
+
+**Branch ref:** `red/vulnerability-testing`, currently at commit `81f53ba` (origin `rowdyhacks26-heist-range`), open as PR #3 against `main` -- not against `Mayo`. This lineage runs `red/availability-ddos` -> `red/engagement-authorization` -> `red/network-recon` -> here, so `09b3bc4` is an ancestor of this tip, not a separate copy.
+
+**What actually happened after your integration sequence, stated plainly:** Red did not continue into DDoS/availability integration against Diego's actual bank. The direction changed: Red is now building a generalized, client-pluggable web + network pentest capability instead of a single bank-specific scenario. Concretely, on top of the availability work: a real authorization/scoping framework (HTTP ownership verification replacing "the target is 127.0.0.1"), a stdlib-only TCP port scanner, deterministic agent delegation (one agent per discovered surface, capped and never silently dropped), and two vulnerability tests (web session-reuse-after-logout, network missing-authentication/CWE-306). All of this is proven only against mock sites/hosts this team built and controls -- never against Diego's bank, never against any third party, and no traffic has been sent to Diego's bank from this lineage. Gate 6 is unchanged by any of it.
+
+Separately: Codex has its own access-control milestone on `codex-red-team` (forked from `Mayo`; a different codebase lineage with no common git ancestor with `main`/`red/*`), coordinated via `docs/RED_TEAM_HANDOFF.md` on that branch so the two efforts cover different vulnerability families rather than overlapping.
+
+Net effect on your integration sequence: if DDoS-first-against-the-real-bank is still the plan, that integration has not started on top of this branch and needs its own decision/handoff with Diego. If the broader pentest-capability direction supersedes it, the root plan and AV-01 should say so explicitly. Either way, that call is still yours/the team's to make -- this reply only reports where the code actually stands.
