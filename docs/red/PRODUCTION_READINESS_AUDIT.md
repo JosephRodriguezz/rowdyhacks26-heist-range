@@ -3,12 +3,17 @@
 **Status:** Audit only. No code has been changed as part of this document. Nothing here is a gate
 pass, a deployment, or an authorization to send traffic anywhere.
 
-**Why this exists:** the product direction changed from a hackathon demo to a shippable,
-client-pluggable pentest product (comparable in category, not in scale or funding, to an
-autonomous red-teaming platform like Armadin). Joseph and Aaron are setting up an AWS sandbox soon
-so Red can be tested against a real target instead of only `127.0.0.1` mocks. This document is the
-readiness pass requested before that happens: what already works, what doesn't, and who owns each
-gap — not a mandate to fix everything inline.
+**Why this exists:** Aaron stated directly (in conversation, not yet in this repository) that the
+product direction changed from a hackathon demo to a shippable, client-pluggable pentest product
+(comparable in category, not in scale or funding, to an autonomous red-teaming platform like
+Armadin). **This is not yet a recorded team decision**: `docs/DECISIONS.md` still defines the
+product as the heist-themed Red-vs-Blue range, with hosting/expansion left open. This audit uses the
+stated new direction to choose which architecture to point toward and what to defer — that's a
+reasonable basis to audit from, but it should be recorded as an actual decision (with attribution)
+before anyone treats it as the team's agreed roadmap. Joseph and Aaron are setting up an AWS sandbox
+soon so Red can be tested against a real target instead of only `127.0.0.1` mocks. This document is
+the readiness pass requested before that happens: what already works, what doesn't, and who owns
+each gap — not a mandate to fix everything inline.
 
 **Scope:** `red/prototype/`'s engagement-authorization, network-recon, vulnerability-testing, and
 delegation code (`engagement.py`, `network.py`, `actions.py`, `vulnerability.py`, `delegation.py`).
@@ -28,9 +33,12 @@ loopback-restricted:
   fix... relaxing it would be a real security-posture change... isn't part of this work"*).
 - **`EngagementRegistry`/`ActionExecutor`** (web) and **`NetworkTargetRegistry`/`NetworkScanExecutor`**
   (network) — never loopback-restricted. Their safety boundary was built from the start to be
-  "real, re-checkable proof of control" (HTTP well-known-file ownership verification, now also
-  pinned to the literal verified address — see `81f53ba`), not "is it 127.0.0.1." These already
-  accept any real host.
+  "real, re-checkable proof of control" (HTTP well-known-file ownership verification), not "is it
+  127.0.0.1." These already accept any real host. **Correction, made while addressing this PR's
+  review:** at the time this sentence was first drafted, only the web path was actually pinned to
+  the literal verified address (`81f53ba`) — the network path still re-resolved `target.host` fresh
+  on every scan/probe, a real DNS-rebinding gap a reviewer caught. Both paths are now pinned (this
+  commit); see F8 below for what was wrong and how it was fixed.
 
 **Recommendation: do not touch `FixedTargetRegistry`'s loopback check.** It protects the legacy
 bank-local path and is doing exactly the job AGENTS.md assigns it ("reject arbitrary
@@ -65,14 +73,14 @@ them. Flagging this as a decision for you and Joseph, not something I'll resolve
 
 | # | Finding | Severity | Owner |
 |---|---|---|---|
-| F1 | **No persistence anywhere.** `RedBoard` (evidence/tasks/hypotheses/events), `EngagementRegistry`/`NetworkTargetRegistry` (engagements, verification tokens, pinned IPs), and even `LabState` (`sqlite3.connect(":memory:")`) are all in-memory only. Everything is lost on process exit. For a single interactive run this is fine; for an audit trail you'd ever hand to a real client, it isn't. | Should-fix-before-sandbox (at minimum: evidence/findings need to survive the process) | Needs a storage decision (see Tasks for Codex below for one bounded slice) |
+| F1 | **No durable, crash-safe persistence for the engagement/network/delegation path; the older Scout/Operator path has a narrower gap.** Corrected after review: the original `PrototypeRunner`/`cli.py --report` path *does* export `RedBoard`'s evidence/tasks/hypotheses/events to disk via `RunReport` — that part was wrong to call "no persistence anywhere." What's actually true: (a) that export only happens at the very end of a run, so a crash mid-run loses everything up to that point; (b) `EngagementRegistry`/`NetworkTargetRegistry` (engagements, verification tokens, pinned IPs) and `LabState` (`sqlite3.connect(":memory:")`) have no export mechanism at all, in either path; (c) the newer engagement/delegation system has no equivalent of `--report` — `delegation.execute_plan()`'s `VulnerabilityFinding` results only ever live in the caller's return value, nothing writes them to disk. | Should-fix-before-sandbox for (b) and (c) at minimum | Needs a storage decision (see Tasks for Codex below for one bounded slice) |
 | F2 | **Raw credentials live in plain Python dicts, in memory, no secrets-manager indirection.** `SiteProfile.identities` stores `{"alice": {"email": ..., "password": "correct-horse"}}` directly; it's serialized straight into the login request body. Fine for the team's own disposable lab credentials. Not fine the moment a real client's real staging credentials are involved. | Can-wait for the AWS-sandbox milestone itself (that's still testing our own lab/mock targets, just network-reachable instead of loopback) — **must-fix before any real client engagement** | Needs a product decision (AWS Secrets Manager / Vault / etc.) before that milestone, not before this one |
 | F3 | `FixedTargetRegistry`'s loopback-only check | No action — confirmed correct as-is | N/A |
 | F4 | **Timeout defaults tuned for loopback.** `NetworkScope.scan_timeout_seconds` defaults to 0.5s; `RunLimits.request_timeout_seconds` defaults to 2.0s. Real round-trips (especially cross-region) could occasionally exceed these, producing spurious `filtered`/shed/inconclusive results — never a false `vulnerable` (the code fails closed), just reduced scan completeness. | Can-wait — tune empirically once a real target and its actual latency exist | Claude, as part of the first real validation run |
 | F5 | **Cloud-provider abuse-detection / AWS acceptable-use coordination.** Real TCP connect-scans and unauthenticated-access probes against an AWS-hosted target could trip GuardDuty/Security Hub or confuse a SOC if nobody's told it's an authorized internal test. This isn't a code gap — it's an infra/policy item for whoever stands up the sandbox. | Should-fix-before-sandbox | Joseph/Aaron (AWS setup), not a code task |
 | F6 | **No operator/user auth layer on Red itself** — anyone with code execution can register/verify/dispatch engagements directly. | Can-wait — explicitly deferred to the "Red becomes a real service" phase, which this milestone isn't | Deferred |
 | F7 | **`verify_ownership`'s well-known-file check needs the target to run a real web server at the verification port.** Not a code gap — just means whoever stands up the AWS sandbox target needs to expose that file, same as any real engagement onboarding would require. | Informational | Whoever builds the AWS sandbox target |
-| F8 | **The DNS-pinning fix (`81f53ba`) has only been tested against loopback mocks.** `conn.sock.getpeername()` should behave identically over a real HTTPS connection, but this is new code and deserves explicit confirmation the first time it touches a real non-loopback target, not an assumption. | Should-validate on the first real run | Claude |
+| F8 | **The DNS-pinning fix (`81f53ba`) had only been tested against loopback mocks, and review caught two real defects in it before any real-target run.** (1) The network-scanning path (`NetworkTargetRegistry`/`NetworkScanExecutor`) was never actually pinned — `verify()` didn't capture a resolved address, and `scan_port`/`probe_unauthenticated_access` re-resolved `target.host` fresh on every call, the same DNS-rebinding gap the web path's pin was built to close. (2) The web path's pin, as originally written, connected using the pinned IP as the `HTTPSConnection` constructor's `host` — which is also what TLS SNI and certificate-hostname validation check, so a real hostname-certificate dispatch would have failed with a certificate mismatch (or worse, silently validated against the wrong identity). Both fixed in this commit: network targets now pin the same way engagements do, and dispatch uses a connection that dials the pinned IP while keeping the real hostname for everything TLS-related. Proven with new white-box tests (`DialHelperTests`, `DnsPinningTests` in `network.py`'s test suite) — not yet proven against a real non-loopback target with a real certificate. | Should-validate on the first real run (now a smaller gap: tests prove the mechanism, not yet a live network/TLS round-trip) | Claude |
 
 ## Strengths worth naming, not just gaps
 

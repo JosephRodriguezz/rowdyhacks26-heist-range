@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import http.client
 import json
+import socket
+import threading
 import time
 import unittest
 from unittest.mock import MagicMock, patch
 
-from red.prototype.actions import TARGET_ID, ActionExecutor, ActionRejected, FixedTargetRegistry
+from red.prototype.actions import TARGET_ID, ActionExecutor, ActionRejected, FixedTargetRegistry, _dial
 from red.prototype.board import BudgetLedger, RedBoard
 from red.prototype.domain import ActionProposal, RunLimits
 from red.prototype.engagement import (
@@ -830,6 +832,91 @@ class DnsPinningTests(unittest.TestCase):
         )
         self.assertEqual(result.evidence.failure_kind, "target_transport")
         self.assertNotIn("/about", self.mock_state.requests_seen)
+
+
+class DialHelperTests(unittest.TestCase):
+    """_dial in isolation: proves the pinned-connection path actually dials
+    connect_host at the TCP layer while keeping host (never connect_host) as what
+    TLS SNI and certificate validation check -- the exact property a naive pin
+    (constructing the connection with connect_host as `host`) would silently break.
+    """
+
+    def test_no_pin_needed_returns_a_plain_connection_of_the_requested_class(self) -> None:
+        conn = _dial(http.client.HTTPConnection, "127.0.0.1", 80, "127.0.0.1", 2.0)
+        self.assertIs(type(conn), http.client.HTTPConnection)
+        self.assertEqual(conn.host, "127.0.0.1")
+
+    def test_http_pin_connects_to_the_pinned_address_not_the_unresolvable_host(self) -> None:
+        # A listening server on a real loopback port, reached only by connect_host;
+        # `host` is a name that cannot be resolved at all -- if the fix regressed to
+        # connecting via `host`, this would fail with a resolution error, not
+        # silently succeed some other way.
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(("127.0.0.1", 0))
+        server.listen(1)
+        port = server.getsockname()[1]
+        accepted: list[socket.socket] = []
+
+        def accept_once() -> None:
+            conn, _ = server.accept()
+            accepted.append(conn)
+            conn.close()
+
+        thread = threading.Thread(target=accept_once, daemon=True)
+        thread.start()
+        try:
+            conn = _dial(http.client.HTTPConnection, "this-name-does-not-resolve.invalid", port, "127.0.0.1", 2.0)
+            conn.connect()
+            thread.join(timeout=2.0)
+            self.assertEqual(len(accepted), 1)
+            self.assertEqual(conn.host, "this-name-does-not-resolve.invalid")
+        finally:
+            conn.close()
+            server.close()
+
+    def test_https_pin_preserves_the_real_hostname_for_sni_and_certificate_checks(self) -> None:
+        # White-box: proves the property Codex's review flagged directly, without
+        # needing a real certificate/TLS handshake -- the server_hostname passed to
+        # wrap_socket (what SNI and cert-hostname validation actually check) must be
+        # the real hostname, never the pinned IP, even though the raw socket dials
+        # the pinned IP.
+        captured: dict[str, object] = {}
+
+        class _FakeContext:
+            def wrap_socket(self, sock, server_hostname=None):
+                captured["server_hostname"] = server_hostname
+                captured["sock"] = sock
+                return sock
+
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(("127.0.0.1", 0))
+        server.listen(1)
+        listener_port = server.getsockname()[1]
+        threading.Thread(target=lambda: server.accept()[0].close(), daemon=True).start()
+
+        real_create_connection = socket.create_connection
+        dial_calls: list[tuple] = []
+
+        def fake_create_connection(address, *args, **kwargs):
+            dial_calls.append(address)
+            # Substitutes a real, reachable destination so the test doesn't need a
+            # listener actually bound at the fake pinned IP below.
+            return real_create_connection(("127.0.0.1", listener_port), *args, **kwargs)
+
+        try:
+            with patch("socket.create_connection", side_effect=fake_create_connection):
+                conn = _dial(http.client.HTTPSConnection, "real-hostname.example", listener_port,
+                             "10.0.0.99", 2.0)
+                conn._context = _FakeContext()
+                conn.connect()
+        finally:
+            conn.close()
+            server.close()
+
+        self.assertEqual(dial_calls, [("10.0.0.99", listener_port)])
+        self.assertEqual(captured["server_hostname"], "real-hostname.example")
 
 
 if __name__ == "__main__":

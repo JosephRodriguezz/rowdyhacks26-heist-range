@@ -83,6 +83,12 @@ class NetworkTarget:
     verification_token: str = field(default_factory=lambda: secrets.token_hex(16))
     created_at: float = field(default_factory=time.monotonic)
     verified_at: float | None = None
+    # The literal address verify_ownership actually connected to at the moment
+    # verification last succeeded -- mirrors TargetEngagement.resolved_ip exactly.
+    # Scans/probes dial this, never a fresh resolution of host, so a DNS change
+    # after verification cannot redirect a scan onto an address nothing proved
+    # control of.
+    resolved_ip: str | None = None
 
     def __post_init__(self) -> None:
         if not self.target_id.strip() or len(self.target_id) > 80:
@@ -117,16 +123,20 @@ class NetworkTargetRegistry:
         if target.status == "revoked":
             raise NetworkScanError(f"target '{target_id}' has been revoked")
         origin = f"http://{target.host}:{target.verification_port}"
+        resolved_ip_out: dict[str, str] = {}
         try:
-            verified = verify_ownership(origin, target_id, target.verification_token, timeout=timeout)
+            verified = verify_ownership(origin, target_id, target.verification_token,
+                                         timeout=timeout, resolved_ip_out=resolved_ip_out)
         except EngagementError as exc:
             raise NetworkScanError(str(exc)) from exc
         if verified:
             target.status = "verified"
             target.verified_at = time.monotonic()
+            target.resolved_ip = resolved_ip_out.get("ip")
         else:
             target.status = "pending_verification"
             target.verified_at = None
+            target.resolved_ip = None
         return target
 
     def revoke(self, target_id: str) -> None:
@@ -259,13 +269,17 @@ class NetworkScanExecutor:
         target = self.registry.resolve(target_id)  # raises NetworkScanError if unregistered/unverified
         if not target.scope.port_in_scope(port):
             raise NetworkScanError("port is outside this target's authorized scope")
+        if not target.resolved_ip:
+            raise NetworkScanError(
+                "target has no pinned address from its last successful verification; re-verify first"
+            )
         shed_reason = self._admit(target_id, target.scope)
         if shed_reason is not None:
             result = PortScanResult(port, "shed", detail=shed_reason)
             self._record(target_id, result)
             return result
         try:
-            result = _tcp_connect_scan(target.host, port, timeout=target.scope.scan_timeout_seconds)
+            result = _tcp_connect_scan(target.resolved_ip, port, timeout=target.scope.scan_timeout_seconds)
         finally:
             self._release(target_id)
         self._record(target_id, result)
@@ -309,13 +323,17 @@ class NetworkScanExecutor:
         target = self.registry.resolve(target_id)  # raises NetworkScanError if unregistered/unverified
         if not target.scope.port_in_scope(port):
             raise NetworkScanError("port is outside this target's authorized scope")
+        if not target.resolved_ip:
+            raise NetworkScanError(
+                "target has no pinned address from its last successful verification; re-verify first"
+            )
         shed_reason = self._admit(target_id, target.scope)
         if shed_reason is not None:
             result = PortProbeResult(port, responded=False, detail=shed_reason)
             self._record_probe(target_id, result)
             return result
         try:
-            responded, response = _tcp_probe(target.host, port, payload, timeout=target.scope.scan_timeout_seconds)
+            responded, response = _tcp_probe(target.resolved_ip, port, payload, timeout=target.scope.scan_timeout_seconds)
         finally:
             self._release(target_id)
         result = PortProbeResult(port, responded=responded, response=response)

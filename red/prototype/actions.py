@@ -5,6 +5,7 @@ from __future__ import annotations
 import http.client
 import json
 import re
+import socket
 import threading
 import time
 import uuid
@@ -30,6 +31,33 @@ SENSITIVE_KEYS = frozenset({
 
 class ActionRejected(ValueError):
     pass
+
+
+def _dial(conn_cls: type, host: str, port: int, connect_host: str, timeout: float) -> http.client.HTTPConnection:
+    """Builds an HTTP(S)Connection that dials connect_host at the TCP layer while
+    using host for everything hostname-dependent. For HTTPSConnection this is not
+    cosmetic: TLS SNI and certificate-hostname validation must check the real
+    hostname that was verified, never the pinned IP substituted for routing --
+    constructing the connection with connect_host as `host` (as a naive pin would)
+    silently breaks both and makes a real-hostname-certificate dispatch fail with a
+    certificate-name mismatch, or worse, skip the check a caller assumes is still
+    happening. Only the raw socket destination changes; everything TLS cares about
+    still comes from host."""
+    if connect_host == host:
+        return conn_cls(host, port, timeout=timeout)
+
+    is_https = conn_cls is http.client.HTTPSConnection
+
+    class _PinnedConnection(conn_cls):
+        def connect(self) -> None:
+            sock = socket.create_connection((connect_host, self.port), self.timeout, self.source_address)
+            try:
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            except OSError:
+                pass
+            self.sock = self._context.wrap_socket(sock, server_hostname=self.host) if is_https else sock
+
+    return _PinnedConnection(host, port, timeout=timeout)
 
 
 @dataclass(frozen=True)
@@ -458,12 +486,6 @@ class ActionExecutor:
         if self.before_dispatch:
             self.before_dispatch()
         headers = {"Accept": "application/json", "X-Lab-Action-ID": evidence_id}
-        if connect_host != host:
-            # Connecting to the pinned IP rather than the logical hostname means
-            # http.client would otherwise send the IP as the Host header; restore
-            # the real hostname explicitly so a name-based target still sees the
-            # request it expects.
-            headers["Host"] = f"{host}:{port}"
         if cookie:
             headers["Cookie"] = f"{session_cookie_name}=" + cookie
         request_bytes: bytes | None = None
@@ -479,7 +501,7 @@ class ActionExecutor:
             request_bytes = json.dumps(body, separators=(",", ":")).encode("utf-8")
             headers["Content-Type"] = "application/json"
         conn_cls = http.client.HTTPSConnection if scheme == "https" else http.client.HTTPConnection
-        conn = conn_cls(connect_host, port, timeout=self.limits.request_timeout_seconds)
+        conn = _dial(conn_cls, host, port, connect_host, self.limits.request_timeout_seconds)
         status: int | None = None
         response_text = ""
         summary = ""
