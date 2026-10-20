@@ -234,6 +234,21 @@ class NetworkTargetRegistryTests(unittest.TestCase):
         with self.assertRaises(NetworkScanError):
             self.registry.verify("acme-network")
 
+    def test_a_successful_verification_pins_the_address_it_actually_connected_to(self) -> None:
+        target = self._register()
+        self.site_state.set_authorization_token("acme-network", target.verification_token)
+        self.registry.verify("acme-network")
+        self.assertEqual(target.resolved_ip, self.verify_host)
+
+    def test_a_failed_verification_clears_any_previously_pinned_address(self) -> None:
+        target = self._register()
+        self.site_state.set_authorization_token("acme-network", target.verification_token)
+        self.registry.verify("acme-network")
+        self.assertIsNotNone(target.resolved_ip)
+        self.site_state.clear_authorization_token("acme-network")
+        self.registry.verify("acme-network")
+        self.assertIsNone(target.resolved_ip)
+
 
 class NetworkScanExecutorTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -358,6 +373,25 @@ class NetworkScanExecutorTests(unittest.TestCase):
         self.assertEqual(len(events), 1)
         self.assertEqual(events[0]["port"], self.open_port)
         self.assertEqual(events[0]["state"], "open")
+
+    def test_scan_is_rejected_when_no_address_has_ever_been_pinned(self) -> None:
+        # Force-verified without ever running verify(), so no real connection (and
+        # therefore no pin) has ever happened -- scanning must fail closed, never
+        # silently fall back to resolving target.host fresh.
+        self.target.status = "verified"
+        self.target.resolved_ip = None
+        with self.assertRaises(NetworkScanError):
+            self.executor.scan_port("acme-network", self.open_port)
+
+    def test_scan_follows_the_pinned_address_not_a_fresh_resolution_of_host(self) -> None:
+        # Simulate what a DNS/address change after verification would mean: if
+        # scan_port re-resolved target.host instead of using the pin, this would
+        # have no effect (host is still the real mock network's address). Pointing
+        # the pin elsewhere and observing the scan follow *it* is what proves the
+        # pin, not target.host, is what dispatch actually uses.
+        self.target.resolved_ip = "127.0.0.2"
+        result = self.executor.scan_port("acme-network", self.open_port)
+        self.assertNotEqual(result.state, "open")
 
 
 class NetworkScanExecutorProbeTests(unittest.TestCase):
