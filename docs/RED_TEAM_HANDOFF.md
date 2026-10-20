@@ -1,6 +1,7 @@
 # Red-team handoff for Codex
 
-Status: **planning agreed; implementation has not started on this branch**. This file
+Status: **planning agreed; implementation authorized on 2026-10-19; no code has been
+written on this branch yet**. This file
 preserves the user's decisions from the Codex discussion on October 13, 2026,
 originally recorded locally at `docs/RED_TEAM_HANDOFF.md` in a separate, disconnected
 checkout (`ChatGPT/RowdyHacks2026`, remote pointed at the old `JosephRodriguezz/RowdyHacks26`
@@ -67,11 +68,17 @@ to pre-negotiate now, before either side has working code.
 
 ## Implementation and review boundary
 
-Codex is preparing the red-team scope described above. **The user has not yet confirmed
-the final implementation gate, so no red-team implementation work is authorized by this
-handoff alone.** Coordinate with the user before changing shared lab, API, event, or
-credential interfaces that affect this work. This boundary can be changed by a new user
-direction.
+**Update, 2026-10-19: the user has authorized implementation work on the access-control
+milestone described above.** Codex may begin building it. This authorizes the milestone
+as scoped in "Agreed direction" above; it does not retroactively authorize any work
+outside that scope, and it does not substitute for coordinating with the user before
+changing shared lab, API, event, or credential interfaces that affect other members'
+work (Member 2's core/API layer, Member 4's patch surface). Note that as of this update,
+no core HTTP tool interface, target registry, or API layer exists anywhere in this
+repository (checked on both `Mayo` and this branch) -- Member 3's red loop depends on
+that core interface per the shared contract, so either build a fake tool adapter first
+(as the member packet explicitly allows for independent development) or coordinate with
+whoever is building core before assuming it is ready to integrate against.
 
 Other contributors may continue unrelated work. Preserve their changes, including
 current untracked design and Unity files in the other checkout.
