@@ -1,6 +1,6 @@
 # Red-team handoff for Codex
 
-Status: **implementation authorized on 2026-10-19; first local red/lab/core slice implemented; production assessment orchestration remains pending**. This file
+Status: **implementation authorized on 2026-10-19; first local red/lab/core slice implemented and tested (14/15); production assessment orchestration remains pending; kept as an independent track alongside Claude's red/prototype/ work as of 2026-10-27, not yet reconciled**. This file
 preserves the user's decisions from the Codex discussion on October 13, 2026,
 originally recorded locally at `docs/RED_TEAM_HANDOFF.md` in a separate, disconnected
 checkout (`ChatGPT/RowdyHacks2026`, remote pointed at the old `JosephRodriguezz/RowdyHacks26`
@@ -86,12 +86,31 @@ vulnerability class:
   reuse/fixation after logout), not access-control -- a different vulnerability family,
   so there is no collision with this milestone's access-control scope.
 
-**Practical implication for this branch:** proceed on access-control as planned in this
-note. If the candidate-finding/referee-verification *shape* (the structured record
-format, the verify/reject/inconclusive vocabulary) ends up being something other
-red-team work should reuse rather than reinvent, that is worth a short, explicit
-conversation once this milestone has a real implementation to look at -- not something
-to pre-negotiate now, before either side has working code.
+**Update, 2026-10-27, now that this milestone has a real implementation to look at:**
+Claude's side also grew since the paragraph above was written -- it's no longer just
+"availability/DDoS plus session-handling." `red/prototype/` now has `EngagementRegistry`
+(real HTTP ownership verification, DNS-pinned dispatch), `ActionExecutor` (budgeted,
+redirect-rejecting HTTP tool), and `vulnerability.py` (structured `VulnerabilityFinding`
+candidates). That's conceptually close to this branch's `TargetRegistry`/
+`BoundedHttpExecutor`/`IndependentReferee` -- not a literal code collision (different
+codebases, different lab targets), but a real architectural overlap, not "no collision"
+as originally written.
+
+Given both sides now have working, tested code (this branch: 14/15 local tests passing;
+`red/prototype/`: a merged PR plus one more in review), **Aaron decided to keep both as
+independent implementations for now rather than force a rewrite of either.** Reconciling
+them (e.g., porting this branch's independent-referee/SQLite-persistence pattern into
+`red/prototype/`, or `red/prototype/`'s DNS-pinning/ownership-verification pattern into
+this branch's registry) is a real, worthwhile idea for later, but not urgent, and not
+something either side should do unilaterally. Keep building this milestone as planned;
+this is a status note, not a redirect.
+
+One small thing worth a look: `backend/tests/core/test_guided.py` fails to import
+(`from app.core import run_guided_access_control`) when run via the documented
+`python3 -m unittest discover -s backend/tests/core -p "test_*.py" -v` command from the
+repo root -- looks like an import-path mismatch with the rest of that test directory,
+not a logic problem. The other 14 tests across `backend/tests/core`, `backend/tests/red`,
+and `cyber_range/tests` all pass as documented.
 
 ## Implementation and review boundary
 
@@ -101,11 +120,20 @@ the repository had no core HTTP tool interface or target registry; this branch n
 a local bounded executor for integration tests, while the production assessment API and
 service orchestration remain open.
 
-The red/lab directories belong to Member 3; core and shared interfaces belong to Member 2;
-the blue agent and defense artifacts belong to Member 4. Preserve the shared contract.
-Coordinate changes that cross those boundaries with the owners. Claude may review the slice,
-but should not independently rewrite these modules or their interfaces. This boundary can be
-changed by a new user direction.
+**Correction, 2026-10-27:** the "Member 2 / Member 3 / Member 4" roles above are from the
+original 4-person packet. Per the `gate-status` thread on `Mayo` (2026-10-04, reaffirmed
+since), the team restructured: Joseph owns Blue, Aaron owns Red. Whether anyone is still
+actively staffing a distinct "Member 2" (core/shared-interfaces) or "Member 4"
+(blue-agent/defense-artifacts) role under the current structure isn't something this
+note can confirm -- if you're coordinating against roles that aren't actually staffed
+anymore, that coordination may stall on nobody being there to answer. Worth confirming
+directly with Aaron/Joseph rather than assuming the original packet's org chart still
+holds.
+
+Ownership of the code itself is unchanged: the red/lab/core directories on this branch
+are Codex's to build, Claude should not independently rewrite these modules or their
+interfaces, and the same restraint applies in reverse. This boundary can be changed by a
+new user direction.
 
 Other contributors may continue unrelated work. Preserve their changes, including
 current untracked design and Unity files in the other checkout.
