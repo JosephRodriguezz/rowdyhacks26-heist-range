@@ -2,7 +2,7 @@
 
 An interactive cyber range for RowdyHacks: AI agents attack and defend an isolated lab website while a neutral referee verifies the results.
 
-**Status:** project foundation, four-person work packages, shared handoff contracts, and interactive UI preview. The preview uses sample data; live agents, the vulnerable application, defensive tools, and evaluation are not implemented yet.
+**Status:** tested local lab, red runner, registered-target executor, independent referee, and a guided SQLite-backed golden access-control run. The dashboard still uses sample data; the production assessment API, cancellation, SSE, and evaluation remain open.
 
 ## Start this weekend
 

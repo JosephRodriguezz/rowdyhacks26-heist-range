@@ -4,15 +4,18 @@
 - [x] Preserve the interactive sample-data dashboard preview.
 - [x] Create four work packets, ownership boundaries, shared handoff vocabulary, and validated fixtures.
 - [x] Prepare the named 24-hour kickoff plan, setup/preview scripts, starter CI, and demo handoff.
-- [ ] Build the lab, seed/reset command, ownership policy, and deterministic regression checks.
-- [ ] Define typed API/event contracts and a server-owned target registry.
-- [ ] Implement bounded tools, SQLite persistence, assessment phases, and cancellation.
-- [ ] Implement red's bounded observe/test/adapt loop and independent verification.
+- [x] Build the local lab, seed/reset adapters, ownership policy, and deterministic regression checks.
+- [x] Define typed API/event contracts and a server-owned target registry.
+- [x] Implement the bounded registered-target HTTP tool.
+- [x] Add a local SQLite event trail and guided assessment phases for the golden scenario.
+- [x] Implement red's bounded local observe/test/adapt loop and candidate evidence output.
+- [x] Connect red to the core executor and independent verification in a direct local slice.
+- [ ] Add a production assessment service around the integrated agents and referee.
 - [ ] Connect the dashboard to actual persisted events and SSE.
-- [ ] Implement telemetry-driven blue detection and scoped session revocation.
-- [ ] Apply a reviewable ownership fix to a disposable target and run both regression checks.
+- [x] Implement telemetry-driven blue detection and scoped session revocation in the guided local run.
+- [x] Apply a named known-good ownership fix to a disposable target and run unauthorized plus authorized regression checks.
 - [ ] Add scenario-scoped evaluation, exact patch provenance, and partial-failure reporting.
-- [ ] Package with Docker Compose; verify reset, reconnection, cancellation, and a complete guided demo.
+- [ ] Package with Docker Compose; add reset, reconnection, cancellation, and service-level guided demo coverage.
 - [ ] Add autonomous rounds once guided execution is reliable.
 
 ## Gate before stretch work

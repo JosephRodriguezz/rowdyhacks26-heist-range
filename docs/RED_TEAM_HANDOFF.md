@@ -1,23 +1,50 @@
 # Red-team handoff for Codex
 
-Status: **planning agreed; implementation authorized on 2026-10-19; no code has been
-written on this branch yet**. This file
+Status: **implementation authorized on 2026-10-19; first local red/lab/core slice implemented; production assessment orchestration remains pending**. This file
 preserves the user's decisions from the Codex discussion on October 13, 2026,
 originally recorded locally at `docs/RED_TEAM_HANDOFF.md` in a separate, disconnected
 checkout (`ChatGPT/RowdyHacks2026`, remote pointed at the old `JosephRodriguezz/RowdyHacks26`
 repo). That copy was never pushed anywhere shared. This copy lives in the actual shared
 repo (`rowdyhacks26-heist-range`), on a new branch (`codex-red-team`, forked from `Mayo`)
 so the work is visible and coordinable instead of sitting in a checkout nobody else
-could find. It is a coordination note, not evidence of a working red-team capability or
-authorization to build the milestone.
+could find. It is a coordination note for the implemented local slice; it does not claim a
+complete live assessment or authorize unrelated scope.
 
 ## Project context
 
 Read `README.md`, `docs/PROJECT_SPEC.md`, `docs/ROADMAP.md`, and `AGENTS.md` before
-changing implementation. The repository currently has a sample-data dashboard preview
-and planning documents. It does not have a live storefront lab, red agent, security
-tool, or independent verifier. The review in `docs/reference/claude-review.md` informed
-the current spec; it is a critique, not an implemented feature.
+changing implementation. The repository has a sample-data dashboard preview plus local
+storefront, red-runner, target-executor, and referee primitives. It does not yet have a
+live persisted assessment service or orchestration layer. The review in
+`docs/reference/claude-review.md` informed the current spec; it is a critique, not an
+implementation of the orchestration layer.
+
+## Current implementation on this branch
+
+- `cyber_range/storefront/` contains a standard-library loopback lab with runtime
+  credentials, Alice/Bob seed records, one intentionally flawed detail route, a
+  protected control route, sanitized telemetry, reset, session revocation, and fresh
+  session adapters.
+- `backend/app/agents/red/` contains a provider-neutral, deterministic red runner.
+  It discovers the public route, lists permitted records, compares owner and
+  cross-user responses, and returns a candidate with replay and evidence references.
+  It can consume fresh account references after revocation and report the bounded
+  observation as still exposed, blocked, or inconclusive.
+- `backend/app/core/` contains a fixed target registry, bounded credential-reference
+  HTTP executor, independent referee, and guided local orchestrator. The referee obtains
+  fresh sessions, establishes an owner baseline, and replays the candidate without
+  trusting red's verdict or evidence. The guided run persists its event trail in SQLite,
+  sequences blue containment and fresh-session adaptation, and retests a known-good
+  fallback on a disposable patched target. The executor returns redirects without
+  following them; a regression test confirms that a cross-origin redirect destination
+  receives no request.
+- Standard-library tests cover the lab, candidate runner, protected-control false
+  positives, budgets, privileged-context rejection, and loopback integration.
+
+This is still not a complete production assessment platform: service-level cancellation,
+SSE API, and dashboard wiring are not implemented here. The guided run is a local live
+process with SQLite persistence; do not describe it as a deployed service or a model-
+driven assessment.
 
 ## Agreed direction (unchanged from the original note)
 
@@ -68,17 +95,17 @@ to pre-negotiate now, before either side has working code.
 
 ## Implementation and review boundary
 
-**Update, 2026-10-19: the user has authorized implementation work on the access-control
-milestone described above.** Codex may begin building it. This authorizes the milestone
-as scoped in "Agreed direction" above; it does not retroactively authorize any work
-outside that scope, and it does not substitute for coordinating with the user before
-changing shared lab, API, event, or credential interfaces that affect other members'
-work (Member 2's core/API layer, Member 4's patch surface). Note that as of this update,
-no core HTTP tool interface, target registry, or API layer exists anywhere in this
-repository (checked on both `Mayo` and this branch) -- Member 3's red loop depends on
-that core interface per the shared contract, so either build a fake tool adapter first
-(as the member packet explicitly allows for independent development) or coordinate with
-whoever is building core before assuming it is ready to integrate against.
+**Authorization update, 2026-10-19:** Aaron authorized implementation of the access-control
+milestone described above. This permission covers that scope only. At authorization time,
+the repository had no core HTTP tool interface or target registry; this branch now supplies
+a local bounded executor for integration tests, while the production assessment API and
+service orchestration remain open.
+
+The red/lab directories belong to Member 3; core and shared interfaces belong to Member 2;
+the blue agent and defense artifacts belong to Member 4. Preserve the shared contract.
+Coordinate changes that cross those boundaries with the owners. Claude may review the slice,
+but should not independently rewrite these modules or their interfaces. This boundary can be
+changed by a new user direction.
 
 Other contributors may continue unrelated work. Preserve their changes, including
 current untracked design and Unity files in the other checkout.
@@ -99,6 +126,8 @@ current untracked design and Unity files in the other checkout.
   retries with a fresh permitted session, and the referee still checks both unauthorized
   and authorized behavior after any defense.
 
-The first milestone and the high-priority adaptation milestone are plans, not completed
-features. Add dependencies, run commands, and meaningful test commands to the relevant
-manifests and `AGENTS.md` when live services are introduced.
+The local first slice, adaptation observation, target registry, bounded executor,
+independent referee, guided orchestration, SQLite event trail, and full local acceptance
+run are implemented and tested. Service cancellation, live SSE transport, and dashboard
+wiring remain open. Add dependencies, run commands, and meaningful test commands to the
+relevant manifests and `AGENTS.md` when those services are introduced.

@@ -1,6 +1,6 @@
 # Repository working rules
 
-Read README.md and docs/PROJECT_SPEC.md before implementation. This repository currently contains planning documents and a sample-data UI preview, not a working security platform.
+Read README.md and docs/PROJECT_SPEC.md before implementation. This repository contains a tested local golden access-control run plus a sample-data UI preview; it is not yet a production security platform.
 
 For team work, read docs/team/README.md and the assigned member packet. Preserve directory ownership and shared/contracts/README.md interfaces. Member 2 coordinates contract and root infrastructure changes.
 
@@ -38,6 +38,18 @@ git diff --check
 
 # Validate shared handoff fixture and negative cases
 python3 scripts/check_handoff.py --self-test
+
+# Run the resettable storefront lab checks
+python3 -m unittest discover -s cyber_range/tests -p "test_*.py" -v
+
+# Run the bounded red candidate runner checks
+python3 -m unittest discover -s backend/tests/red -p "test_*.py" -v
+
+# Run the registered-target, referee, and guided SQLite scenario checks
+PYTHONPATH=backend python3 -m unittest discover -s backend/tests/core -p "test_*.py" -v
 ```
 
-The handoff checker exists; no live application test suite exists yet. Update this file with exact test commands when live services and tests are introduced.
+The storefront lab, bounded red runner, target registry, HTTP executor,
+independent referee, and guided local orchestrator have local standard-library
+test suites. Production cancellation, SSE, and service-level orchestration remain
+open; add their exact commands here when introduced.
